@@ -1,25 +1,28 @@
 {% extends 'landing/base.html' %}
 {% load static %}
-{% block body_class %}theme-light page-about stage19-about{% endblock %}
+{% block body_class %}theme-light page-about stage19-about stage34-about{% endblock %}
 {% block content %}
-<section class="section about-hero stage19-about-hero">
-  <div class="container split-grid split-grid-about" data-reveal>
-    <div class="visual-card rounded-hero-card stage19-about-visual">
-      <img src="{% static 'landing/images/about_building.png' %}" alt="دفتر سیتباک">
-      <div class="stage19-hero-float stage19-hero-float-a">
-        <strong>+۱۵</strong>
-        <span>ماژول آماده توسعه</span>
+<section class="section about-hero stage19-about-hero stage34-about-hero">
+  <div class="container split-grid split-grid-about stage34-about-hero-grid" data-reveal>
+    <div class="visual-card rounded-hero-card stage19-about-visual stage34-about-visual">
+      <div class="stage34-about-building-frame">
+        <img src="{% static 'landing/images/about_building_clean.png' %}" alt="ساختمان دفتر سیتباک">
       </div>
-      <div class="stage19-hero-float stage19-hero-float-b">
-        <strong>مرحله‌ای</strong>
-        <span>تحلیل، اجرا، آموزش</span>
+      <div class="stage34-building-stats" aria-label="شاخص‌های سیتباک">
+        {% for value, title, icon in about_stats|slice:":3" %}
+          <article>
+            <span><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+            <strong>{{ value }}</strong>
+            <small>{{ title }}</small>
+          </article>
+        {% endfor %}
       </div>
     </div>
-    <div class="about-copy stage19-about-copy">
+    <div class="about-copy stage19-about-copy stage34-about-copy">
       <span class="eyebrow">{{ page_kicker }}</span>
       <h1>{{ page_title }}</h1>
       <p>{{ page_description }}</p>
-      <div class="stage19-proof-list">
+      <div class="stage19-proof-list stage34-proof-list">
         {% for title, description, icon in about_proof_points %}
           <span>
             <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
@@ -28,7 +31,7 @@
           </span>
         {% endfor %}
       </div>
-      <div class="org-card stage19-org-card">
+      <div class="org-card stage19-org-card stage34-org-card">
         <div class="org-mark">
           <svg class="icon"><use href="#i-chart"></use></svg>
         </div>
@@ -38,16 +41,6 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="container stat-band stage19-stat-band" data-reveal>
-    {% for value, title, icon in about_stats %}
-      <article class="stat-band-item">
-        <span class="stat-band-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
-        <strong>{{ value }}</strong>
-        <p>{{ title }}</p>
-      </article>
-    {% endfor %}
   </div>
 </section>
 
@@ -129,7 +122,7 @@
     <p>ترکیبی از تجربه فنی، نگاه محصولی و شناخت بازار، پشت توسعه سیتباک قرار دارد.</p>
   </div>
 
-  <div class="container card-grid card-grid-3 stage19-leader-grid" data-reveal>
+  <div class="container card-grid card-grid-3 stage19-leader-grid stage34-leader-grid" data-reveal>
     {% for item in leaders %}
       <article class="soft-card leader-card stage19-leader-card">
         <div class="leader-photo">

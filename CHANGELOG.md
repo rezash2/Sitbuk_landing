@@ -362,3 +362,27 @@ python manage.py collectstatic --noinput
 - Replaced the top homepage video poster with the latest uploaded cover image for the main hero video only.
 - Kept the four lower homepage video sections unchanged.
 
+## Stage 32.14 - Homepage personalization and integration video swap
+- Swapped only the video source and poster mapping between the homepage “integration systems” section and the “customization / flexible implementation” section.
+- Integration now uses `landing/videos/home-section-3.mp4` with `landing/images/video_posters/home_video_4.jpg`.
+- Customization now uses `landing/videos/home-section-1.mp4` with `landing/images/video_posters/home_video_2.jpg`.
+- Preserved the Stage 32.13 hero poster final fix and kept the HR/performance and financial-savings lower video sections unchanged.
+- No model or migration changes were added.
+
+## Stage 33 - SEO and site settings custom dashboard
+- Replaced the `/dashboard/seo/` placeholder with a real custom dashboard page.
+- Added dashboard forms for `SiteSettings`, page-level SEO metadata, and quick blog-post SEO editing.
+- Global settings now manage brand/contact/footer data, default meta description/keywords, default OG image, OG alt text, title suffix, robots policy, and social links without using Django Admin.
+- Page SEO now supports per-page meta title, description, keywords, canonical path, robots, OG type/image/alt, schema type, and active status from the custom dashboard.
+- Added Open Graph preview cards, robots.txt preview, llms.txt preview, sitemap shortcut, page SEO checklist, and latest-blog quick selector.
+- Updated `/dashboard/seo/` routing to use the new `dashboard_seo` view.
+- No model or migration changes were added; this stage uses existing Stage 26 SEO fields.
+
+## Stage 34 - About page hero and leadership photo polish
+- Updated the About page first section so the building visual card is fixed on the left and the text/content block is fixed on the right on desktop, independent of RTL grid auto-placement.
+- Replaced the old cut-off building screenshot usage with a cleaned building-only asset `about_building_clean.png` and rebuilt the lower stats area as a native dark/gold HTML/CSS panel.
+- Removed the separate duplicated stat band directly below the About hero so the lower content no longer appears as a broken continuation of the image.
+- Added the uploaded leadership portraits for Shirvani, Faridi, and Faramarzian to both source static assets and collected `staticfiles`.
+- Updated fallback data, the bundled SQLite CMS rows, and the internal-page seed migration references so the About page uses the correct portrait for each name.
+- Redesigned the About page leadership cards with larger portrait-first cards while preserving the existing copy and CMS-driven structure.
+- No model changes and no new migrations were added.

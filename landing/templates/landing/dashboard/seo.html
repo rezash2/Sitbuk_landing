@@ -1,0 +1,251 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-panel dashboard-seo-hero-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>مرکز SEO و تنظیمات سایت</h2>
+      <p>اطلاعات عمومی برند، متادیتای صفحات، Open Graph، Schema و فایل‌های راهنمای robots/llms از این بخش کنترل می‌شود.</p>
+    </div>
+    <span class="dashboard-stage-pill">Stage 33</span>
+  </div>
+  <div class="dashboard-seo-summary-grid">
+    <article>
+      <span>صفحات قابل مدیریت</span>
+      <strong>{{ total_pages_count }}</strong>
+      <small>صفحات داخلی متصل به CMS</small>
+    </article>
+    <article>
+      <span>صفحات قابل ایندکس</span>
+      <strong>{{ indexed_pages_count }}</strong>
+      <small>بدون robots noindex</small>
+    </article>
+    <article>
+      <span>مقالات منتشرشده</span>
+      <strong>{{ published_posts_count }}</strong>
+      <small>قابل بررسی برای Article Schema</small>
+    </article>
+    <article>
+      <span>وضعیت تنظیمات عمومی</span>
+      <strong>{% if settings_ready %}آماده{% else %}نیازمند تکمیل{% endif %}</strong>
+      <small>meta پیش‌فرض و OG image</small>
+    </article>
+  </div>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-seo-top-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>تنظیمات عمومی سایت</h2>
+        <p>اطلاعات برند، تماس، شبکه‌های اجتماعی و پیش‌فرض‌های SEO در کل سایت استفاده می‌شوند.</p>
+      </div>
+    </div>
+    <form method="post" class="dashboard-form dashboard-seo-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_site_settings">
+      {% if settings_form.non_field_errors %}<div class="dashboard-form-errors">{{ settings_form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in settings_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">ذخیره تنظیمات سایت</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-seo-preview-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>پیش‌نمایش کارت اشتراک‌گذاری</h2>
+        <p>این کارت نشان می‌دهد متادیتای انتخاب‌شده در شبکه‌های اجتماعی و پیام‌رسان‌ها چه حسی دارد.</p>
+      </div>
+    </div>
+    <div class="dashboard-og-card">
+      <div class="dashboard-og-image">
+        <img src="{{ preview.image }}" alt="{{ preview.title }}">
+      </div>
+      <div class="dashboard-og-body">
+        <strong>{{ preview.title }}</strong>
+        <p>{{ preview.description|truncatechars:180 }}</p>
+        <small>{{ preview.url }}</small>
+      </div>
+    </div>
+    <div class="dashboard-seo-meta-list">
+      <div><span>Robots</span><strong>{{ preview.robots }}</strong></div>
+      <div><span>Schema</span><strong>{{ preview.schema_type }}</strong></div>
+      <div><span>Canonical</span><strong>{{ preview.url }}</strong></div>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-panel dashboard-page-tabs-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>SEO صفحات داخلی</h2>
+      <p>صفحه را انتخاب کن و عنوان، توضیح، canonical، robots، OG image و Schema همان صفحه را ویرایش کن.</p>
+    </div>
+    <a href="{{ page_preview.url }}" target="_blank" class="dashboard-btn ghost small">مشاهده صفحه</a>
+  </div>
+  <div class="dashboard-page-tabs seo-tabs">
+    {% for tab in page_tabs %}
+      <a href="{% url 'dashboard_section_seo' %}?page={{ tab.key }}{% if selected_post %}&post={{ selected_post.id }}{% endif %}" class="dashboard-page-tab{% if tab.is_active %} is-active{% endif %}">
+        <strong>{{ tab.label }}</strong>
+        <span>{{ tab.schema_type }} · {{ tab.robots }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-seo-page-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>ویرایش SEO {{ selected_page_label }}</h2>
+        <p>این تنظیمات در متاتگ‌ها، Open Graph، JSON-LD و sitemap صفحه استفاده می‌شود.</p>
+      </div>
+    </div>
+    <form method="post" class="dashboard-form dashboard-seo-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_page_seo">
+      <input type="hidden" name="selected_page" value="{{ selected_page }}">
+      {% if page_form.non_field_errors %}<div class="dashboard-form-errors">{{ page_form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in page_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">ذخیره SEO صفحه</button>
+        <a href="{{ page_preview.url }}" target="_blank" class="dashboard-btn ghost">پیش‌نمایش عمومی</a>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-seo-status-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>چک‌لیست صفحات</h2>
+        <p>برای هر صفحه مشخص است عنوان و توضیح اختصاصی SEO ثبت شده یا از fallback استفاده می‌شود.</p>
+      </div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-seo-table">
+        <thead><tr><th>صفحه</th><th>عنوان SEO</th><th>توضیح SEO</th><th>مشاهده</th></tr></thead>
+        <tbody>
+          {% for row in page_status_rows %}
+            <tr>
+              <td>{{ row.label }}</td>
+              <td>{% if row.seo_title %}<span class="dashboard-status-pill active">ثبت شده</span>{% else %}<span class="dashboard-status-pill">fallback</span>{% endif %}</td>
+              <td>{% if row.description %}<span class="dashboard-status-pill active">ثبت شده</span>{% else %}<span class="dashboard-status-pill">fallback</span>{% endif %}</td>
+              <td><a href="{{ row.url }}" target="_blank" class="dashboard-inline-link">باز کردن</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="dashboard-empty">داده‌ای برای صفحات پیدا نشد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-seo-blog-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>SEO مقاله انتخاب‌شده</h2>
+        <p>برای مقاله‌های وبلاگ، متادیتای Article و کارت اشتراک‌گذاری را سریع اصلاح کن.</p>
+      </div>
+    </div>
+    {% if selected_post and post_form %}
+      <div class="dashboard-selected-post">
+        <strong>{{ selected_post.title }}</strong>
+        <small>{{ selected_post.get_absolute_url }}</small>
+      </div>
+      <form method="post" class="dashboard-form dashboard-seo-form" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_post_seo">
+        <input type="hidden" name="selected_page" value="{{ selected_page }}">
+        <input type="hidden" name="selected_post" value="{{ selected_post.id }}">
+        {% if post_form.non_field_errors %}<div class="dashboard-form-errors">{{ post_form.non_field_errors }}</div>{% endif %}
+        <div class="dashboard-form-grid two compact">
+          {% for field in post_form %}
+            <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+              <span>{{ field.label }}</span>
+              {{ field }}
+              {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+            </label>
+          {% endfor %}
+        </div>
+        <div class="dashboard-form-actions">
+          <button type="submit" class="dashboard-btn primary">ذخیره SEO مقاله</button>
+          <a href="{% url 'dashboard_post_edit' selected_post.id %}" class="dashboard-btn ghost">ویرایش کامل مقاله</a>
+        </div>
+      </form>
+    {% else %}
+      <div class="dashboard-empty-state mini">
+        <strong>هنوز مقاله‌ای ثبت نشده است.</strong>
+        <p>بعد از ساخت مقاله، SEO مقاله‌ها از همین بخش قابل تنظیم است.</p>
+      </div>
+    {% endif %}
+  </article>
+
+  <article class="dashboard-panel dashboard-seo-status-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>آخرین مقاله‌ها</h2>
+        <p>برای ویرایش سریع SEO، یکی از مقاله‌ها را انتخاب کن.</p>
+      </div>
+      <a href="{% url 'dashboard_post_create' %}" class="dashboard-btn ghost small">مقاله جدید</a>
+    </div>
+    <div class="dashboard-seo-post-list">
+      {% for post in latest_posts %}
+        <a href="{% url 'dashboard_section_seo' %}?page={{ selected_page }}&post={{ post.id }}" class="dashboard-seo-post{% if selected_post and selected_post.id == post.id %} is-active{% endif %}">
+          <strong>{{ post.title }}</strong>
+          <span>{{ post.category }} · {% if post.is_published %}منتشرشده{% else %}پیش‌نویس{% endif %}</span>
+        </a>
+      {% empty %}
+        <div class="dashboard-empty-state mini"><p>مقاله‌ای برای نمایش وجود ندارد.</p></div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-seo-files-grid">
+  <article class="dashboard-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>robots.txt</h2>
+        <p>پیش‌نمایش خروجی عمومی robots که برای موتورهای جستجو سرو می‌شود.</p>
+      </div>
+      <a href="{{ public_robots_url }}" target="_blank" class="dashboard-btn ghost small">مشاهده فایل</a>
+    </div>
+    <pre class="dashboard-code-preview">{{ robots_preview }}</pre>
+  </article>
+  <article class="dashboard-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>llms.txt و sitemap</h2>
+        <p>فایل راهنمای AI/Search و لینک sitemap برای کنترل سریع در production.</p>
+      </div>
+      <div class="dashboard-seo-file-actions">
+        <a href="{{ public_llms_url }}" target="_blank" class="dashboard-btn ghost small">llms.txt</a>
+        <a href="{{ public_sitemap_url }}" target="_blank" class="dashboard-btn ghost small">sitemap</a>
+      </div>
+    </div>
+    <pre class="dashboard-code-preview">{{ llms_preview }}</pre>
+  </article>
+</section>
+{% endblock %}

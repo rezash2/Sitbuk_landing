@@ -7,6 +7,7 @@ import uuid
 from typing import Any, Callable, Optional
 
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -187,7 +188,7 @@ class PageContentItemDashboardForm(DashboardModelFormMixin, forms.ModelForm):
             'page_key': 'صفحه‌ای که این آیتم در آن نمایش داده می‌شود.',
             'section': 'کد سکشن باید با قالب همان صفحه هماهنگ باشد؛ مثل leaders، about_stats، contact_cards، pricing_highlights.',
             'value': 'برای عدد، مقدار، سال، درصد یا شماره مرحله.',
-            'image': 'برای اعضای تیم یا تصویر کارت؛ نمونه: about_member_reza.png یا landing/images/....',
+            'image': 'برای اعضای تیم یا تصویر کارت؛ نمونه: about_member_shirvani.png یا landing/images/....',
             'url': 'لینک اختیاری برای CTA یا کارت‌های قابل کلیک.',
             'sort_order': 'عدد کوچک‌تر زودتر نمایش داده می‌شود.',
         }
@@ -418,6 +419,106 @@ class FAQDashboardForm(DashboardModelFormMixin, forms.ModelForm):
         help_texts = {
             'sort_order': 'عدد کوچک‌تر زودتر در صفحه FAQ نمایش داده می‌شود.',
             'is_active': 'اگر خاموش باشد، سوال در سایت عمومی نمایش داده نمی‌شود.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_dashboard_widgets()
+
+
+class SiteSettingsDashboardForm(DashboardModelFormMixin, forms.ModelForm):
+    textarea_rows = {
+        'footer_about': 4,
+        'default_meta_description': 4,
+    }
+
+    class Meta:
+        model = SiteSettings
+        fields = [
+            'site_name',
+            'support_phone',
+            'sales_phone',
+            'support_email',
+            'address',
+            'working_hours',
+            'footer_about',
+            'whatsapp_number',
+            'telegram_url',
+            'instagram_url',
+            'linkedin_url',
+            'seo_title_suffix',
+            'default_meta_description',
+            'default_meta_keywords',
+            'default_og_image',
+            'default_og_image_alt',
+            'robots_policy',
+        ]
+        help_texts = {
+            'seo_title_suffix': 'در صورت نیاز در عنوان‌های SEO استفاده می‌شود؛ مثال: نرم‌افزار سازمانی سیتباک.',
+            'default_meta_description': 'وقتی صفحه توضیح اختصاصی نداشته باشد، این متن به‌عنوان توضیح پیش‌فرض استفاده می‌شود.',
+            'default_meta_keywords': 'کلمات کلیدی را با ویرگول جدا کن.',
+            'default_og_image': 'نمونه: /static/landing/images/home_story_sitbuk.png یا landing/images/....',
+            'robots_policy': 'برای سایت عمومی معمولاً index,follow است.',
+            'whatsapp_number': 'شماره واتساپ ترجیحاً با فرمت بین‌المللی بدون + وارد شود.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_dashboard_widgets()
+
+
+class PageSEODashboardForm(DashboardModelFormMixin, forms.ModelForm):
+    textarea_rows = {'seo_description': 4}
+
+    class Meta:
+        model = PageContent
+        fields = [
+            'seo_title',
+            'seo_description',
+            'seo_keywords',
+            'canonical_path',
+            'robots',
+            'og_type',
+            'schema_type',
+            'og_image',
+            'og_image_alt',
+            'is_active',
+        ]
+        help_texts = {
+            'seo_title': 'عنوانی که در مرورگر، گوگل و کارت اشتراک‌گذاری نمایش داده می‌شود.',
+            'seo_description': 'توضیح کوتاه و فروش‌محور؛ بهتر است حدود ۱۴۰ تا ۱۶۰ کاراکتر باشد.',
+            'canonical_path': 'مسیر canonical مانند /features/؛ اگر خالی باشد مسیر خود صفحه استفاده می‌شود.',
+            'robots': 'نمونه: index,follow یا noindex,follow.',
+            'og_type': 'برای صفحات عمومی معمولاً website است.',
+            'schema_type': 'WebPage، AboutPage، ContactPage، FAQPage یا Product.',
+            'og_image': 'مسیر تصویر اشتراک‌گذاری؛ مثال: /static/landing/images/home_story_sitbuk.png.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_dashboard_widgets()
+
+
+class BlogPostSEODashboardForm(DashboardModelFormMixin, forms.ModelForm):
+    textarea_rows = {'seo_description': 4}
+
+    class Meta:
+        model = BlogPost
+        fields = [
+            'seo_title',
+            'seo_description',
+            'seo_keywords',
+            'og_image',
+            'canonical_url',
+            'robots',
+            'is_published',
+        ]
+        help_texts = {
+            'seo_title': 'اگر خالی باشد عنوان مقاله استفاده می‌شود.',
+            'seo_description': 'خلاصه مناسب برای نتایج جستجو و شبکه‌های اجتماعی.',
+            'og_image': 'تصویر کارت اشتراک‌گذاری مقاله.',
+            'canonical_url': 'در حالت عادی خالی بماند؛ فقط برای URL اختصاصی استفاده کن.',
+            'robots': 'برای مقاله منتشرشده معمولاً index,follow است.',
         }
 
     def __init__(self, *args, **kwargs):
@@ -2144,6 +2245,223 @@ def dashboard_faq_edit(request: HttpRequest, faq_id: int) -> HttpResponse:
         preview_url=reverse('faq'),
     )
     return render(request, 'landing/dashboard/faq_form.html', context)
+
+
+def _get_or_create_site_settings() -> SiteSettings:
+    obj = SiteSettings.get_solo()
+    if obj:
+        return obj
+    return SiteSettings.objects.create()
+
+
+def _seo_page_tabs(selected_page_key: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    try:
+        existing_pages = {page.page_key: page for page in PageContent.objects.all()}
+    except (OperationalError, ProgrammingError):
+        existing_pages = {}
+    for key, label in PageContent.PAGE_CHOICES:
+        page = existing_pages.get(key)
+        rows.append({
+            'key': key,
+            'label': label,
+            'is_active': key == selected_page_key,
+            'has_seo_title': bool(page and page.seo_title),
+            'robots': getattr(page, 'robots', '') or 'index,follow',
+            'schema_type': getattr(page, 'schema_type', '') or 'WebPage',
+        })
+    return rows
+
+
+def _seo_selected_page_key(request: HttpRequest) -> str:
+    page_key = (request.GET.get('page') or request.POST.get('selected_page') or PageContent.PAGE_FEATURES).strip()
+    valid_keys = {key for key, _label in PageContent.PAGE_CHOICES}
+    if page_key not in valid_keys:
+        return PageContent.PAGE_FEATURES
+    return page_key
+
+
+def _seo_image_url(raw_value: str, request: Optional[HttpRequest] = None) -> str:
+    value = (raw_value or '').strip()
+    if not value:
+        value = getattr(settings, 'SITE_DEFAULT_IMAGE', '')
+    if value.startswith('http://') or value.startswith('https://'):
+        return value
+    if value.startswith('/static/') or value.startswith('/media/'):
+        return request.build_absolute_uri(value) if request else f"{settings.SITE_URL.rstrip('/')}{value}"
+    if value.startswith('landing/'):
+        path = f"/static/{value}"
+        return request.build_absolute_uri(path) if request else f"{settings.SITE_URL.rstrip('/')}{path}"
+    if value.startswith('/'):
+        return request.build_absolute_uri(value) if request else f"{settings.SITE_URL.rstrip('/')}{value}"
+    path = f"/static/landing/images/{value}"
+    return request.build_absolute_uri(path) if request else f"{settings.SITE_URL.rstrip('/')}{path}"
+
+
+def _seo_preview_payload(request: HttpRequest, *, settings_obj: SiteSettings, page: PageContent, post: Optional[BlogPost] = None) -> dict[str, Any]:
+    if post:
+        title = post.seo_title or post.title
+        description = post.seo_description or post.summary
+        image = post.og_image or settings_obj.default_og_image
+        robots = post.robots or 'index,follow'
+        url = post.canonical_url or request.build_absolute_uri(post.get_absolute_url())
+        schema_type = 'Article'
+    else:
+        title = page.seo_title or page.page_title or page.get_page_key_display()
+        description = page.seo_description or page.page_description or settings_obj.default_meta_description
+        image = page.og_image or settings_obj.default_og_image
+        robots = page.robots or settings_obj.robots_policy or 'index,follow'
+        route_name = PAGE_ROUTE_NAMES.get(page.page_key, 'home')
+        url = request.build_absolute_uri(page.canonical_path or reverse(route_name))
+        schema_type = page.schema_type or 'WebPage'
+    if settings_obj.seo_title_suffix and settings_obj.seo_title_suffix not in title:
+        title = f'{title} | {settings_obj.seo_title_suffix}'
+    return {
+        'title': title,
+        'description': description,
+        'image': _seo_image_url(image, request),
+        'robots': robots,
+        'url': url,
+        'schema_type': schema_type,
+    }
+
+
+def _robots_preview_lines(request: HttpRequest) -> list[str]:
+    base_host = settings.SITE_URL.replace('https://', '').replace('http://', '').rstrip('/')
+    return [
+        'User-agent: *',
+        'Allow: /',
+        'Allow: /static/',
+        'Disallow: /admin/',
+        'Disallow: /dashboard/',
+        'Disallow: /demo/',
+        'Disallow: /bale/',
+        'Disallow: /*?q=',
+        'Disallow: /*?page=',
+        'Disallow: /*?category=',
+        f"Sitemap: {request.build_absolute_uri('/sitemap.xml')}",
+        f'Host: {base_host}',
+    ]
+
+
+def _llms_preview_lines(request: HttpRequest) -> list[str]:
+    return [
+        '# سیتباک',
+        '',
+        'سیتباک یک لندینگ فارسی برای معرفی راهکارهای CRM، ERP، اتوماسیون کسب‌وکار، مدیریت فرآیندها و گزارش‌گیری مدیریتی است.',
+        '',
+        '## صفحات مهم',
+        f"- صفحه اصلی: {request.build_absolute_uri(reverse('home'))}",
+        f"- امکانات: {request.build_absolute_uri(reverse('features'))}",
+        f"- قیمت‌ها: {request.build_absolute_uri(reverse('pricing'))}",
+        f"- پلن‌ها: {request.build_absolute_uri(reverse('plans'))}",
+        f"- درباره ما: {request.build_absolute_uri(reverse('about'))}",
+        f"- مطالعه موردی: {request.build_absolute_uri(reverse('case_study'))}",
+        f"- وبلاگ: {request.build_absolute_uri(reverse('blog'))}",
+        f"- سوالات متداول: {request.build_absolute_uri(reverse('faq'))}",
+        f"- تماس با ما: {request.build_absolute_uri(reverse('contact'))}",
+        '',
+        '## موضوعات کلیدی',
+        'CRM، ERP، اتوماسیون، داشبورد مدیریتی، مدیریت فروش، مدیریت مشتریان، نرم‌افزار سازمانی، پیاده‌سازی مرحله‌ای.',
+    ]
+
+
+@dashboard_required
+def dashboard_seo(request: HttpRequest) -> HttpResponse:
+    """Stage 33: manage global SEO, page metadata and blog SEO inside the custom dashboard."""
+    selected_page_key = _seo_selected_page_key(request)
+    settings_obj = _get_or_create_site_settings()
+    page_content = _get_or_create_page_content(selected_page_key)
+    selected_post_id = (request.GET.get('post') or request.POST.get('selected_post') or '').strip()
+    selected_post = None
+    if selected_post_id:
+        try:
+            selected_post = BlogPost.objects.filter(id=int(selected_post_id)).first()
+        except (TypeError, ValueError):
+            selected_post = None
+    if selected_post is None:
+        selected_post = BlogPost.objects.order_by('-published_at', '-created_at').first()
+
+    settings_form = SiteSettingsDashboardForm(instance=settings_obj, prefix='site')
+    page_form = PageSEODashboardForm(instance=page_content, prefix='page')
+    post_form = BlogPostSEODashboardForm(instance=selected_post, prefix='post') if selected_post else None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'save_site_settings':
+            settings_form = SiteSettingsDashboardForm(request.POST, instance=settings_obj, prefix='site')
+            if settings_form.is_valid():
+                settings_form.save()
+                messages.success(request, 'تنظیمات عمومی سایت و SEO ذخیره شد.')
+                return redirect('dashboard_section_seo')
+            messages.error(request, 'تنظیمات عمومی نیاز به اصلاح دارد.')
+        elif action == 'save_page_seo':
+            page_form = PageSEODashboardForm(request.POST, instance=page_content, prefix='page')
+            if page_form.is_valid():
+                saved = page_form.save(commit=False)
+                saved.page_key = selected_page_key
+                saved.save()
+                messages.success(request, f'SEO صفحه «{saved.get_page_key_display()}» ذخیره شد.')
+                return redirect(f"{reverse('dashboard_section_seo')}?page={selected_page_key}")
+            messages.error(request, 'اطلاعات SEO صفحه نیاز به اصلاح دارد.')
+        elif action == 'save_post_seo' and selected_post:
+            post_form = BlogPostSEODashboardForm(request.POST, instance=selected_post, prefix='post')
+            if post_form.is_valid():
+                post_form.save()
+                messages.success(request, 'SEO مقاله انتخاب‌شده ذخیره شد.')
+                return redirect(f"{reverse('dashboard_section_seo')}?page={selected_page_key}&post={selected_post.id}")
+            messages.error(request, 'اطلاعات SEO مقاله نیاز به اصلاح دارد.')
+
+    try:
+        page_status_rows = [
+            {
+                'label': label,
+                'key': key,
+                'seo_title': bool(PageContent.objects.filter(page_key=key, seo_title__gt='').exists()),
+                'description': bool(PageContent.objects.filter(page_key=key, seo_description__gt='').exists()),
+                'url': reverse(PAGE_ROUTE_NAMES.get(key, 'home')),
+            }
+            for key, label in PageContent.PAGE_CHOICES
+        ]
+        latest_posts = list(BlogPost.objects.order_by('-published_at', '-created_at')[:10])
+        published_posts_count = BlogPost.objects.filter(is_published=True).count()
+        indexed_pages_count = PageContent.objects.exclude(robots__icontains='noindex').count()
+    except (OperationalError, ProgrammingError):
+        page_status_rows = []
+        latest_posts = []
+        published_posts_count = 0
+        indexed_pages_count = 0
+
+    preview = _seo_preview_payload(request, settings_obj=settings_obj, page=page_content, post=selected_post)
+    page_preview = _seo_preview_payload(request, settings_obj=settings_obj, page=page_content)
+
+    context = _dashboard_context(
+        'seo',
+        dashboard_title='SEO و تنظیمات سایت',
+        dashboard_subtitle='تنظیمات عمومی سایت، متادیتای صفحات، Open Graph، Schema و SEO مقاله‌ها را از پنل اختصاصی مدیریت کن.',
+        current_stage='Stage 33',
+        settings_form=settings_form,
+        page_form=page_form,
+        post_form=post_form,
+        selected_page=selected_page_key,
+        selected_page_label=page_content.get_page_key_display(),
+        page_tabs=_seo_page_tabs(selected_page_key),
+        page_preview=page_preview,
+        preview=preview,
+        selected_post=selected_post,
+        latest_posts=latest_posts,
+        page_status_rows=page_status_rows,
+        robots_preview='\n'.join(_robots_preview_lines(request)),
+        llms_preview='\n'.join(_llms_preview_lines(request)),
+        public_robots_url=reverse('robots_txt'),
+        public_llms_url=reverse('llms_txt'),
+        public_sitemap_url='/sitemap.xml',
+        settings_ready=bool(settings_obj.default_meta_description and settings_obj.default_og_image),
+        indexed_pages_count=indexed_pages_count,
+        published_posts_count=published_posts_count,
+        total_pages_count=len(PageContent.PAGE_CHOICES),
+    )
+    return render(request, 'landing/dashboard/seo.html', context)
 
 @dashboard_required
 def dashboard_index(request: HttpRequest) -> HttpResponse:

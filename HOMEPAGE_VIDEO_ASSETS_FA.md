@@ -58,3 +58,8 @@ python manage.py collectstatic --noinput
 - کاور چهار ویدیوی پایین به‌ترتیب از `home_video_2.jpg` تا `home_video_5.jpg` خوانده می‌شود.
 - فایل‌های اصلی ارسالی `1.jpg` تا `5.jpg` مستقیماً با همین ترتیب داخل پروژه کپی شدند.
 
+## اصلاح Stage 32.14
+- طبق درخواست، ویدیو و کاور دو بخش «یکپارچگی سیستم‌ها» و «پیاده‌سازی منعطف / شخصی‌سازی» با هم جابه‌جا شد.
+- بخش «یکپارچگی سیستم‌ها» اکنون از `landing/videos/home-section-3.mp4` و کاور `landing/images/video_posters/home_video_4.jpg` استفاده می‌کند.
+- بخش «شخصی‌سازی» اکنون از `landing/videos/home-section-1.mp4` و کاور `landing/images/video_posters/home_video_2.jpg` استفاده می‌کند.
+- دو بخش دیگر پایین صفحه اصلی و ویدیوی بالایی Hero بدون تغییر باقی ماندند.
