@@ -1,0 +1,10 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-panel dashboard-section-panel">
+  <div class="dashboard-empty-state">
+    <strong>دسترسی غیرمجاز</strong>
+    <p>حساب کاربری شما اجازه ورود به داشبورد مدیریت سیتباک را ندارد.</p>
+    <a href="{% url 'dashboard_logout' %}" class="dashboard-action-link">خروج و ورود با حساب مدیر</a>
+  </div>
+</section>
+{% endblock %}

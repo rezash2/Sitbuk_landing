@@ -1,0 +1,208 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}theme-light page-pricing{% endblock %}
+{% block content %}
+<section class="page-hero dark-page-hero pricing-page-premium-hero">
+  <div class="container narrow text-center" data-reveal id="pricing-page">
+    <span class="eyebrow eyebrow-center">{{ page_kicker }}</span>
+    <h1>{{ page_title }}</h1>
+    <p>{{ page_description }}</p>
+
+    <div class="billing-toggle" data-billing-toggle>
+      <button type="button" class="toggle-btn is-active" data-billing="monthly">ماهانه</button>
+      <button type="button" class="toggle-btn" data-billing="annual">سالانه (۲۵٪ تخفیف)</button>
+    </div>
+    <div class="pricing-choice-strip" aria-label="راهنمای سریع انتخاب پلن">
+      <span><svg class="icon"><use href="#i-check-square"></use></svg> شروع سریع بدون پیچیدگی</span>
+      <span><svg class="icon"><use href="#i-users"></use></svg> انتخاب بر اساس تعداد کاربر</span>
+      <span><svg class="icon"><use href="#i-layers"></use></svg> افزایش ماژول در زمان رشد</span>
+      <span><svg class="icon"><use href="#i-headphones"></use></svg> مشاوره رایگان انتخاب پلن</span>
+    </div>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">پلن‌های پیشنهادی</span>
+    <h2>سه انتخاب محبوب برای شروع سریع‌تر</h2>
+  </div>
+  <div class="container card-grid card-grid-3 pricing-card-grid" data-reveal>
+    {% for card in pricing_cards %}
+      <article class="soft-card pricing-summary-card pricing-summary-{{ card.accent }}">
+        <div class="pricing-summary-head">
+          <div>
+            <span class="pricing-summary-tag">{{ card.tag }}</span>
+            <h3>{{ card.name }}</h3>
+            <p>{{ card.desc }}</p>
+          </div>
+          <span class="pricing-summary-users">{{ card.users }}</span>
+        </div>
+        <div class="pricing-summary-price">
+          <strong data-monthly="{{ card.price.0 }}" data-annual="{{ card.price.1 }}">{{ card.price.0 }}</strong>
+          <small>میلیون تومان</small>
+        </div>
+        <ul class="pricing-summary-list">
+          {% for item in card.features %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+        <a href="#contact-block" class="btn btn-dark">{{ card.cta }}</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">پلن‌های سیتباک</span>
+    <h2>انتخاب هوشمندانه برای هر مرحله از رشد کسب‌وکار</h2>
+  </div>
+
+  <div class="container pricing-table-intro" data-reveal>
+    <div>
+      <strong>مقایسه سریع پلن‌ها</strong>
+      <p>اعداد این جدول بر اساس میلیون تومان نمایش داده شده‌اند و برای برآورد اولیه مناسب هستند.</p>
+    </div>
+    <a href="#contact-block" class="btn btn-dark">کمک برای انتخاب پلن</a>
+  </div>
+
+  <div class="container pricing-overflow pricing-overflow-premium" data-reveal>
+    <table class="pricing-table">
+      <thead>
+        <tr>
+          <th>پلن‌ها</th>
+          <th>بازرگانی</th>
+          <th>تولیدی</th>
+          <th>خدماتی</th>
+          <th>VIP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in plan_rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td><span data-monthly="{{ row.marketing.0 }}" data-annual="{{ row.marketing.1 }}">{{ row.marketing.0 }}</span></td>
+            <td><span data-monthly="{{ row.manufacturing.0 }}" data-annual="{{ row.manufacturing.1 }}">{{ row.manufacturing.0 }}</span></td>
+            <td><span data-monthly="{{ row.services.0 }}" data-annual="{{ row.services.1 }}">{{ row.services.0 }}</span></td>
+            <td><span data-monthly="{{ row.vip.0 }}" data-annual="{{ row.vip.1 }}">{{ row.vip.0 }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="container discount-callout" data-reveal>
+    <div class="discount-icon"><svg class="icon"><use href="#i-sparkles"></use></svg></div>
+    <p>با انتخاب پلن سالانه، <strong>۲۵٪ تخفیف ویژه</strong> دریافت کنید و یک ماه استفاده رایگان هدیه بگیرید.</p>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">پکیج‌های اشتراکی سیتباک</span>
+    <h2>افزایش ظرفیت و امکانات متناسب با رشد کسب‌وکار شما</h2>
+  </div>
+
+  <div class="container pricing-overflow pricing-overflow-premium" data-reveal>
+    <table class="subscription-table">
+      <thead>
+        <tr>
+          <th>پکیج</th>
+          <th>تا ۱۰ کاربر</th>
+          <th>تا ۱۲۰ کاربر</th>
+          <th>تا ۵۲۱ کاربر</th>
+          <th>+۵۰۰ کاربر</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in package_rows %}
+          <tr>
+            <td>{{ row.0 }}</td>
+            <td>{{ row.1 }}</td>
+            <td>{{ row.2 }}</td>
+            <td>{{ row.3 }}</td>
+            <td>{{ row.4 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container card-grid card-grid-3" data-reveal>
+    {% for title, description, icon in pricing_highlights %}
+      <article class="soft-card pricing-highlight-card">
+        <span class="pricing-highlight-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm pricing-help-section">
+  <div class="container pricing-help-grid" data-reveal>
+    <article class="soft-card pricing-help-card">
+      <span><svg class="icon"><use href="#i-target"></use></svg></span>
+      <h3>اگر هنوز دقیق نمی‌دانید کدام پلن مناسب شماست</h3>
+      <p>تیم فروش سیتباک نیازهای شما را بررسی می‌کند و بر اساس تعداد کاربران، ماژول‌ها و فرآیندها بهترین پلن را پیشنهاد می‌دهد.</p>
+    </article>
+    <article class="soft-card pricing-help-card pricing-help-card-dark">
+      <span><svg class="icon"><use href="#i-rocket"></use></svg></span>
+      <h3>از یک پلن سبک شروع کنید و مرحله‌ای رشد کنید</h3>
+      <p>ساختار سیتباک طوری طراحی شده که بتوانید ابتدا سریع شروع کنید و بعد ماژول‌ها، کاربران و گزارش‌ها را توسعه دهید.</p>
+    </article>
+  </div>
+</section>
+
+<section class="section support-strip-section">
+  <div class="container support-strip" data-reveal>
+    <div>
+      <h2>سوال دارید؟ ما پاسخ‌گو هستیم!</h2>
+      <p>تیم پشتیبانی ما آماده پاسخ‌گویی به سوالات شما درباره پلن‌ها و امکانات سیتباک است.</p>
+    </div>
+    <a href="#contact-block" class="btn btn-primary">تماس با پشتیبانی</a>
+    <img src="{% static 'landing/images/pricing_questions.png' %}" alt="آیکن پرسش" class="support-strip-art">
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container card-grid card-grid-4" data-reveal>
+    {% for title, description, icon in assurances %}
+      <article class="soft-card why-mini-card">
+        <span class="why-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">سوالات متداول قیمت‌گذاری</span>
+  </div>
+  <div class="container faq-preview-grid" data-reveal>
+    {% for question, answer in pricing_faqs %}
+      <details class="faq-preview-item">
+        <summary>{{ question }}</summary>
+        <div class="faq-answer">{{ answer }}</div>
+      </details>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section final-cta final-cta-pricing">
+  <div class="container final-cta-inner" data-reveal>
+    <div class="final-cta-copy">
+      <h2>هنوز مطمئن نیستید؟</h2>
+      <p>نسخه رایگان سیتباک را امتحان کنید و تفاوت را احساس کنید.</p>
+      <a href="#contact-block" class="btn btn-light">شروع نسخه رایگان</a>
+    </div>
+    <div class="final-cta-visual">
+      <img src="{% static 'landing/images/pricing_laptop_cta.png' %}" alt="نمای لپ‌تاپ و داشبورد">
+    </div>
+  </div>
+</section>
+{% endblock %}

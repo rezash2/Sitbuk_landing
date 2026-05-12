@@ -1,0 +1,39 @@
+from django.urls import path
+
+from . import views
+from . import admin_panel
+
+urlpatterns = [
+
+    path('dashboard/login/', admin_panel.dashboard_login, name='dashboard_login'),
+    path('dashboard/logout/', admin_panel.dashboard_logout, name='dashboard_logout'),
+    path('dashboard/', admin_panel.dashboard_index, name='dashboard_index'),
+    path('dashboard/home/', admin_panel.dashboard_home, name='dashboard_section_home'),
+    path('dashboard/pages/', admin_panel.dashboard_pages, name='dashboard_section_pages'),
+    path('dashboard/leads/', admin_panel.dashboard_leads, name='dashboard_section_leads'),
+    path('dashboard/leads/export/', admin_panel.dashboard_leads_export, name='dashboard_leads_export'),
+    path('dashboard/leads/<int:lead_id>/', admin_panel.dashboard_lead_detail, name='dashboard_lead_detail'),
+    path('dashboard/messages/<int:message_id>/', admin_panel.dashboard_message_detail, name='dashboard_message_detail'),
+    path('dashboard/content/', admin_panel.dashboard_content, name='dashboard_section_content'),
+    path('dashboard/content/posts/new/', admin_panel.dashboard_post_create, name='dashboard_post_create'),
+    path('dashboard/content/posts/<int:post_id>/', admin_panel.dashboard_post_edit, name='dashboard_post_edit'),
+    path('dashboard/content/faqs/new/', admin_panel.dashboard_faq_create, name='dashboard_faq_create'),
+    path('dashboard/content/faqs/<int:faq_id>/', admin_panel.dashboard_faq_edit, name='dashboard_faq_edit'),
+    path('dashboard/pricing/', admin_panel.dashboard_pricing, name='dashboard_section_pricing'),
+    path('dashboard/seo/', admin_panel.dashboard_section, {'section_key': 'seo'}, name='dashboard_section_seo'),
+    path('dashboard/media/', admin_panel.dashboard_section, {'section_key': 'media'}, name='dashboard_section_media'),
+    path('dashboard/security/', admin_panel.dashboard_section, {'section_key': 'security'}, name='dashboard_section_security'),
+    path('', views.home, name='home'),
+    path('features/', views.features, name='features'),
+    path('about/', views.about, name='about'),
+    path('case-study/', views.case_study, name='case_study'),
+    path('pricing/', views.pricing, name='pricing'),
+    path('plans/', views.plans, name='plans'),
+    path('blog/', views.blog, name='blog'),
+    path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
+    path('faq/', views.faq, name='faq'),
+    path('contact/', views.contact, name='contact'),
+    path('forms/lead/', views.submit_lead, name='submit_lead'),
+    path('forms/newsletter/', views.submit_newsletter, name='submit_newsletter'),
+    path('forms/contact/', views.submit_contact, name='submit_contact'),
+]

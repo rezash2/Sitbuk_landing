@@ -1,0 +1,169 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis">
+  {% for card in content_kpis %}
+    <article class="dashboard-kpi-card accent-{{ card.accent }}">
+      <span>{{ card.label }}</span>
+      <strong>{{ card.value }}</strong>
+      <p>{{ card.hint }}</p>
+    </article>
+  {% endfor %}
+</section>
+
+<section class="dashboard-panel dashboard-content-controls">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>مدیریت محتوا</h2>
+      <p>مقاله‌ها و سوالات متداول را از همین پنل اختصاصی ایجاد، ویرایش، منتشر یا غیرفعال کن.</p>
+    </div>
+    <span class="dashboard-stage-pill">Stage 31</span>
+  </div>
+  <div class="dashboard-page-tabs lead-tabs">
+    <a href="{% url 'dashboard_section_content' %}?tab=posts" class="dashboard-page-tab{% if active_tab == 'posts' %} is-active{% endif %}">
+      <strong>بلاگ</strong><span>{{ post_total }} مقاله مطابق فیلتر</span>
+    </a>
+    <a href="{% url 'dashboard_section_content' %}?tab=faqs" class="dashboard-page-tab{% if active_tab == 'faqs' %} is-active{% endif %}">
+      <strong>FAQ</strong><span>{{ faq_total }} سوال مطابق فیلتر</span>
+    </a>
+  </div>
+
+  <form method="get" class="dashboard-form dashboard-filter-form">
+    <input type="hidden" name="tab" value="{{ active_tab }}">
+    {% if active_tab == 'posts' %}
+      <div class="dashboard-form-grid four compact">
+        <label class="dashboard-field"><span>جستجو</span><input class="dashboard-input" type="search" name="q" value="{{ query_value }}" placeholder="عنوان، دسته، خلاصه، SEO..."></label>
+        <label class="dashboard-field"><span>دسته‌بندی</span>
+          <select class="dashboard-select" name="category">
+            <option value="">همه دسته‌ها</option>
+            {% for category in blog_categories %}<option value="{{ category }}" {% if category_value == category %}selected{% endif %}>{{ category }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="dashboard-field"><span>انتشار</span>
+          <select class="dashboard-select" name="publish_state">
+            <option value="">همه</option>
+            <option value="published" {% if publish_state_value == 'published' %}selected{% endif %}>منتشرشده</option>
+            <option value="draft" {% if publish_state_value == 'draft' %}selected{% endif %}>پیش‌نویس</option>
+          </select>
+        </label>
+        <label class="dashboard-field"><span>ویژه</span>
+          <select class="dashboard-select" name="featured">
+            <option value="">همه</option>
+            <option value="yes" {% if featured_value == 'yes' %}selected{% endif %}>ویژه</option>
+            <option value="no" {% if featured_value == 'no' %}selected{% endif %}>معمولی</option>
+          </select>
+        </label>
+      </div>
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">اعمال فیلتر</button>
+        <a class="dashboard-btn ghost" href="{% url 'dashboard_section_content' %}?tab=posts">پاک کردن</a>
+        <a class="dashboard-btn primary" href="{% url 'dashboard_post_create' %}">مقاله جدید</a>
+        <a class="dashboard-btn ghost" href="{{ preview_blog_url }}" target="_blank">مشاهده وبلاگ</a>
+      </div>
+    {% else %}
+      <div class="dashboard-form-grid three compact">
+        <label class="dashboard-field"><span>جستجو</span><input class="dashboard-input" type="search" name="q" value="{{ query_value }}" placeholder="سوال یا پاسخ..."></label>
+        <label class="dashboard-field"><span>وضعیت نمایش</span>
+          <select class="dashboard-select" name="active_state">
+            <option value="">همه</option>
+            <option value="active" {% if active_state_value == 'active' %}selected{% endif %}>فعال</option>
+            <option value="inactive" {% if active_state_value == 'inactive' %}selected{% endif %}>غیرفعال</option>
+          </select>
+        </label>
+        <label class="dashboard-field"><span>راهنما</span><input class="dashboard-input" type="text" value="ترتیب کمتر = نمایش بالاتر" readonly></label>
+      </div>
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">اعمال فیلتر</button>
+        <a class="dashboard-btn ghost" href="{% url 'dashboard_section_content' %}?tab=faqs">پاک کردن</a>
+        <a class="dashboard-btn primary" href="{% url 'dashboard_faq_create' %}">سوال جدید</a>
+        <a class="dashboard-btn ghost" href="{{ preview_faq_url }}" target="_blank">مشاهده FAQ</a>
+      </div>
+    {% endif %}
+  </form>
+</section>
+
+{% if active_tab == 'posts' %}
+<section class="dashboard-panel dashboard-content-table-panel">
+  <form method="post" class="dashboard-form">
+    {% csrf_token %}
+    <input type="hidden" name="tab" value="posts">
+    <input type="hidden" name="action" value="bulk_update_posts">
+    <div class="dashboard-panel-head large">
+      <div><h2>لیست مقاله‌ها</h2><p>برای ویرایش متن کامل، SEO و وضعیت انتشار روی عنوان مقاله کلیک کن.</p></div>
+      <div class="dashboard-bulk-actions">
+        <select class="dashboard-select" name="bulk_publish_state"><option value="">وضعیت انتشار</option><option value="published">انتشار</option><option value="draft">پیش‌نویس</option></select>
+        <select class="dashboard-select" name="bulk_feature_state"><option value="">وضعیت ویژه</option><option value="featured">ویژه</option><option value="normal">معمولی</option></select>
+        <button class="dashboard-btn primary small" type="submit">اعمال</button>
+      </div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-content-table">
+        <thead><tr><th></th><th>عنوان</th><th>دسته</th><th>انتشار</th><th>ویژه</th><th>زمان مطالعه</th><th>تاریخ انتشار</th><th>SEO</th></tr></thead>
+        <tbody>
+          {% for post in post_page.object_list %}
+            <tr>
+              <td><input type="checkbox" name="selected_posts" value="{{ post.id }}"></td>
+              <td><a class="dashboard-row-link" href="{% url 'dashboard_post_edit' post.id %}">{{ post.title }}</a><small>{{ post.slug }}</small></td>
+              <td>{{ post.category }}</td>
+              <td>{% if post.is_published %}<span class="dashboard-status-pill active">منتشرشده</span>{% else %}<span class="dashboard-status-pill">پیش‌نویس</span>{% endif %}</td>
+              <td>{% if post.is_featured %}<span class="dashboard-priority-pill priority-high">ویژه</span>{% else %}<span class="dashboard-priority-pill priority-normal">معمولی</span>{% endif %}</td>
+              <td>{{ post.reading_time }} دقیقه</td>
+              <td>{{ post.published_at|date:'Y/m/d H:i' }}</td>
+              <td>{% if post.seo_title and post.seo_description %}<span class="dashboard-status-pill active">تکمیل</span>{% else %}<span class="dashboard-status-pill">ناقص</span>{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="8" class="dashboard-empty">مقاله‌ای مطابق فیلتر فعلی پیدا نشد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if post_page.paginator.num_pages > 1 %}
+      <div class="dashboard-pagination">
+        {% if post_page.has_previous %}<a href="?tab=posts&page={{ post_page.previous_page_number }}&q={{ query_value|urlencode }}&category={{ category_value|urlencode }}&publish_state={{ publish_state_value|urlencode }}&featured={{ featured_value|urlencode }}">قبلی</a>{% endif %}
+        <span>صفحه {{ post_page.number }} از {{ post_page.paginator.num_pages }}</span>
+        {% if post_page.has_next %}<a href="?tab=posts&page={{ post_page.next_page_number }}&q={{ query_value|urlencode }}&category={{ category_value|urlencode }}&publish_state={{ publish_state_value|urlencode }}&featured={{ featured_value|urlencode }}">بعدی</a>{% endif %}
+      </div>
+    {% endif %}
+  </form>
+</section>
+{% else %}
+<section class="dashboard-panel dashboard-content-table-panel">
+  <form method="post" class="dashboard-form">
+    {% csrf_token %}
+    <input type="hidden" name="tab" value="faqs">
+    <input type="hidden" name="action" value="bulk_update_faqs">
+    <div class="dashboard-panel-head large">
+      <div><h2>لیست سوالات متداول</h2><p>سوالات FAQ علاوه بر صفحه FAQ، در Schema ساختاریافته نیز استفاده می‌شوند.</p></div>
+      <div class="dashboard-bulk-actions">
+        <select class="dashboard-select" name="bulk_active_state"><option value="">وضعیت نمایش</option><option value="active">فعال</option><option value="inactive">غیرفعال</option></select>
+        <button class="dashboard-btn primary small" type="submit">اعمال</button>
+      </div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-content-table">
+        <thead><tr><th></th><th>سوال</th><th>ترتیب</th><th>وضعیت</th><th>خلاصه پاسخ</th></tr></thead>
+        <tbody>
+          {% for item in faq_page.object_list %}
+            <tr>
+              <td><input type="checkbox" name="selected_faqs" value="{{ item.id }}"></td>
+              <td><a class="dashboard-row-link" href="{% url 'dashboard_faq_edit' item.id %}">{{ item.question }}</a></td>
+              <td>{{ item.sort_order }}</td>
+              <td>{% if item.is_active %}<span class="dashboard-status-pill active">فعال</span>{% else %}<span class="dashboard-status-pill">غیرفعال</span>{% endif %}</td>
+              <td><small>{{ item.answer|truncatechars:120 }}</small></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="dashboard-empty">سوالی مطابق فیلتر فعلی پیدا نشد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if faq_page.paginator.num_pages > 1 %}
+      <div class="dashboard-pagination">
+        {% if faq_page.has_previous %}<a href="?tab=faqs&page={{ faq_page.previous_page_number }}&q={{ query_value|urlencode }}&active_state={{ active_state_value|urlencode }}">قبلی</a>{% endif %}
+        <span>صفحه {{ faq_page.number }} از {{ faq_page.paginator.num_pages }}</span>
+        {% if faq_page.has_next %}<a href="?tab=faqs&page={{ faq_page.next_page_number }}&q={{ query_value|urlencode }}&active_state={{ active_state_value|urlencode }}">بعدی</a>{% endif %}
+      </div>
+    {% endif %}
+  </form>
+</section>
+{% endif %}
+{% endblock %}

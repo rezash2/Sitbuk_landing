@@ -1,0 +1,285 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}theme-dark page-features page-features-stage18{% endblock %}
+{% block content %}
+<section class="page-hero dark-page-hero feature-page-premium-hero feature-hero-stage18">
+  <div class="container feature-hero-grid" data-reveal>
+    <div class="feature-hero-copy">
+      <span class="eyebrow">{{ page_kicker }}</span>
+      <h1>{{ page_title }}</h1>
+      <p>{{ page_description }}</p>
+      <div class="hero-actions feature-hero-actions">
+        <a href="#feature-suite" class="btn btn-primary">مشاهده ماژول‌ها</a>
+        <a href="#feature-scenarios" class="btn btn-secondary">سناریوهای کاربردی</a>
+      </div>
+      <div class="feature-hero-proof-row">
+        <span><svg class="icon"><use href="#i-check-square"></use></svg> شروع مرحله‌ای</span>
+        <span><svg class="icon"><use href="#i-lock"></use></svg> دسترسی نقش‌محور</span>
+        <span><svg class="icon"><use href="#i-plug"></use></svg> آماده اتصال</span>
+      </div>
+    </div>
+
+    <div class="feature-command-visual" aria-label="نمای امکانات سیتباک">
+      <div class="feature-command-shell">
+        <div class="feature-command-topbar">
+          <span></span><span></span><span></span>
+          <strong>sitbuk.app/features</strong>
+        </div>
+        <div class="feature-command-body">
+          <aside class="feature-command-menu">
+            <img src="{% static 'landing/images/sitbuk_mark.png' %}" alt="Sitbuk">
+            <b></b><b></b><b></b><b></b>
+          </aside>
+          <div class="feature-command-main">
+            <div class="feature-command-head">
+              <small>مرکز کنترل امکانات</small>
+              <strong>CRM + ERP + Automation + TMO</strong>
+            </div>
+            <div class="feature-command-kpis">
+              {% for value, title, text, icon in feature_stats %}
+                <div>
+                  <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+                  <strong>{{ value }}</strong>
+                  <small>{{ title }}</small>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="feature-command-flow">
+              <span>Lead</span><i></i><span>CRM</span><i></i><span>Workflow</span><i></i><span>Report</span>
+            </div>
+            <div class="feature-command-chart">
+              <span style="height:42%"></span><span style="height:64%"></span><span style="height:52%"></span><span style="height:78%"></span><span style="height:88%"></span><span style="height:70%"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="feature-floating-proof feature-floating-proof-1"><strong>۱۲+</strong><span>هسته کاربردی</span></div>
+      <div class="feature-floating-proof feature-floating-proof-2"><strong>۷ روز</strong><span>شروع اولیه</span></div>
+    </div>
+  </div>
+
+  <div class="container" data-reveal>
+    <div class="feature-filter-strip feature-filter-strip-stage18" data-module-tabs>
+      {% for key, label, icon in feature_filters %}
+        <button type="button" class="filter-chip {% if forloop.first %}is-active{% endif %}" data-module="{{ key }}">
+          <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+          <span>{{ label }}</span>
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-dark pt-sm" id="feature-suite">
+  <div class="container section-head section-head-light" data-reveal>
+    <span class="eyebrow eyebrow-center">هسته‌های اصلی محصول</span>
+    <h2>هر ماژول با سناریوی واقعی کسب‌وکار طراحی شده است</h2>
+    <p>در این نسخه صفحه امکانات فقط لیست قابلیت نیست؛ مسیر استفاده، خروجی هر تیم و اثر مدیریتی هر ماژول روشن‌تر شده است.</p>
+  </div>
+
+  <div class="container feature-suite-panel" data-reveal>
+    <div class="feature-suite-tabs" data-feature-suite-tabs>
+      {% for module in feature_deep_modules %}
+        <button type="button" class="{% if forloop.first %}is-active{% endif %}" data-feature-suite="{{ forloop.counter0 }}">
+          <svg class="icon"><use href="#i-{{ module.icon }}"></use></svg>
+          <span>{{ module.label }}</span>
+        </button>
+      {% endfor %}
+    </div>
+    <div class="feature-suite-stage">
+      {% for module in feature_deep_modules %}
+        <article class="feature-suite-card {% if forloop.first %}is-active{% endif %}" data-feature-suite-panel="{{ forloop.counter0 }}">
+          <div class="feature-suite-copy">
+            <span class="eyebrow">{{ module.label }}</span>
+            <h3>{{ module.title }}</h3>
+            <p>{{ module.description }}</p>
+            <ul class="feature-check-grid">
+              {% for item in module.highlights %}<li>{{ item }}</li>{% endfor %}
+            </ul>
+          </div>
+          <div class="feature-suite-screen">
+            <div class="feature-suite-screen-top"><span></span><span></span><span></span></div>
+            <div class="feature-suite-metrics">
+              {% for value, label in module.metrics %}
+                <div><strong>{{ value }}</strong><small>{{ label }}</small></div>
+              {% endfor %}
+            </div>
+            <div class="feature-suite-lines">
+              <i style="width:86%"></i><i style="width:68%"></i><i style="width:74%"></i><i style="width:52%"></i>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-light feature-matrix-section">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">ارزش امکانات برای هر تیم</span>
+    <h2>به جای ابزارهای پراکنده، هر نقش خروجی خودش را می‌بیند</h2>
+  </div>
+  <div class="container feature-role-matrix" data-reveal>
+    {% for item in feature_role_matrix %}
+      <article class="feature-role-row">
+        <div class="feature-role-title">
+          <span><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
+          <strong>{{ item.role }}</strong>
+        </div>
+        <div>
+          <small>نیاز اصلی</small>
+          <p>{{ item.need }}</p>
+        </div>
+        <div>
+          <small>راهکار سیتباک</small>
+          <p>{{ item.sitbuk }}</p>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm" id="feature-scenarios">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">سناریوهای آماده اجرا</span>
+    <h2>امکانات وقتی ارزشمندند که در جریان واقعی کار استفاده شوند</h2>
+  </div>
+  <div class="container feature-scenario-grid" data-reveal>
+    {% for scenario in feature_scenarios %}
+      <article class="feature-scenario-card">
+        <div class="feature-scenario-head">
+          <span><svg class="icon"><use href="#i-{{ scenario.icon }}"></use></svg></span>
+          <h3>{{ scenario.title }}</h3>
+        </div>
+        <div class="feature-scenario-steps">
+          {% for step in scenario.steps %}
+            <b>{{ step }}</b>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-dark">
+  <div class="container section-head section-head-light" data-reveal>
+    <span class="eyebrow eyebrow-center">ویدئوهای معرفی بخش‌های سیتباک</span>
+    <h2>هر بخش را کوتاه، کاربردی و قابل تصمیم‌گیری بشناسید</h2>
+  </div>
+
+  <div class="container video-grid video-grid-stage18" data-reveal data-module-grid>
+    {% for card in video_cards %}
+      <article class="video-card" data-category="{{ card.category }}">
+        <div class="video-thumb">
+          <img src="{% static 'landing/images/'|add:card.image %}" alt="{{ card.title }}">
+          <span class="play-button"></span>
+          <span class="video-duration">{{ card.duration }}</span>
+        </div>
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.subtitle }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-dark pt-sm">
+  <div class="container section-head section-head-light" data-reveal>
+    <span class="eyebrow eyebrow-center">همه ماژول‌های کلیدی</span>
+    <h2>از فروش و عملیات تا مالی و گزارش‌گیری، در یک پلتفرم واحد</h2>
+  </div>
+
+  <div class="container card-grid card-grid-4 feature-module-grid-stage18" data-reveal>
+    {% for card in module_cards %}
+      <article class="glass-card module-card module-card-{{ card.accent }}">
+        <div class="module-head">
+          <div class="module-title-wrap">
+            <h3>{{ card.title }}</h3>
+            {% if card.badge %}<span class="badge badge-purple">{{ card.badge }}</span>{% endif %}
+          </div>
+          <span class="module-icon"><svg class="icon"><use href="#i-{{ card.icon }}"></use></svg></span>
+        </div>
+        <ul class="module-list">
+          {% for item in card.items %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+        <a href="#contact-block" class="text-link">مشاوره برای این ماژول</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light feature-before-after-section">
+  <div class="container feature-before-after-panel" data-reveal>
+    <div class="feature-before-after-copy">
+      <span class="eyebrow">قبل و بعد از سیتباک</span>
+      <h2>هدف فقط داشتن نرم‌افزار نیست؛ هدف شفاف شدن کار روزانه است</h2>
+      <p>در این بخش، مسئله‌های رایج سازمان‌ها به خروجی‌های قابل اندازه‌گیری تبدیل شده‌اند تا ارزش امکانات دقیق‌تر دیده شود.</p>
+    </div>
+    <div class="feature-before-after-list">
+      {% for item in feature_before_after %}
+        <article>
+          <div><small>قبل</small><p>{{ item.before }}</p></div>
+          <span><svg class="icon"><use href="#i-arrow-up"></use></svg></span>
+          <div><small>بعد</small><p>{{ item.after }}</p></div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container card-grid card-grid-4" data-reveal>
+    {% for item in feature_security_points %}
+      <article class="soft-card feature-security-card">
+        <span><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">کاربردهای واقعی سیتباک</span>
+    <h2>هر تیم، داشبورد و جریان‌کار مخصوص خودش را دارد</h2>
+  </div>
+  <div class="container card-grid card-grid-4" data-reveal>
+    {% for title, description, icon in feature_usecases %}
+      <article class="soft-card usecase-card">
+        <span class="usecase-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">سوالات متداول درباره امکانات</span>
+  </div>
+  <div class="container faq-preview-grid" data-reveal>
+    {% for question, answer in feature_faqs %}
+      <details class="faq-preview-item">
+        <summary>{{ question }}</summary>
+        <div class="faq-answer">{{ answer }}</div>
+      </details>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">چرا سیتباک یک انتخاب هوشمندانه است؟</span>
+  </div>
+  <div class="container card-grid card-grid-5" data-reveal>
+    {% for title, description, icon in reasons %}
+      <article class="soft-card why-mini-card">
+        <span class="why-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

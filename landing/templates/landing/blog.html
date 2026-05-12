@@ -1,0 +1,213 @@
+{% extends 'landing/base.html' %}
+{% load static site_extras %}
+{% block body_class %}page-blog{% endblock %}
+{% block content %}
+<section class="dark-page-hero page-hero blog-hero blog-hub-hero">
+  <div class="container blog-hub-grid">
+    <div class="blog-hub-copy" data-reveal>
+      <span class="eyebrow">{{ page_kicker }}</span>
+      <h1>{{ page_title }}</h1>
+      <p>{{ page_description }}</p>
+      <form method="get" class="blog-search-panel blog-search-premium glass-card" data-reveal>
+        <div class="blog-search-group">
+          <input type="search" name="q" value="{{ search_query }}" placeholder="جستجو در مقاله‌ها، موضوعات و راهنماها">
+          {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+          <button class="btn btn-primary" type="submit">جستجو</button>
+        </div>
+        <div class="blog-search-meta">
+          <span>تعداد نتایج: {{ results_count }}</span>
+          {% if search_query or selected_category %}<a href="{% url 'blog' %}" class="text-link">پاک کردن فیلترها</a>{% else %}<span>محتوای اجرایی برای مدیران و تیم‌ها</span>{% endif %}
+        </div>
+      </form>
+      <div class="blog-category-row blog-category-premium" data-reveal>
+        <a class="category-chip {% if not selected_category %}is-active{% endif %}" href="{% url 'blog' %}{% query_transform q=search_query page='' category='' %}">همه</a>
+        {% for category in blog_categories %}
+          <a class="category-chip {% if selected_category == category %}is-active{% endif %}" href="{% url 'blog' %}{% query_transform category=category page='' %}">{{ category }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <aside class="blog-hub-panel glass-card" data-reveal>
+      <div class="blog-hub-panel-head">
+        <span>Resource Center</span>
+        <strong>محتوای پیشنهادی</strong>
+      </div>
+      <div class="blog-hub-stats">
+        {% for title, desc, icon in blog_stats %}
+        <div class="blog-hub-stat">
+          <span><svg><use href="#i-{{ icon }}"></use></svg></span>
+          <div>
+            <strong>{{ title }}</strong>
+            <small>{{ desc }}</small>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </aside>
+  </div>
+</section>
+
+{% if featured_post %}
+<section class="section section-light pt-sm">
+  <div class="container">
+    <article class="featured-blog-card featured-blog-premium soft-card" data-reveal>
+      <div class="featured-blog-copy">
+        <span class="eyebrow">مطلب ویژه</span>
+        <h2>{{ featured_post.title }}</h2>
+        <p>{{ featured_post.summary }}</p>
+        <div class="meta-row meta-row-dark">
+          <span>{{ featured_post.category }}</span>
+          <span>{{ featured_post.reading_time }} دقیقه مطالعه</span>
+          <span>{{ featured_post.published_at|date:'Y/m/d' }}</span>
+        </div>
+        <div class="featured-blog-actions">
+          <a class="btn btn-primary" href="{{ featured_post.get_absolute_url }}">مطالعه مقاله</a>
+          <a class="btn btn-light" href="{% url 'contact' %}">مشاوره پیاده‌سازی</a>
+        </div>
+      </div>
+      <a class="featured-blog-visual featured-accent-{{ featured_post.accent }}" href="{{ featured_post.get_absolute_url }}">
+        <div>
+          <span>{{ featured_post.category }}</span>
+          <strong>راهنمای کاربردی برای تیم‌های در حال رشد</strong>
+        </div>
+      </a>
+    </article>
+  </div>
+</section>
+{% endif %}
+
+<section class="section section-light blog-resource-section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow eyebrow-center">مسیرهای یادگیری</span>
+      <h2>مطالب را بر اساس نیاز تیم خود دنبال کنید</h2>
+      <p>هر مسیر شامل مقاله‌ها، چک‌لیست‌ها و تجربه‌های عملی برای رشد فروش، کنترل عملیات و تصمیم‌گیری مدیریتی است.</p>
+    </div>
+    <div class="resource-card-grid" data-reveal>
+      {% for title, desc, category, icon in resource_cards %}
+      <a class="resource-card soft-card" href="{% url 'blog' %}?category={{ category|urlencode }}">
+        <span class="resource-icon"><svg><use href="#i-{{ icon }}"></use></svg></span>
+        <strong>{{ title }}</strong>
+        <p>{{ desc }}</p>
+        <small>مشاهده مطالب {{ category }}</small>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container blog-content-layout">
+    <main>
+      <div class="section-head section-head-inline">
+        <div>
+          <span class="eyebrow">آخرین مقاله‌ها</span>
+          <h2>{% if search_query or selected_category %}نتایج فیلتر شده{% else %}جدیدترین نوشته‌های سیتباک{% endif %}</h2>
+        </div>
+        <p>مطالب عملی و قابل اجرا برای تیم‌های فروش، عملیات، مالی و مدیریت.</p>
+      </div>
+
+      <div class="blog-grid blog-grid-premium">
+        {% for post in posts %}
+        <article class="blog-card blog-card-premium soft-card" data-reveal>
+          <a class="blog-card-cover accent-{{ post.accent }}" href="{{ post.get_absolute_url }}">
+            <span class="blog-card-category">{{ post.category }}</span>
+            <strong>{{ post.reading_time }} دقیقه مطالعه</strong>
+          </a>
+          <div class="blog-card-body">
+            <h3><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+            <p>{{ post.summary }}</p>
+            <div class="meta-row meta-row-dark">
+              <span>{{ post.published_at|date:'Y/m/d' }}</span>
+              <a href="{{ post.get_absolute_url }}">ادامه مطلب</a>
+            </div>
+          </div>
+        </article>
+        {% empty %}
+        <div class="empty-state soft-card">
+          <h3>مطلبی با این فیلتر پیدا نشد.</h3>
+          <p>عبارت جستجو یا دسته‌بندی را تغییر دهید و دوباره تلاش کنید.</p>
+          <a href="{% url 'blog' %}" class="btn btn-primary">نمایش همه مقاله‌ها</a>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if is_paginated %}
+      <nav class="pagination-bar" aria-label="صفحه‌بندی وبلاگ" data-reveal>
+        {% if page_obj.has_previous %}
+          <a class="pagination-link" href="{% url 'blog' %}{% query_transform page=page_obj.previous_page_number %}">صفحه قبل</a>
+        {% else %}
+          <span class="pagination-link is-disabled">صفحه قبل</span>
+        {% endif %}
+
+        <div class="pagination-pages">
+          {% for page_num in page_obj.paginator.page_range %}
+            {% if page_num == page_obj.number %}
+              <span class="pagination-link is-current">{{ page_num }}</span>
+            {% elif page_num >= page_obj.number|add:'-2' and page_num <= page_obj.number|add:'2' %}
+              <a class="pagination-link" href="{% url 'blog' %}{% query_transform page=page_num %}">{{ page_num }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if page_obj.has_next %}
+          <a class="pagination-link" href="{% url 'blog' %}{% query_transform page=page_obj.next_page_number %}">صفحه بعد</a>
+        {% else %}
+          <span class="pagination-link is-disabled">صفحه بعد</span>
+        {% endif %}
+      </nav>
+      {% endif %}
+    </main>
+
+    <aside class="blog-list-sidebar">
+      <div class="soft-card blog-sidebar-card blog-side-box" data-reveal>
+        <h3>دسته‌بندی‌ها</h3>
+        <div class="blog-category-list">
+          {% for item in category_counts %}
+          <a href="{% url 'blog' %}?category={{ item.name|urlencode }}">
+            <span>{{ item.name }}</span>
+            <strong>{{ item.count }}</strong>
+          </a>
+          {% empty %}
+          <span>هنوز دسته‌بندی ثبت نشده است.</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="soft-card blog-sidebar-card blog-side-box" data-reveal>
+        <h3>محبوب برای شروع</h3>
+        <div class="related-links related-links-premium">
+          {% for item in popular_posts %}
+          <a href="{{ item.get_absolute_url }}">
+            <span>{{ item.category }}</span>
+            <strong>{{ item.title }}</strong>
+          </a>
+          {% empty %}
+          <span>مطلبی برای نمایش وجود ندارد.</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="soft-card blog-sidebar-card blog-side-box blog-editorial-card" data-reveal>
+        <h3>استاندارد محتوای ما</h3>
+        <ul>
+          {% for item in editorial_points %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section section-dark newsletter-band blog-newsletter-upgraded">
+  <div class="container newsletter-band-card" data-reveal>
+    <div>
+      <span class="eyebrow">به‌روز بمانید</span>
+      <h2>مقاله‌ها و نکات جدید سیتباک را در ایمیل خود دریافت کنید</h2>
+      <p>برای تیم‌های فروش، عملیات و مدیریت، محتوای کاربردی و خلاصه‌های اجرایی ارسال می‌کنیم.</p>
+    </div>
+    <form method="post" action="{% url 'submit_newsletter' %}" class="newsletter-form wide js-ajax-form" data-ajax-form>
+      {% csrf_token %}
+      {{ newsletter_form.email }}
+      <button class="btn btn-primary" type="submit">عضویت در خبرنامه</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

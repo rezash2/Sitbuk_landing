@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>ورود به داشبورد مدیریت سیتباک</title>
+  <link rel="stylesheet" href="{% static 'landing/css/admin-dashboard.css' %}">
+</head>
+<body class="dashboard-body dashboard-login-body">
+  <main class="dashboard-login-wrap">
+    <section class="dashboard-login-card">
+      <div class="dashboard-login-brand">
+        <img src="{% static 'landing/images/sitbuk_logo.png' %}" alt="سیتباک">
+        <span>داشبورد اختصاصی مدیریت</span>
+      </div>
+      <h1>ورود مدیر سایت</h1>
+      <p>این پنل جایگزین تدریجی پنل پیش‌فرض Django Admin برای مدیریت محتوای سیتباک است.</p>
+      {% if messages %}
+        <div class="dashboard-messages login-messages">
+          {% for message in messages %}<div class="dashboard-message {{ message.tags }}">{{ message }}</div>{% endfor %}
+        </div>
+      {% endif %}
+      <form method="post" class="dashboard-login-form" novalidate>
+        {% csrf_token %}
+        <label>
+          <span>نام کاربری</span>
+          {{ form.username }}
+        </label>
+        <label>
+          <span>رمز عبور</span>
+          {{ form.password }}
+        </label>
+        <button type="submit">ورود به داشبورد</button>
+      </form>
+      <a href="{% url 'home' %}" class="dashboard-back-link">بازگشت به سایت</a>
+    </section>
+  </main>
+</body>
+</html>

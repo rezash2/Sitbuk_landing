@@ -1,0 +1,15 @@
+<form method="post" action="{% url 'submit_lead' %}" class="lead-form js-ajax-form {% if compact %}lead-form-compact{% endif %}" data-ajax-form {% if anchor_id %}id="{{ anchor_id }}"{% endif %}>
+  {% csrf_token %}
+  <input type="hidden" name="page_url" value="{{ request.path }}">
+  <input type="hidden" name="utm_source" value="{{ request.GET.utm_source|default:'' }}">
+  <input type="hidden" name="utm_campaign" value="{{ request.GET.utm_campaign|default:'' }}">
+  <input type="hidden" name="source_page" value="{{ form_source_page|default:active_page }}">
+  <div class="lead-grid">
+    <div class="form-field">{{ lead_form.full_name }}</div>
+    <div class="form-field">{{ lead_form.phone }}</div>
+    <div class="form-field">{{ lead_form.company }}</div>
+    {% if show_email %}<div class="form-field">{{ lead_form.email }}</div>{% endif %}
+    {% if show_note %}<div class="form-field form-field-wide">{{ lead_form.note }}</div>{% endif %}
+    <button class="btn btn-primary btn-block" type="submit">{{ button_label|default:'شروع رایگان' }}</button>
+  </div>
+</form>

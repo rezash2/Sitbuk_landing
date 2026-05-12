@@ -1,0 +1,94 @@
+{% extends 'landing/base.html' %}
+{% load static site_extras %}
+{% block body_class %}page-faq{% endblock %}
+{% block content %}
+<section class="dark-page-hero page-hero faq-hero-premium">
+  <div class="container">
+    <div class="section-head section-head-light narrow text-center" data-reveal>
+      <span class="eyebrow eyebrow-center">{{ page_kicker }}</span>
+      <h1>{{ page_title }}</h1>
+      <p>{{ page_description }}</p>
+    </div>
+    <form method="get" class="faq-search-panel glass-card" data-reveal>
+      <div class="blog-search-group">
+        <input type="search" name="q" value="{{ faq_query }}" placeholder="سوال خود را جستجو کنید؛ مثلا قیمت، دمو، امنیت یا پشتیبانی">
+        {% if selected_category and selected_category != 'همه' %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        <button class="btn btn-primary" type="submit">جستجو</button>
+      </div>
+      <div class="blog-search-meta">
+        <span>تعداد پاسخ‌ها: {{ results_count }}</span>
+        {% if faq_query or selected_category != 'همه' %}<a href="{% url 'faq' %}" class="text-link">نمایش همه سوالات</a>{% else %}<span>پاسخ‌های کوتاه و کاربردی</span>{% endif %}
+      </div>
+    </form>
+    <div class="faq-highlight-grid" data-reveal>
+      {% for title, desc, icon in faq_highlights %}
+      <div class="faq-highlight-card glass-card">
+        <span><svg><use href="#i-{{ icon }}"></use></svg></span>
+        <strong>{{ title }}</strong>
+        <p>{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-light">
+  <div class="container faq-layout-premium">
+    <aside class="faq-filter-sidebar soft-card" data-reveal>
+      <h3>دسته‌بندی سوالات</h3>
+      <div class="faq-filter-list">
+        {% for item in category_counts %}
+        <a class="{% if selected_category == item.name or not selected_category and item.name == 'همه' %}is-active{% endif %}" href="{% url 'faq' %}{% query_transform category=item.name q=faq_query %}">
+          <span>{{ item.name }}</span>
+          <strong>{{ item.count }}</strong>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="faq-help-card">
+        <span class="eyebrow">نیاز به پاسخ دقیق‌تر؟</span>
+        <p>اگر سوال شما در این صفحه نبود، درخواست دمو یا مشاوره ثبت کنید.</p>
+        <a href="{% url 'contact' %}" class="btn btn-primary btn-block">ارتباط با تیم سیتباک</a>
+      </div>
+    </aside>
+
+    <main>
+      <div class="section-head section-head-inline faq-title-row">
+        <div>
+          <span class="eyebrow">پرسش و پاسخ</span>
+          <h2>{% if faq_query or selected_category != 'همه' %}نتایج مرتبط{% else %}پاسخ سوالات پرتکرار{% endif %}</h2>
+        </div>
+        <p>سوالات بر اساس شروع همکاری، قیمت‌گذاری، امکانات، امنیت و پشتیبانی دسته‌بندی شده‌اند.</p>
+      </div>
+      <div class="faq-list faq-list-premium" data-faq-list>
+        {% for item in faq_rows %}
+        <details class="faq-item faq-item-premium" data-reveal data-category="{{ item.category }}" {% if forloop.first %}open{% endif %}>
+          <summary>
+            <span class="faq-item-icon"><svg><use href="#i-{{ item.icon }}"></use></svg></span>
+            <span class="faq-question-text">{{ item.question }}</span>
+            <small>{{ item.category }}</small>
+          </summary>
+          <div class="faq-answer">{{ item.answer|linebreaks }}</div>
+        </details>
+        {% empty %}
+        <div class="empty-state soft-card">
+          <h3>پاسخی برای این جستجو پیدا نشد.</h3>
+          <p>عبارت دیگری را امتحان کنید یا از صفحه تماس با ما سوال خود را ارسال کنید.</p>
+          <a href="{% url 'contact' %}" class="btn btn-primary">ارسال سوال</a>
+        </div>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="section section-dark faq-final-cta">
+  <div class="container final-cta-grid" data-reveal>
+    <div class="final-cta-copy">
+      <span class="eyebrow">تصمیم نهایی</span>
+      <h2>هنوز سوالی درباره انتخاب پلن یا پیاده‌سازی دارید؟</h2>
+      <p>یک جلسه کوتاه دمو می‌تواند مسیر شروع، هزینه و ماژول‌های مناسب کسب‌وکار شما را شفاف کند.</p>
+    </div>
+    {% include 'landing/includes/lead_form.html' with compact=True show_email=False show_note=False button_label='درخواست دمو' anchor_id='faq-lead' %}
+  </div>
+</section>
+{% endblock %}

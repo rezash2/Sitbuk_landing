@@ -1,0 +1,68 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-two-col dashboard-content-editor-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>{% if mode == 'create' %}مقاله جدید{% else %}فرم ویرایش مقاله{% endif %}</h2>
+        <p>عنوان، متن، وضعیت انتشار و SEO مقاله را از پنل اختصاصی مدیریت کن.</p>
+      </div>
+      <a class="dashboard-btn ghost small" href="{% url 'dashboard_section_content' %}?tab=posts">بازگشت به لیست</a>
+    </div>
+    <form method="post" class="dashboard-form dashboard-content-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_post">
+      {% if form.errors %}<div class="dashboard-form-errors">لطفاً خطاهای فرم را بررسی کن: {{ form.errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two">
+        <label class="dashboard-field"><span>{{ form.title.label }}</span>{{ form.title }}{% if form.title.help_text %}<small>{{ form.title.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.slug.label }}</span>{{ form.slug }}{% if form.slug.help_text %}<small>{{ form.slug.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.category.label }}</span>{{ form.category }}{% if form.category.help_text %}<small>{{ form.category.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.reading_time.label }}</span>{{ form.reading_time }}</label>
+        <label class="dashboard-field"><span>{{ form.accent.label }}</span>{{ form.accent }}{% if form.accent.help_text %}<small>{{ form.accent.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.published_at.label }}</span>{{ form.published_at }}</label>
+        <label class="dashboard-field checkbox-field"><span>{{ form.is_featured.label }}</span>{{ form.is_featured }}</label>
+        <label class="dashboard-field checkbox-field"><span>{{ form.is_published.label }}</span>{{ form.is_published }}</label>
+      </div>
+      <label class="dashboard-field"><span>{{ form.summary.label }}</span>{{ form.summary }}</label>
+      <label class="dashboard-field"><span>{{ form.content.label }}</span>{{ form.content }}</label>
+
+      <div class="dashboard-editor-divider"><span>SEO مقاله</span></div>
+      <div class="dashboard-form-grid two">
+        <label class="dashboard-field"><span>{{ form.seo_title.label }}</span>{{ form.seo_title }}</label>
+        <label class="dashboard-field"><span>{{ form.seo_keywords.label }}</span>{{ form.seo_keywords }}</label>
+        <label class="dashboard-field"><span>{{ form.og_image.label }}</span>{{ form.og_image }}{% if form.og_image.help_text %}<small>{{ form.og_image.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.canonical_url.label }}</span>{{ form.canonical_url }}{% if form.canonical_url.help_text %}<small>{{ form.canonical_url.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.robots.label }}</span>{{ form.robots }}{% if form.robots.help_text %}<small>{{ form.robots.help_text }}</small>{% endif %}</label>
+      </div>
+      <label class="dashboard-field"><span>{{ form.seo_description.label }}</span>{{ form.seo_description }}</label>
+
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">ذخیره مقاله</button>
+        {% if post and post.is_published %}<a class="dashboard-btn ghost" href="{{ preview_url }}" target="_blank">مشاهده مقاله</a>{% endif %}
+      </div>
+    </form>
+  </article>
+
+  <aside class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head"><h2>وضعیت مقاله</h2></div>
+    {% if post %}
+      <dl class="dashboard-detail-list">
+        <div><dt>شناسه</dt><dd>{{ post.id }}</dd></div>
+        <div><dt>وضعیت</dt><dd>{% if post.is_published %}منتشرشده{% else %}پیش‌نویس{% endif %}</dd></div>
+        <div><dt>ویژه</dt><dd>{% if post.is_featured %}بله{% else %}خیر{% endif %}</dd></div>
+        <div><dt>آخرین ویرایش</dt><dd>{{ post.updated_at|date:'Y/m/d H:i' }}</dd></div>
+      </dl>
+      <div class="dashboard-form-actions dashboard-danger-zone">
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_post"><button class="dashboard-btn ghost" type="submit">{% if post.is_published %}تبدیل به پیش‌نویس{% else %}انتشار مقاله{% endif %}</button></form>
+        <form method="post" onsubmit="return confirm('این مقاله حذف شود؟');">{% csrf_token %}<input type="hidden" name="action" value="delete_post"><button class="dashboard-btn danger" type="submit">حذف مقاله</button></form>
+      </div>
+    {% else %}
+      <div class="dashboard-empty-state mini"><strong>مقاله جدید</strong><p>بعد از ذخیره، امکان تغییر وضعیت و حذف فعال می‌شود.</p></div>
+    {% endif %}
+    <div class="dashboard-note-box muted">
+      <strong>راهنمای انتشار</strong>
+      <p>برای نمایش عمومی مقاله، گزینه منتشر شده را فعال کن. slug باید یکتا باشد. برای SEO بهتر، عنوان و توضیح SEO را جداگانه تکمیل کن.</p>
+    </div>
+  </aside>
+</section>
+{% endblock %}

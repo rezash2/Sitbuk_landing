@@ -1,0 +1,97 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}page-blog-detail{% endblock %}
+{% block content %}
+<div class="reading-progress" data-reading-progress></div>
+<section class="dark-page-hero page-hero blog-detail-hero article-hero-premium">
+  <div class="container article-hero-grid">
+    <div class="article-hero-copy" data-reveal>
+      <nav class="breadcrumb-row" aria-label="breadcrumb">
+        <a href="{% url 'home' %}">خانه</a>
+        <span>/</span>
+        <a href="{% url 'blog' %}">وبلاگ</a>
+        <span>/</span>
+        <span>{{ post.category }}</span>
+      </nav>
+      <span class="eyebrow">{{ post.category }}</span>
+      <h1>{{ post.title }}</h1>
+      <p>{{ post.summary }}</p>
+      <div class="article-meta-chips">
+        <span>{{ post.published_at|date:'Y/m/d' }}</span>
+        <span>{{ post.reading_time }} دقیقه مطالعه</span>
+        <span>راهنمای اجرایی</span>
+      </div>
+    </div>
+    <div class="article-hero-card glass-card" data-reveal>
+      <span>راهنمای پیاده‌سازی</span>
+      <strong>{{ post.category }}</strong>
+      <p>این مطلب برای تصمیم‌گیری سریع‌تر، طراحی بهتر فرآیند و اجرای دقیق‌تر در تیم‌های در حال رشد آماده شده است.</p>
+      <a href="{% url 'contact' %}" class="btn btn-primary">دریافت مشاوره مرتبط</a>
+    </div>
+  </div>
+</section>
+
+<section class="section section-light article-section">
+  <div class="container blog-detail-layout article-layout-premium">
+    <article class="blog-article blog-article-premium soft-card" data-reveal data-article-body>
+      <div class="blog-article-cover article-cover-upgraded accent-{{ post.accent }}">
+        <div>
+          <span>وبلاگ سیتباک</span>
+          <strong>{{ post.category }}</strong>
+        </div>
+      </div>
+      <div class="article-summary-box">
+        <strong>خلاصه اجرایی</strong>
+        <p>{{ post.summary }}</p>
+      </div>
+      <div class="blog-article-body">{{ post.content|linebreaks }}</div>
+      <div class="article-end-cta">
+        <div>
+          <span class="eyebrow">اقدام بعدی</span>
+          <h2>می‌خواهید این راهکار را در تیم خود اجرا کنید؟</h2>
+          <p>تیم سیتباک می‌تواند سناریوی مناسب شما را بررسی کند و مسیر پیاده‌سازی مرحله‌ای پیشنهاد دهد.</p>
+        </div>
+        <a href="{% url 'contact' %}" class="btn btn-primary">درخواست دمو</a>
+      </div>
+    </article>
+
+    <aside class="blog-sidebar article-sidebar-premium" data-reveal>
+      <div class="soft-card blog-sidebar-card article-toc-card">
+        <h3>در این مقاله</h3>
+        <a href="#top">شروع مقاله</a>
+        <a href="{% url 'blog' %}?category={{ post.category|urlencode }}">مطالب بیشتر در {{ post.category }}</a>
+        <a href="{% url 'contact' %}">مشاوره مرتبط</a>
+      </div>
+      <div class="soft-card blog-sidebar-card article-share-card">
+        <h3>اشتراک‌گذاری</h3>
+        <p>لینک این مقاله را برای تیم خود ارسال کنید تا تصمیم‌گیری و اجرای فرآیند ساده‌تر شود.</p>
+        <button class="btn btn-dark btn-block" type="button" data-copy-url>کپی لینک مقاله</button>
+      </div>
+      <div class="soft-card blog-sidebar-card">
+        <h3>مطالب مرتبط</h3>
+        <div class="related-links related-links-premium">
+          {% for item in related_posts %}
+          <a href="{{ item.get_absolute_url }}">
+            <span>{{ item.category }}</span>
+            <strong>{{ item.title }}</strong>
+          </a>
+          {% empty %}
+          <span>مطلب مرتبط دیگری وجود ندارد.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container article-nav-row">
+    {% if previous_post %}
+      <a class="article-nav-card soft-card" href="{{ previous_post.get_absolute_url }}"><span>مقاله قبلی</span><strong>{{ previous_post.title }}</strong></a>
+    {% endif %}
+    {% if next_post %}
+      <a class="article-nav-card soft-card" href="{{ next_post.get_absolute_url }}"><span>مقاله بعدی</span><strong>{{ next_post.title }}</strong></a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'landing/base.html' %}
+{% load site_extras %}
+{% load static %}
+{% block body_class %}theme-dark page-plans{% endblock %}
+{% block content %}
+<section class="page-hero dark-page-hero plans-hero">
+  <div class="container text-center" data-reveal id="plans-page">
+    <div class="inline-consult-pill">
+      <svg class="icon"><use href="#i-headphones"></use></svg>
+      <span>مشاوره رایگان قبل از خرید</span>
+    </div>
+    <h1>{{ page_title }}</h1>
+    <p>{{ page_description }}</p>
+    <div class="billing-toggle billing-toggle-dark" data-billing-toggle>
+      <button type="button" class="toggle-btn" data-billing="monthly">ماهانه</button>
+      <button type="button" class="toggle-btn is-active" data-billing="annual">سالانه ۲۵٪ تخفیف</button>
+    </div>
+    <div class="plan-unit-note">تمام قیمت‌های عددی بر پایه <strong>میلیون تومان</strong> نمایش داده می‌شوند.</div>
+  </div>
+</section>
+
+<section class="section section-dark pt-sm">
+  <div class="container card-grid card-grid-3" data-reveal>
+    {% for title, plan_name, description, icon in plan_recommendations %}
+      <article class="glass-card plan-recommend-card">
+        <span class="plan-recommend-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <small>{{ title }}</small>
+        <h3>{{ plan_name }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="container plans-board-intro" data-reveal>
+    <div>
+      <strong>مقایسه کامل امکانات و ظرفیت‌ها</strong>
+      <p>برای مشاهده همه ستون‌ها در موبایل، جدول را به چپ و راست بکشید.</p>
+    </div>
+    <a href="#contact-block" class="btn btn-primary">انتخاب با مشاوره</a>
+  </div>
+
+  <div class="container plan-board-scroll plan-board-scroll-premium" data-reveal>
+    <div class="plan-board">
+      <div class="board-side">
+        <div class="board-title">ویژگی‌ها</div>
+        {% for section, rows, icon in comparison_sections %}
+          <div class="board-group">
+            <div class="board-group-title">
+              <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+              <span>{{ section }}</span>
+            </div>
+            {% for row in rows %}
+              <div class="board-row-label">{{ row.0 }}</div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      {% for plan in plans %}
+        <div class="plan-column plan-column-{{ plan.color }} {% if plan.name == 'VVIP' %}plan-column-vvip{% endif %}">
+          <div class="plan-column-head">
+            <h3>{{ plan.name }}</h3>
+            <p>{{ plan.subtitle }}</p>
+            <div class="plan-price">
+              <span data-monthly="{{ plan.price.0 }}" data-annual="{{ plan.price.1 }}">{{ plan.price.1 }}</span>
+              <small>{% if plan.name != 'VVIP' %}میلیون تومان{% else %}راهکار سازمانی{% endif %}</small>
+            </div>
+          </div>
+
+          {% for section, rows, icon in comparison_sections %}
+            <div class="plan-group-body">
+              {% for row in rows %}
+                <div class="plan-cell">{{ row.1|at:forloop.parentloop.parentloop.counter0 }}</div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+
+          <div class="plan-column-foot">
+            <a href="#contact-block" class="btn btn-plan">{{ plan.button }}</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="container plan-badges" data-reveal>
+    {% for title, description, icon in plan_badges %}
+      <div class="plan-badge">
+        <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+        <div>
+          <strong>{{ title }}</strong>
+          <p>{{ description }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="container enterprise-cta-panel" data-reveal>
+    <div>
+      <span class="eyebrow">نسخه سازمانی</span>
+      <h2>برای فرآیندهای پیچیده و سفارشی‌سازی عمیق، نسخه VVIP آماده است</h2>
+      <p>اگر سازمان شما نیاز به نقش‌های پیچیده، API اختصاصی، ساختار چندشرکتی یا گزارش‌های اختصاصی دارد، با تیم سیتباک جلسه تحلیل تنظیم کنید.</p>
+    </div>
+    <div class="hero-actions">
+      <a href="#contact-block" class="btn btn-primary">درخواست مشاوره سازمانی</a>
+      <a href="{% url 'contact' %}" class="btn btn-secondary">ارتباط با تیم فروش</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis">
+  <article class="dashboard-kpi-card accent-gold"><span>لیدهای باز</span><strong>{{ open_leads }}</strong><p>جدید، پیگیری‌شده یا واجد شرایط.</p></article>
+  <article class="dashboard-kpi-card accent-rose"><span>لیدهای فوری</span><strong>{{ urgent_leads }}</strong><p>اولویت فوری برای تیم فروش.</p></article>
+  <article class="dashboard-kpi-card accent-blue"><span>پیام‌های جدید</span><strong>{{ new_messages }}</strong><p>پیام‌هایی که هنوز پاسخ نگرفته‌اند.</p></article>
+  <article class="dashboard-kpi-card accent-green"><span>پیام‌های فوری</span><strong>{{ urgent_messages }}</strong><p>پیام‌های تماس با اولویت فوری.</p></article>
+</section>
+
+<section class="dashboard-panel dashboard-lead-controls">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>فیلتر و جستجو</h2>
+      <p>لیدها و پیام‌های تماس را بر اساس نام، تلفن، شرکت، وضعیت، اولویت و صفحه مبدا پیدا کن.</p>
+    </div>
+    <span class="dashboard-stage-pill">Stage 30</span>
+  </div>
+  <div class="dashboard-page-tabs lead-tabs">
+    <a href="{% url 'dashboard_section_leads' %}?tab=leads" class="dashboard-page-tab{% if active_tab == 'leads' %} is-active{% endif %}">
+      <strong>لیدها</strong><span>{{ lead_total }} مورد مطابق فیلتر</span>
+    </a>
+    <a href="{% url 'dashboard_section_leads' %}?tab=messages" class="dashboard-page-tab{% if active_tab == 'messages' %} is-active{% endif %}">
+      <strong>پیام‌های تماس</strong><span>{{ message_total }} مورد مطابق فیلتر</span>
+    </a>
+  </div>
+  <form method="get" class="dashboard-form dashboard-filter-form">
+    <input type="hidden" name="tab" value="{{ active_tab }}">
+    <div class="dashboard-form-grid four compact">
+      <label class="dashboard-field"><span>جستجو</span><input class="dashboard-input" type="search" name="q" value="{{ query_value }}" placeholder="نام، تلفن، شرکت، ایمیل..."></label>
+      <label class="dashboard-field"><span>وضعیت</span>
+        <select class="dashboard-select" name="status">
+          <option value="">همه وضعیت‌ها</option>
+          {% if active_tab == 'leads' %}
+            {% for value,label in lead_status_choices %}<option value="{{ value }}" {% if status_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          {% else %}
+            {% for value,label in message_status_choices %}<option value="{{ value }}" {% if status_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          {% endif %}
+        </select>
+      </label>
+      <label class="dashboard-field"><span>اولویت</span>
+        <select class="dashboard-select" name="priority">
+          <option value="">همه اولویت‌ها</option>
+          {% if active_tab == 'leads' %}
+            {% for value,label in lead_priority_choices %}<option value="{{ value }}" {% if priority_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          {% else %}
+            {% for value,label in message_priority_choices %}<option value="{{ value }}" {% if priority_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          {% endif %}
+        </select>
+      </label>
+      <label class="dashboard-field"><span>صفحه مبدا</span><input class="dashboard-input" type="text" name="source_page" value="{{ source_page_value }}" placeholder="home, contact..."></label>
+    </div>
+    <div class="dashboard-form-actions">
+      <button class="dashboard-btn primary" type="submit">اعمال فیلتر</button>
+      <a class="dashboard-btn ghost" href="{% url 'dashboard_section_leads' %}?tab={{ active_tab }}">پاک کردن فیلتر</a>
+      <a class="dashboard-btn ghost" href="{% url 'dashboard_leads_export' %}?kind={% if active_tab == 'messages' %}messages{% else %}leads{% endif %}&q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&source_page={{ source_page_value|urlencode }}">خروجی Excel/CSV</a>
+    </div>
+  </form>
+</section>
+
+{% if active_tab == 'leads' %}
+<section class="dashboard-panel dashboard-lead-table-panel">
+  <form method="post" class="dashboard-form">
+    {% csrf_token %}
+    <input type="hidden" name="tab" value="leads">
+    <input type="hidden" name="action" value="bulk_update_leads">
+    <div class="dashboard-panel-head large">
+      <div><h2>لیست لیدها</h2><p>برای مشاهده جزئیات، یادداشت داخلی و پیگیری فروش روی نام لید کلیک کن.</p></div>
+      <div class="dashboard-bulk-actions">
+        <select class="dashboard-select" name="bulk_status"><option value="">وضعیت گروهی</option>{% for value,label in lead_status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <select class="dashboard-select" name="bulk_priority"><option value="">اولویت گروهی</option>{% for value,label in lead_priority_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <button class="dashboard-btn primary small" type="submit">اعمال</button>
+      </div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-leads-table">
+        <thead><tr><th></th><th>مخاطب</th><th>شرکت</th><th>وضعیت</th><th>اولویت</th><th>مسئول</th><th>پیگیری بعدی</th><th>منبع</th><th>ثبت</th></tr></thead>
+        <tbody>
+          {% for lead in lead_page.object_list %}
+            <tr>
+              <td><input type="checkbox" name="selected_leads" value="{{ lead.id }}"></td>
+              <td><a class="dashboard-row-link" href="{% url 'dashboard_lead_detail' lead.id %}">{{ lead.full_name }}</a><small>{{ lead.phone }}{% if lead.email %} · {{ lead.email }}{% endif %}</small></td>
+              <td>{{ lead.company|default:'-' }}</td>
+              <td><span class="dashboard-status-pill status-{{ lead.status }} active">{{ lead.get_status_display }}</span></td>
+              <td><span class="dashboard-priority-pill priority-{{ lead.priority }}">{{ lead.get_priority_display }}</span></td>
+              <td>{{ lead.assigned_to|default:'-' }}</td>
+              <td>{{ lead.follow_up_at|date:'Y/m/d H:i'|default:'-' }}</td>
+              <td>{{ lead.source_page|default:'-' }}</td>
+              <td>{{ lead.created_at|date:'Y/m/d H:i' }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="9" class="dashboard-empty">لیدی مطابق فیلتر فعلی پیدا نشد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if lead_page.paginator.num_pages > 1 %}
+      <div class="dashboard-pagination">
+        {% if lead_page.has_previous %}<a href="?tab=leads&page={{ lead_page.previous_page_number }}">قبلی</a>{% endif %}
+        <span>صفحه {{ lead_page.number }} از {{ lead_page.paginator.num_pages }}</span>
+        {% if lead_page.has_next %}<a href="?tab=leads&page={{ lead_page.next_page_number }}">بعدی</a>{% endif %}
+      </div>
+    {% endif %}
+  </form>
+</section>
+
+<section class="dashboard-grid dashboard-two-col">
+  <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>قیف وضعیت لیدها</h2></div><div class="dashboard-pipeline">{% for row in lead_status_rows %}<div><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>{% endfor %}</div></article>
+  <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>راهنمای پیگیری</h2></div><div class="dashboard-roadmap-box"><ul><li>لید جدید را سریع به «پیگیری شده» منتقل کن.</li><li>برای لیدهای مهم زمان پیگیری بعدی ثبت کن.</li><li>برای تبدیل‌شده/ردشده حتماً یادداشت داخلی بگذار.</li></ul></div></article>
+</section>
+{% else %}
+<section class="dashboard-panel dashboard-lead-table-panel">
+  <form method="post" class="dashboard-form">
+    {% csrf_token %}
+    <input type="hidden" name="tab" value="messages">
+    <input type="hidden" name="action" value="bulk_update_messages">
+    <div class="dashboard-panel-head large">
+      <div><h2>پیام‌های تماس</h2><p>پیام‌ها را بررسی کن، پاسخ‌گویی را ثبت کن و موارد تمام‌شده را ببند.</p></div>
+      <div class="dashboard-bulk-actions">
+        <select class="dashboard-select" name="bulk_status"><option value="">وضعیت گروهی</option>{% for value,label in message_status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <select class="dashboard-select" name="bulk_priority"><option value="">اولویت گروهی</option>{% for value,label in message_priority_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <button class="dashboard-btn primary small" type="submit">اعمال</button>
+      </div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-leads-table">
+        <thead><tr><th></th><th>فرستنده</th><th>موضوع</th><th>وضعیت</th><th>اولویت</th><th>منبع</th><th>ثبت</th><th>متن کوتاه</th></tr></thead>
+        <tbody>
+          {% for msg in message_page.object_list %}
+            <tr>
+              <td><input type="checkbox" name="selected_messages" value="{{ msg.id }}"></td>
+              <td><a class="dashboard-row-link" href="{% url 'dashboard_message_detail' msg.id %}">{{ msg.full_name }}</a><small>{{ msg.phone|default:msg.email|default:'بدون راه ارتباطی' }}</small></td>
+              <td>{{ msg.subject|default:'بدون موضوع' }}</td>
+              <td><span class="dashboard-status-pill status-{{ msg.status }} active">{{ msg.get_status_display }}</span></td>
+              <td><span class="dashboard-priority-pill priority-{{ msg.priority }}">{{ msg.get_priority_display }}</span></td>
+              <td>{{ msg.source_page|default:'-' }}</td>
+              <td>{{ msg.created_at|date:'Y/m/d H:i' }}</td>
+              <td>{{ msg.message|truncatechars:90 }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="8" class="dashboard-empty">پیامی مطابق فیلتر فعلی پیدا نشد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if message_page.paginator.num_pages > 1 %}
+      <div class="dashboard-pagination">
+        {% if message_page.has_previous %}<a href="?tab=messages&page={{ message_page.previous_page_number }}">قبلی</a>{% endif %}
+        <span>صفحه {{ message_page.number }} از {{ message_page.paginator.num_pages }}</span>
+        {% if message_page.has_next %}<a href="?tab=messages&page={{ message_page.next_page_number }}">بعدی</a>{% endif %}
+      </div>
+    {% endif %}
+  </form>
+</section>
+
+<section class="dashboard-grid dashboard-two-col">
+  <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>وضعیت پیام‌ها</h2></div><div class="dashboard-pipeline three">{% for row in message_status_rows %}<div><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>{% endfor %}</div></article>
+  <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>راهنمای پاسخ‌گویی</h2></div><div class="dashboard-roadmap-box"><ul><li>پیام جدید بعد از تماس یا ایمیل به «پاسخ داده شده» منتقل شود.</li><li>در موارد تمام‌شده وضعیت را «بسته شده» کن.</li><li>جزئیات پیگیری را در یادداشت داخلی ذخیره کن.</li></ul></div></article>
+</section>
+{% endif %}
+{% endblock %}

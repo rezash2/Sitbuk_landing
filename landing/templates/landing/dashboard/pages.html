@@ -1,0 +1,199 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-page-tabs-panel dashboard-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>انتخاب صفحه برای ویرایش</h2>
+      <p>هر صفحه داخلی را انتخاب کن، سپس تنظیمات Hero، SEO و آیتم‌های همان صفحه را از پنل اختصاصی مدیریت کن.</p>
+    </div>
+    <span class="dashboard-stage-pill">Stage 29</span>
+  </div>
+  <div class="dashboard-page-tabs">
+    {% for tab in page_tabs %}
+      <a href="{% url 'dashboard_section_pages' %}?page={{ tab.key }}" class="dashboard-page-tab{% if tab.is_active %} is-active{% endif %}">
+        <strong>{{ tab.label }}</strong>
+        <span>{{ tab.active_total }}/{{ tab.total }} آیتم فعال</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis">
+  <article class="dashboard-kpi-card accent-gold">
+    <span>صفحه انتخاب‌شده</span>
+    <strong>{{ selected_page_label }}</strong>
+    <p>کلید صفحه: {{ selected_page }}</p>
+  </article>
+  <article class="dashboard-kpi-card accent-green">
+    <span>آیتم‌های فعال این صفحه</span>
+    <strong>{{ active_items_count }}</strong>
+    <p>آیتم‌هایی که اکنون از CMS برای این صفحه خوانده می‌شوند.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-blue">
+    <span>کل آیتم‌های صفحه</span>
+    <strong>{{ total_items_count }}</strong>
+    <p>شامل سکشن‌ها، کارت‌ها، آمارها، اعضا و CTAهای همین صفحه.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-rose">
+    <span>پیش‌نمایش</span>
+    <strong>↗</strong>
+    <p><a href="{{ preview_url }}" target="_blank" class="dashboard-inline-link">مشاهده صفحه در سایت</a></p>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-home-top">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>تنظیمات اصلی صفحه</h2>
+        <p>تیتر، توضیح، تصویر Hero، متادیتای SEO و وضعیت انتشار صفحه را مدیریت کن.</p>
+      </div>
+    </div>
+
+    <form method="post" class="dashboard-form dashboard-page-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_page">
+      <input type="hidden" name="selected_page" value="{{ selected_page }}">
+      {% if page_form.non_field_errors %}
+        <div class="dashboard-form-errors">{{ page_form.non_field_errors }}</div>
+      {% endif %}
+      <div class="dashboard-form-grid two">
+        {% for field in page_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">ذخیره تنظیمات صفحه</button>
+        <a href="{{ preview_url }}" target="_blank" class="dashboard-btn ghost">پیش‌نمایش صفحه</a>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-form-panel" id="page-items">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>افزودن آیتم به صفحه</h2>
+        <p>برای سکشن‌های همین صفحه آیتم جدید بساز. کد سکشن باید با قالب همان صفحه هماهنگ باشد.</p>
+      </div>
+    </div>
+
+    {% if section_hints %}
+      <div class="dashboard-hint-box">
+        <strong>کدهای پیشنهادی سکشن برای این صفحه</strong>
+        <div class="dashboard-chip-list compact">
+          {% for hint in section_hints %}<span>{{ hint }}</span>{% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <form method="post" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_page_item">
+      <input type="hidden" name="selected_page" value="{{ selected_page }}">
+      {% if add_item_form.non_field_errors %}
+        <div class="dashboard-form-errors">{{ add_item_form.non_field_errors }}</div>
+      {% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in add_item_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">افزودن آیتم</button>
+      </div>
+    </form>
+
+    <div class="dashboard-mini-summary page-summary">
+      {% for section in section_summary %}
+        <div>
+          <span>{{ section.label }}</span>
+          <strong>{{ section.active }}/{{ section.total }}</strong>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-panel dashboard-home-items-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>مدیریت آیتم‌های {{ selected_page_label }}</h2>
+      <p>هر آیتم را جداگانه ویرایش، فعال/غیرفعال یا حذف کن. این آیتم‌ها در قالب‌های فعلی سایت با fallback امن استفاده می‌شوند.</p>
+    </div>
+  </div>
+
+  <div class="dashboard-accordion-list dashboard-page-item-groups">
+    {% for group in item_groups %}
+      <article class="dashboard-item-group">
+        <header class="dashboard-item-group-head">
+          <div>
+            <h3>{{ group.label }}</h3>
+            <small>{{ group.active_count }} فعال از {{ group.count }} آیتم</small>
+          </div>
+          <span>{{ group.key }}</span>
+        </header>
+
+        {% if group.items %}
+          <div class="dashboard-item-editor-list">
+            {% for row in group.items %}
+              <form method="post" class="dashboard-item-editor{% if not row.object.is_active %} is-muted{% endif %}" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_page_item">
+                <input type="hidden" name="selected_page" value="{{ selected_page }}">
+                <input type="hidden" name="item_id" value="{{ row.object.id }}">
+                <div class="dashboard-item-editor-head">
+                  <div>
+                    <strong>{{ row.object.title }}</strong>
+                    <small>سکشن: {{ row.object.section }} · ترتیب: {{ row.object.sort_order }} · آخرین تغییر: {{ row.object.updated_at|date:'Y/m/d H:i' }}</small>
+                  </div>
+                  <span class="dashboard-status-pill{% if row.object.is_active %} active{% endif %}">
+                    {% if row.object.is_active %}فعال{% else %}غیرفعال{% endif %}
+                  </span>
+                </div>
+
+                {% if row.form.non_field_errors %}
+                  <div class="dashboard-form-errors">{{ row.form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="dashboard-form-grid three compact">
+                  {% for field in row.form %}
+                    <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                      <span>{{ field.label }}</span>
+                      {{ field }}
+                      {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                      {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+                    </label>
+                  {% endfor %}
+                </div>
+
+                <div class="dashboard-form-actions compact-actions">
+                  <button type="submit" class="dashboard-btn primary small">ذخیره آیتم</button>
+                  <button type="submit" name="action" value="toggle_page_item" class="dashboard-btn ghost small">
+                    {% if row.object.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}
+                  </button>
+                  <button type="submit" name="action" value="delete_page_item" class="dashboard-btn danger small" onclick="return confirm('این آیتم حذف شود؟')">حذف</button>
+                </div>
+              </form>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="dashboard-empty-state mini">
+            <strong>هنوز آیتمی برای این سکشن ثبت نشده است.</strong>
+            <p>از فرم افزودن آیتم جدید استفاده کن یا کد سکشن را طبق لیست پیشنهادی وارد کن.</p>
+          </div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

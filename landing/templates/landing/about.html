@@ -1,0 +1,177 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}theme-light page-about stage19-about{% endblock %}
+{% block content %}
+<section class="section about-hero stage19-about-hero">
+  <div class="container split-grid split-grid-about" data-reveal>
+    <div class="visual-card rounded-hero-card stage19-about-visual">
+      <img src="{% static 'landing/images/about_building.png' %}" alt="دفتر سیتباک">
+      <div class="stage19-hero-float stage19-hero-float-a">
+        <strong>+۱۵</strong>
+        <span>ماژول آماده توسعه</span>
+      </div>
+      <div class="stage19-hero-float stage19-hero-float-b">
+        <strong>مرحله‌ای</strong>
+        <span>تحلیل، اجرا، آموزش</span>
+      </div>
+    </div>
+    <div class="about-copy stage19-about-copy">
+      <span class="eyebrow">{{ page_kicker }}</span>
+      <h1>{{ page_title }}</h1>
+      <p>{{ page_description }}</p>
+      <div class="stage19-proof-list">
+        {% for title, description, icon in about_proof_points %}
+          <span>
+            <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+            <b>{{ title }}</b>
+            <small>{{ description }}</small>
+          </span>
+        {% endfor %}
+      </div>
+      <div class="org-card stage19-org-card">
+        <div class="org-mark">
+          <svg class="icon"><use href="#i-chart"></use></svg>
+        </div>
+        <div>
+          <small>سیتباک محصولی از شرکت</small>
+          <strong>پردازان نرم‌افزاری آمار</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container stat-band stage19-stat-band" data-reveal>
+    {% for value, title, icon in about_stats %}
+      <article class="stat-band-item">
+        <span class="stat-band-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <strong>{{ value }}</strong>
+        <p>{{ title }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm stage19-story-intro">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">مسیر رشد ما</span>
+    <h2>سیتباک از دل تجربه‌های اجرایی متولد شد</h2>
+    <p>تمرکز ما فقط ساخت یک وب‌سایت یا نرم‌افزار نیست؛ سیتباک باید فرآیند واقعی سازمان را قابل کنترل، قابل گزارش و قابل توسعه کند.</p>
+  </div>
+  <div class="container about-timeline-grid" data-reveal>
+    {% for label, title, description, icon in about_timeline %}
+      <article class="soft-card about-timeline-card stage19-about-timeline-card">
+        <div class="about-timeline-top">
+          <span class="about-timeline-badge">{{ label }}</span>
+          <span class="about-timeline-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        </div>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light stage19-operating-section">
+  <div class="container stage19-operating-panel" data-reveal>
+    <div class="stage19-operating-copy">
+      <span class="eyebrow">سیستم کاری سیتباک</span>
+      <h2>هر پروژه را با نقشه محصول، نه حدس و سلیقه، جلو می‌بریم</h2>
+      <p>برای اینکه خروجی قابل اتکا باشد، از همان ابتدا نیازها، نقش‌ها، داده‌ها، جریان تأیید و شاخص‌های مدیریتی را کنار هم می‌چینیم؛ سپس نسخه عملیاتی را مرحله‌ای تحویل می‌دهیم.</p>
+      <div class="stage19-operating-actions">
+        <a href="{% url 'contact' %}" class="btn btn-primary">درخواست جلسه تحلیل</a>
+        <a href="{% url 'features' %}" class="btn btn-secondary">مشاهده امکانات</a>
+      </div>
+    </div>
+    <div class="stage19-operating-grid">
+      {% for title, description, icon in about_operating_points %}
+        <article>
+          <span><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+          <h3>{{ title }}</h3>
+          <p>{{ description }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-light">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">اعضای هیئت مدیره</span>
+    <h2>تیمی که سیتباک را می‌سازد</h2>
+    <p>ترکیبی از تجربه فنی، نگاه محصولی و شناخت بازار، پشت توسعه سیتباک قرار دارد.</p>
+  </div>
+
+  <div class="container card-grid card-grid-3 stage19-leader-grid" data-reveal>
+    {% for item in leaders %}
+      <article class="soft-card leader-card stage19-leader-card">
+        <div class="leader-photo">
+          <img src="{% static 'landing/images/'|add:item.image %}" alt="{{ item.name }}">
+        </div>
+        <div class="leader-copy">
+          <h3>{{ item.name }}</h3>
+          <span>{{ item.role }}</span>
+          <p>{{ item.bio }}</p>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section mission-section stage19-mission-section">
+  <div class="container mission-grid" data-reveal>
+    <div class="mission-visual soft-card">
+      <img src="{% static 'landing/images/about_mission_graphic.png' %}" alt="نمودار رشد و ماموریت سیتباک">
+    </div>
+    <div class="mission-copy soft-card stage19-mission-copy">
+      <span class="eyebrow">ماموریت محصول</span>
+      <h2>رسالت ما</h2>
+      <p>ما در سیتباک رسالت خود را کمک به سازمان‌ها برای رشد پایدار، افزایش بهره‌وری و تصمیم‌گیری هوشمندانه می‌دانیم. هدف ما ساده‌سازی کسب‌وکارها با ابزارهای یکپارچه، دقیق و قابل اعتماد است تا در مسیر تحول دیجیتال سریع‌تر و مطمئن‌تر حرکت کنند.</p>
+      <a href="#contact-block" class="btn btn-violet">تماس با ما</a>
+
+      <div class="card-grid card-grid-4 mt-lg">
+        {% for title, description, icon in mission_values %}
+          <article class="value-item stage19-value-item">
+            <span class="value-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+            <h3>{{ title }}</h3>
+            <p>{{ description }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">نحوه همکاری ما</span>
+    <h2>شفاف، مرحله‌ای و نزدیک به تیم شما</h2>
+  </div>
+  <div class="container card-grid card-grid-4 stage19-culture-grid" data-reveal>
+    {% for title, description, icon in culture_points %}
+      <article class="soft-card culture-card stage19-culture-card">
+        <span class="culture-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light">
+  <div class="container story-grid soft-card stage19-company-card" data-reveal>
+    <div class="story-visual">
+      <img src="{% static 'landing/images/about_workspace.png' %}" alt="محیط کار سیتباک">
+    </div>
+    <div class="story-copy">
+      <span class="eyebrow">پشتوانه اجرایی</span>
+      <h2>پردازان نرم‌افزاری آمار</h2>
+      <p>شرکت پردازان نرم‌افزاری آمار با تمرکز بر تحقیق و توسعه، طراحی و پیاده‌سازی راهکارهای نرم‌افزاری سازمانی، سال‌ها همراه کسب‌وکارهای ایرانی در مسیر دیجیتالی‌سازی بوده است. سیتباک حاصل تجربه فنی، شناخت نیازهای واقعی سازمان‌ها و تعهد به ساخت محصولی پایدار و حرفه‌ای است.</p>
+      <ul class="check-list stage19-check-list">
+        {% for item in company_points %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

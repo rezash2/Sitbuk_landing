@@ -1,0 +1,62 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div><h2>پیگیری فروش</h2><p>وضعیت، اولویت، مسئول و یادداشت داخلی این لید را مدیریت کن.</p></div>
+      <a class="dashboard-btn ghost small" href="{% url 'dashboard_section_leads' %}?tab=leads">بازگشت به لیست</a>
+    </div>
+    <form method="post" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="dashboard-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit" name="action" value="save">ذخیره پیگیری</button>
+        <button class="dashboard-btn ghost" type="submit" name="action" value="mark_contacted_now">ثبت تماس همین حالا</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head large"><div><h2>اطلاعات مخاطب</h2><p>{{ lead.created_at|date:'Y/m/d H:i' }}</p></div><span class="dashboard-status-pill status-{{ lead.status }} active">{{ lead.get_status_display }}</span></div>
+    <dl class="dashboard-detail-list">
+      <div><dt>نام</dt><dd>{{ lead.full_name }}</dd></div>
+      <div><dt>تلفن</dt><dd>{% if lead.phone %}<a href="tel:{{ lead.phone }}">{{ lead.phone }}</a>{% else %}-{% endif %}</dd></div>
+      <div><dt>ایمیل</dt><dd>{{ lead.email|default:'-' }}</dd></div>
+      <div><dt>شرکت</dt><dd>{{ lead.company|default:'-' }}</dd></div>
+      <div><dt>اولویت</dt><dd><span class="dashboard-priority-pill priority-{{ lead.priority }}">{{ lead.get_priority_display }}</span></dd></div>
+      <div><dt>مسئول</dt><dd>{{ lead.assigned_to|default:'-' }}</dd></div>
+    </dl>
+    <div class="dashboard-note-box"><strong>توضیحات کاربر</strong><p>{{ lead.note|linebreaksbr|default:'توضیحی ثبت نشده است.' }}</p></div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid">
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head"><h2>ردیابی منبع</h2></div>
+    <dl class="dashboard-detail-list">
+      <div><dt>صفحه مبدا</dt><dd>{{ lead.source_page|default:'-' }}</dd></div>
+      <div><dt>آدرس صفحه</dt><dd>{{ lead.page_url|default:'-' }}</dd></div>
+      <div><dt>Referrer</dt><dd>{{ lead.referrer|default:'-' }}</dd></div>
+      <div><dt>UTM Source</dt><dd>{{ lead.utm_source|default:'-' }}</dd></div>
+      <div><dt>UTM Campaign</dt><dd>{{ lead.utm_campaign|default:'-' }}</dd></div>
+      <div><dt>IP</dt><dd>{{ lead.ip_address|default:'-' }}</dd></div>
+    </dl>
+  </article>
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head"><h2>دستگاه و مرورگر</h2></div>
+    <div class="dashboard-note-box muted"><p>{{ lead.user_agent|default:'اطلاعات مرورگر ثبت نشده است.' }}</p></div>
+    <dl class="dashboard-detail-list">
+      <div><dt>آخرین تماس</dt><dd>{{ lead.last_contacted_at|date:'Y/m/d H:i'|default:'-' }}</dd></div>
+      <div><dt>پیگیری بعدی</dt><dd>{{ lead.follow_up_at|date:'Y/m/d H:i'|default:'-' }}</dd></div>
+      <div><dt>آخرین ویرایش</dt><dd>{{ lead.updated_at|date:'Y/m/d H:i' }}</dd></div>
+    </dl>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% load static %}
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a class="brand" href="{% url 'home' %}" aria-label="سیتباک">
+      <img src="{% static 'landing/images/sitbuk_logo.png' %}" alt="Sitbuk logo">
+    </a>
+
+    <button class="menu-toggle" type="button" data-menu-toggle aria-label="باز کردن منو">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" data-menu>
+      <ul>
+        {% for item in nav_items %}
+          <li>
+            <a href="{{ item.url }}" class="{% if item.active %}is-active{% endif %}">{{ item.label }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="nav-cta mobile-only">
+        <a href="{% url 'contact' %}" class="btn btn-primary">شروع رایگان</a>
+      </div>
+    </nav>
+
+    <div class="header-actions desktop-only">
+      <a href="{% url 'contact' %}" class="btn btn-secondary">درخواست دمو</a>
+      <a href="{% url 'contact' %}" class="btn btn-primary">شروع رایگان</a>
+    </div>
+  </div>
+</header>

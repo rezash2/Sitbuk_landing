@@ -1,0 +1,14 @@
+<form method="post" action="{% url 'submit_contact' %}" class="contact-form js-ajax-form" data-ajax-form>
+  {% csrf_token %}
+  <input type="hidden" name="page_url" value="{{ request.path }}">
+  <input type="hidden" name="source_page" value="{{ form_source_page|default:active_page }}">
+  <div class="lead-grid contact-grid">
+    <div class="form-field">{{ contact_form.full_name }}</div>
+    <div class="form-field">{{ contact_form.phone }}</div>
+    <div class="form-field">{{ contact_form.email }}</div>
+    <div class="form-field">{{ contact_form.company }}</div>
+    <div class="form-field form-field-wide">{{ contact_form.subject }}</div>
+    <div class="form-field form-field-wide">{{ contact_form.message }}</div>
+    <button class="btn btn-primary" type="submit">ارسال پیام</button>
+  </div>
+</form>

@@ -1,0 +1,175 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}theme-dark{% endblock %}
+{% block content %}
+<section class="hero hero-home hero-home-detail">
+  <div class="hero-orb hero-orb-gold"></div>
+  <div class="hero-orb hero-orb-purple"></div>
+  <div class="hero-mesh-bg" aria-hidden="true"></div>
+
+  <div class="container hero-grid hero-grid-detail" data-reveal>
+    <div class="hero-content hero-content-detail">
+      <span class="eyebrow">{{ eyebrow }}</span>
+      <div class="hero-kicker-row">
+        <span class="hero-kicker-chip">{{ hero_kicker_primary }}</span>
+        <span class="hero-kicker-chip ghost">{{ hero_kicker_secondary }}</span>
+      </div>
+
+      <h1 class="hero-title hero-title-detail">
+        {{ hero_title_prefix }}
+        <span>{{ hero_highlight }}</span>
+        {{ hero_title_suffix }}
+      </h1>
+      <p class="hero-description hero-description-detail">{{ hero_description }}</p>
+
+      <div class="hero-actions">
+        <a href="{{ hero_primary_button_url }}" class="btn btn-primary btn-lg">{{ hero_primary_button_label }}</a>
+        <a href="{{ hero_secondary_button_url }}" class="btn btn-secondary btn-lg">{{ hero_secondary_button_label }}</a>
+      </div>
+
+      <div class="hero-proof-grid hero-proof-grid-compact" aria-label="مزیت‌های سریع سیتباک">
+        {% for item in hero_quick_proofs|slice:':3' %}
+          <article class="hero-proof-card">
+            <span class="hero-proof-icon"><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
+            <strong>{{ item.title }}</strong>
+            <small>{{ item.subtitle }}</small>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="hero-visual hero-visual-detail hero-visual-story hero-visual-video" data-reveal>
+      <div class="hero-video-frame">
+        <div class="hero-video-label">
+          <span></span>
+          <strong>ویدیو معرفی</strong>
+        </div>
+        <video class="hero-video-player" controls preload="metadata" playsinline poster="{% static hero_image %}">
+          <source src="{% static 'landing/videos/home-hero.mp4' %}" type="video/mp4">
+          مرورگر شما از نمایش ویدیو پشتیبانی نمی‌کند.
+        </video>
+      </div>
+      <p class="hero-video-hint">فایل ویدیو را با نام <code>home-hero.mp4</code> داخل مسیر <code>landing/static/landing/videos/</code> قرار بده.</p>
+    </div>
+  </div>
+
+  <div class="container stats-grid stats-grid-home stats-grid-detail stats-grid-compact" data-reveal>
+    {% for item in stats|slice:':4' %}
+      <article class="glass-card stat-card stat-card-detail">
+        <span class="stat-icon"><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
+        <strong>{{ item.value }}</strong>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.subtitle }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light services-detail-section home-compact-section home-compact-services">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">سیتباک در یک نگاه</span>
+    <h2>همه چیز کوتاه، کاربردی و قابل شروع</h2>
+    <p>صفحه اول خلاصه شد تا کاربر سریع بفهمد سیتباک چه مشکلی را حل می‌کند و برای جزئیات وارد صفحات اختصاصی شود.</p>
+  </div>
+
+  <div class="container card-grid card-grid-3 service-grid-detail service-grid-compact" data-reveal>
+    {% for item in services|slice:':3' %}
+      <article class="soft-card service-card service-card-detail">
+        <div class="service-icon">
+          <svg class="icon"><use href="#i-{{ item.icon }}"></use></svg>
+          {% if item.badge %}<span class="badge">{{ item.badge }}</span>{% endif %}
+        </div>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.description }}</p>
+        <a href="{% url 'features' %}" class="service-link">جزئیات بیشتر</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light showcase-section section-tight-top home-compact-section home-compact-showcase">
+  <div class="container showcase-panel premium-showcase showcase-panel-detail" data-reveal>
+    <div class="showcase-copy">
+      <span class="eyebrow">نمای محصول</span>
+      <h2>یک داشبورد تمیز برای فروش، اجرا و مدیریت</h2>
+      <p>به جای توضیحات طولانی، تمرکز صفحه اول روی پیام اصلی است: کنترل بهتر فرآیندها، گزارش دقیق‌تر و شروع ساده‌تر.</p>
+      <div class="showcase-points">
+        {% for title, description, icon in showcase_points|slice:':3' %}
+          <div class="showcase-point-item">
+            <span class="showcase-point-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+            <div>
+              <strong>{{ title }}</strong>
+              <p>{{ description }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="showcase-actions">
+        <a href="{% url 'case_study' %}" class="btn btn-dark">مطالعه موردی</a>
+        <a href="{% url 'pricing' %}" class="btn btn-secondary">قیمت‌ها</a>
+      </div>
+    </div>
+    <div class="showcase-visual premium-showcase-visual">
+      <div class="showcase-browser-card showcase-browser-card-detail">
+        <div class="showcase-browser-top">
+          <span></span><span></span><span></span>
+          <small>app.sitbuk.com/dashboard</small>
+        </div>
+        <img src="{% static 'landing/images/hero_feature.png' %}" alt="نمای محصول سیتباک">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-dark module-showcase-section home-compact-section home-compact-modules">
+  <div class="container section-head section-head-light" data-reveal>
+    <span class="eyebrow eyebrow-center">هسته‌های اصلی محصول</span>
+    <h2>ماژول‌های مهم، بدون شلوغی اضافه</h2>
+    <p>جزئیات کامل ماژول‌ها به صفحه امکانات منتقل شده تا صفحه اول کوتاه و سریع بماند.</p>
+  </div>
+
+  <div class="container module-showcase-grid module-showcase-grid-compact" data-reveal>
+    {% for item in home_modules|slice:':4' %}
+      <article class="home-module-card">
+        <div class="home-module-head">
+          <span><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
+          <small>{{ item.badge }}</small>
+        </div>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light workflow-detail-section home-compact-section home-compact-process">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">مسیر همکاری</span>
+    <h2>از مشاوره تا راه‌اندازی، مرحله‌به‌مرحله</h2>
+    <p>فرآیند همکاری کوتاه‌تر نمایش داده شد تا کاربر سریع مسیر شروع را ببیند.</p>
+  </div>
+  <div class="container workflow-detail-grid workflow-detail-grid-compact" data-reveal>
+    <div class="workflow-map">
+      {% for index, title, description, icon in process_steps|slice:':4' %}
+        <article class="workflow-map-card">
+          <span class="workflow-step-no">{{ index }}</span>
+          <span class="workflow-step-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+          <div>
+            <h3>{{ title }}</h3>
+            <p>{{ description }}</p>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    <div class="workflow-side-card">
+      <span class="eyebrow">قدم بعدی</span>
+      <h3>برای جزئیات بیشتر، صفحات امکانات و قیمت‌ها آماده‌اند.</h3>
+      <p>صفحه اول حالا نقش معرفی سریع دارد و توضیحات کامل در صفحات داخلی قرار گرفته است.</p>
+      <div class="workflow-result-list">
+        <a href="{% url 'features' %}" class="btn btn-dark">امکانات</a>
+        <a href="{% url 'pricing' %}" class="btn btn-secondary">پلن‌ها</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

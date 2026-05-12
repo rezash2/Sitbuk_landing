@@ -1,0 +1,183 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}theme-light page-case-study stage19-case{% endblock %}
+{% block content %}
+<section class="page-hero dark-page-hero case-hero stage19-case-hero">
+  <div class="container split-grid split-grid-case" data-reveal>
+    <div class="visual-card case-laptop stage19-case-laptop">
+      <img src="{% static 'landing/images/case_laptop.png' %}" alt="داشبورد پروژه مشتری">
+      <div class="stage19-case-badge stage19-case-badge-top">CRM + فروش + گزارش</div>
+      <div class="stage19-case-badge stage19-case-badge-bottom">تحویل عملیاتی در ۲۱ روز</div>
+    </div>
+    <div class="case-copy stage19-case-copy">
+      <span class="eyebrow">{{ page_kicker }}</span>
+      <h1>{{ page_title }}</h1>
+      <p>{{ page_description }}</p>
+
+      <div class="fact-row stage19-fact-row">
+        {% for label, value, icon in case_facts %}
+          <div class="fact-card stage19-fact-card">
+            <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+            <div>
+              <small>{{ label }}</small>
+              <strong>{{ value }}</strong>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="hero-actions">
+        <a href="#contact-block" class="btn btn-primary">مشاهده دمو مشابه</a>
+        <a href="#case-results" class="btn btn-secondary">دیدن نتایج</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-light stage19-case-overview">
+  <div class="container compare-grid" data-reveal>
+    <article class="soft-card compare-card compare-card-negative stage19-compare-card">
+      <div class="compare-head">
+        <h3>چالش‌های قبل از سیتباک</h3>
+        <span class="compare-pill danger">قبل</span>
+      </div>
+      <ul class="danger-list">
+        {% for item in before_items %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="soft-card compare-card compare-card-positive stage19-compare-card">
+      <div class="compare-head">
+        <h3>سیتباک چه کاری انجام داد؟</h3>
+        <span class="compare-pill success">بعد</span>
+      </div>
+      <ul class="success-list">
+        {% for item in after_items %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="section section-light pt-sm stage19-case-method-section">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">نقشه اجرای پروژه</span>
+    <h2>از شلوغی پیگیری‌ها تا داشبورد مدیریتی قابل اتکا</h2>
+    <p>در این سناریو، اول جریان فروش و نقاط خطا شناسایی شد، سپس ماژول‌ها مرحله‌ای فعال شدند تا تیم بدون توقف کار روزانه مهاجرت کند.</p>
+  </div>
+  <div class="container stage19-case-timeline" data-reveal>
+    {% for title, description, icon in case_solution_steps %}
+      <article class="soft-card">
+        <span class="stage19-case-step-no">{{ forloop.counter }}</span>
+        <span class="stage19-case-step-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm" id="case-results">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">نتایج بعد از ۳ ماه</span>
+    <h2>خروجی قابل اندازه‌گیری، نه فقط یک نصب نرم‌افزار</h2>
+  </div>
+
+  <div class="container card-grid card-grid-4 stage19-results-grid" data-reveal>
+    {% for value, title, icon in results %}
+      <article class="soft-card metric-card stage19-metric-card">
+        <span class="metric-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <strong>{{ value }}</strong>
+        <p>{{ title }}</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="container stage19-deliverable-panel" data-reveal>
+    <div class="stage19-deliverable-copy">
+      <span class="eyebrow">خروجی‌های تحویل‌شده</span>
+      <h2>هر مرحله با خروجی قابل استفاده تحویل شد</h2>
+      <p>هدف فقط نمایش دمو نبود؛ تیم فروش باید همان هفته اول بتواند سرنخ‌ها، فاکتورها، پیگیری‌ها و گزارش‌ها را در یک مسیر مشترک مدیریت کند.</p>
+    </div>
+    <div class="stage19-deliverable-grid">
+      {% for title, description, icon in case_deliverables %}
+        <article>
+          <span><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+          <h3>{{ title }}</h3>
+          <p>{{ description }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="container media-grid stage19-media-grid" data-reveal>
+    <article class="soft-card media-card stage19-media-card">
+      <h3>نمایی از داشبورد پیاده‌سازی‌شده</h3>
+      <img src="{% static 'landing/images/case_dashboard.png' %}" alt="داشبورد پروژه">
+    </article>
+    <article class="soft-card media-card stage19-media-card">
+      <h3>ویدئو بررسی پروژه</h3>
+      <div class="video-thumb large">
+        <img src="{% static 'landing/images/case_video_still.png' %}" alt="ویدئو بررسی پروژه">
+        <span class="play-button"></span>
+      </div>
+    </article>
+  </div>
+
+  <div class="container detail-grid stage19-detail-grid" data-reveal>
+    <article class="soft-card testimonial-card stage19-testimonial-card">
+      <h3>نظر مشتری</h3>
+      <blockquote>{{ customer_quote }}</blockquote>
+      <div class="testimonial-author">
+        <img src="{% static 'landing/images/case_customer_avatar.png' %}" alt="{{ customer_name }}">
+        <div>
+          <strong>{{ customer_name }}</strong>
+          <span>{{ customer_role }}</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="soft-card detail-card stage19-detail-card">
+      <h3>جزئیات پیاده‌سازی</h3>
+      <ul class="detail-list">
+        {% for label, value, icon in implementation_details %}
+          <li>
+            <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+            <div>
+              <small>{{ label }}</small>
+              <strong>{{ value }}</strong>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="section dark-cta-band stage19-dark-cta-band">
+  <div class="container dark-cta-inner" data-reveal>
+    <div class="dark-cta-copy">
+      <h2>شما هم می‌توانید همین نتیجه را بگیرید</h2>
+      <p>برای کسب‌وکار شما هم همین مسیر قابل اجراست. همین حالا برای مشاوره رایگان اقدام کنید.</p>
+      <div class="hero-actions">
+        <a href="#contact-block" class="btn btn-primary">درخواست مشاوره رایگان</a>
+        <a href="{% url 'features' %}" class="btn btn-secondary">مشاهده امکانات</a>
+      </div>
+    </div>
+    <div class="dark-cta-visual">
+      <img src="{% static 'landing/images/case_growth_graphic.png' %}" alt="نمودار رشد">
+    </div>
+  </div>
+  <div class="container client-strip" data-reveal>
+    <p>به جمع +۱۰۰۰ کسب‌وکار موفق با سیتباک بپیوندید</p>
+    <div class="client-logo-row">
+      {% for item in client_logos %}
+        <span>{{ item }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

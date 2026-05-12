@@ -1,0 +1,56 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div><h2>پیگیری پیام</h2><p>وضعیت پاسخ‌گویی، اولویت و یادداشت داخلی پیام را مدیریت کن.</p></div>
+      <a class="dashboard-btn ghost small" href="{% url 'dashboard_section_leads' %}?tab=messages">بازگشت به لیست</a>
+    </div>
+    <form method="post" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="dashboard-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit" name="action" value="save">ذخیره پیام</button>
+        <button class="dashboard-btn ghost" type="submit" name="action" value="mark_replied">ثبت پاسخ داده شده</button>
+        <button class="dashboard-btn danger" type="submit" name="action" value="mark_closed">بستن پیام</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head large"><div><h2>{{ contact_message.subject|default:'پیام تماس' }}</h2><p>{{ contact_message.created_at|date:'Y/m/d H:i' }}</p></div><span class="dashboard-status-pill status-{{ contact_message.status }} active">{{ contact_message.get_status_display }}</span></div>
+    <dl class="dashboard-detail-list">
+      <div><dt>نام</dt><dd>{{ contact_message.full_name }}</dd></div>
+      <div><dt>تلفن</dt><dd>{% if contact_message.phone %}<a href="tel:{{ contact_message.phone }}">{{ contact_message.phone }}</a>{% else %}-{% endif %}</dd></div>
+      <div><dt>ایمیل</dt><dd>{{ contact_message.email|default:'-' }}</dd></div>
+      <div><dt>شرکت</dt><dd>{{ contact_message.company|default:'-' }}</dd></div>
+      <div><dt>اولویت</dt><dd><span class="dashboard-priority-pill priority-{{ contact_message.priority }}">{{ contact_message.get_priority_display }}</span></dd></div>
+      <div><dt>صفحه مبدا</dt><dd>{{ contact_message.source_page|default:'-' }}</dd></div>
+    </dl>
+    <div class="dashboard-note-box"><strong>متن پیام</strong><p>{{ contact_message.message|linebreaksbr }}</p></div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid">
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head"><h2>ردیابی منبع</h2></div>
+    <dl class="dashboard-detail-list">
+      <div><dt>آدرس صفحه</dt><dd>{{ contact_message.page_url|default:'-' }}</dd></div>
+      <div><dt>Referrer</dt><dd>{{ contact_message.referrer|default:'-' }}</dd></div>
+      <div><dt>IP</dt><dd>{{ contact_message.ip_address|default:'-' }}</dd></div>
+      <div><dt>آخرین ویرایش</dt><dd>{{ contact_message.updated_at|date:'Y/m/d H:i' }}</dd></div>
+    </dl>
+  </article>
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head"><h2>دستگاه و مرورگر</h2></div>
+    <div class="dashboard-note-box muted"><p>{{ contact_message.user_agent|default:'اطلاعات مرورگر ثبت نشده است.' }}</p></div>
+  </article>
+</section>
+{% endblock %}

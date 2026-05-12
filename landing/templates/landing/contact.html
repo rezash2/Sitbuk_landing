@@ -1,0 +1,161 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}theme-light page-contact stage19-contact{% endblock %}
+{% block content %}
+<section class="dark-page-hero page-hero contact-hero stage19-contact-hero">
+  <div class="container stage19-contact-hero-grid" data-reveal>
+    <div class="section-head section-head-light narrow stage19-contact-hero-copy">
+      <span class="eyebrow">{{ page_kicker }}</span>
+      <h1>{{ page_title }}</h1>
+      <p>{{ page_description }}</p>
+      <div class="stage19-contact-chips">
+        <span>دمو اختصاصی</span>
+        <span>برآورد زمان و هزینه</span>
+        <span>تحلیل نیاز رایگان</span>
+      </div>
+    </div>
+    <div class="stage19-contact-routing-card">
+      <div class="stage19-routing-head">
+        <span><svg class="icon"><use href="#i-zap"></use></svg></span>
+        <div>
+          <small>مسیر سریع ارتباط</small>
+          <strong>از ثبت درخواست تا جلسه تحلیل</strong>
+        </div>
+      </div>
+      <div class="stage19-routing-list">
+        {% for label, value in contact_route_rows %}
+          <div>
+            <small>{{ label }}</small>
+            <strong>{{ value }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-light contact-page stage19-contact-page">
+  <div class="container card-grid card-grid-3 contact-commitment-grid stage19-contact-commitment-grid" data-reveal>
+    {% for title, text, icon in contact_commitments %}
+      <article class="soft-card contact-commitment-card stage19-contact-commitment-card">
+        <span class="contact-commitment-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        <h3>{{ title }}</h3>
+        <p>{{ text }}</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="container contact-layout stage19-contact-layout">
+    <div class="contact-info-column" data-reveal>
+      <div class="stage19-contact-guide soft-card">
+        <span class="eyebrow">قبل از تماس</span>
+        <h2>برای شروع دقیق‌تر، این اطلاعات کافی است</h2>
+        <div class="stage19-contact-guide-grid">
+          {% for title, description, icon in contact_precheck_items %}
+            <article>
+              <span><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+              <div>
+                <strong>{{ title }}</strong>
+                <p>{{ description }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="contact-info-grid stage19-contact-info-grid">
+        {% for title, text, icon in contact_cards %}
+        <div class="soft-card contact-info-card stage19-contact-info-card">
+          <div class="why-icon">
+            <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+          </div>
+          <h3>{{ title }}</h3>
+          <p>{{ text }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="contact-direct-card glass-card section-dark stage19-contact-direct-card">
+        <h3>راه‌های ارتباط مستقیم</h3>
+        <ul class="contact-direct-list">
+          <li><strong>فروش:</strong> <a href="tel:{{ site_settings.sales_phone }}">{{ site_settings.sales_phone }}</a></li>
+          <li><strong>پشتیبانی:</strong> <a href="tel:{{ site_settings.support_phone }}">{{ site_settings.support_phone }}</a></li>
+          <li><strong>ایمیل:</strong> <a href="mailto:{{ site_settings.support_email }}">{{ site_settings.support_email }}</a></li>
+          <li><strong>ساعات پاسخ‌گویی:</strong> {{ site_settings.working_hours }}</li>
+          <li><strong>آدرس:</strong> {{ site_settings.address }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="soft-card contact-form-panel stage19-contact-form-panel" data-reveal>
+      <div class="contact-form-head">
+        <span class="eyebrow">فرم تماس با ما</span>
+        <h2>سوال یا درخواست خود را برای ما ارسال کنید</h2>
+        <p>برای دمو، مشاوره خرید، پیاده‌سازی یا توسعه اختصاصی، اطلاعات خود را وارد کنید تا با شما هماهنگ کنیم.</p>
+      </div>
+      {% include 'landing/includes/contact_form.html' %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-light pt-sm stage19-process-section">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">فرآیند ارتباط با ما</span>
+    <h2>بعد از ارسال فرم چه اتفاقی می‌افتد؟</h2>
+  </div>
+  <div class="container process-grid stage19-process-grid" data-reveal>
+    {% for title, description, icon in contact_steps %}
+      <article class="soft-card process-card stage19-process-card">
+        <div class="process-card-head">
+          <span class="process-step-no">{{ forloop.counter }}</span>
+          <span class="process-step-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
+        </div>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-light pt-sm stage19-contact-fit-section">
+  <div class="container stage19-fit-panel" data-reveal>
+    <div>
+      <span class="eyebrow">برای چه درخواست‌هایی مناسب است؟</span>
+      <h2>از دمو تا توسعه اختصاصی، مسیر جداگانه داریم</h2>
+      <p>فرم تماس فقط یک فرم ساده نیست؛ درخواست شما بر اساس موضوع، اولویت و مرحله تصمیم‌گیری دسته‌بندی می‌شود تا پاسخ مناسب‌تری دریافت کنید.</p>
+    </div>
+    <div class="stage19-fit-grid">
+      {% for title, text, icon in contact_benefits %}
+      <div class="soft-card why-card stage19-fit-card">
+        <div class="why-icon">
+          <svg class="icon"><use href="#i-{{ icon }}"></use></svg>
+        </div>
+        <h3>{{ title }}</h3>
+        <p>{{ text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-light pt-sm">
+  <div class="container faq-section stage19-contact-faq">
+    <div class="section-head narrow text-center">
+      <span class="eyebrow eyebrow-center">سوالات متداول</span>
+      <h2>پیش از شروع همکاری، پاسخ چند سوال مهم</h2>
+      <p>اگر پاسخ سوال خود را پیدا نکردید، فرم تماس را تکمیل کنید تا تیم ما با شما در ارتباط باشد.</p>
+    </div>
+    <div class="faq-list">
+      {% for faq in faqs %}
+      <details class="soft-card faq-item" data-reveal>
+        <summary>{{ faq.question }}</summary>
+        <div class="faq-answer">{{ faq.answer }}</div>
+      </details>
+      {% empty %}
+      <div class="empty-state soft-card">
+        <h3>فعلاً سوال متداولی ثبت نشده است.</h3>
+        <p>از پنل مدیریت می‌توانید سوالات متداول را اضافه کنید.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

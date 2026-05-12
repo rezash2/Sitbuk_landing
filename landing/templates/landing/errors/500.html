@@ -1,0 +1,14 @@
+{% extends 'landing/base.html' %}
+{% block content %}
+<section class="dark-page-hero page-hero error-page">
+  <div class="container narrow text-center">
+    <span class="eyebrow eyebrow-center">خطای سرور</span>
+    <h1>مشکلی در پردازش درخواست به‌وجود آمد</h1>
+    <p>لطفاً چند لحظه دیگر دوباره تلاش کنید. اگر مشکل ادامه داشت، از طریق صفحه تماس با ما اطلاع دهید.</p>
+    <div class="error-actions">
+      <a href="{% url 'home' %}" class="btn btn-primary">بازگشت به خانه</a>
+      <a href="{% url 'contact' %}" class="btn btn-secondary">ارسال پیام</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

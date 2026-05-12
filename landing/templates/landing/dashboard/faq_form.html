@@ -1,0 +1,50 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-two-col dashboard-content-editor-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>{% if mode == 'create' %}سوال متداول جدید{% else %}ویرایش سوال متداول{% endif %}</h2>
+        <p>سوال و پاسخ را برای صفحه FAQ و اسکیما مدیریت کن.</p>
+      </div>
+      <a class="dashboard-btn ghost small" href="{% url 'dashboard_section_content' %}?tab=faqs">بازگشت به لیست</a>
+    </div>
+    <form method="post" class="dashboard-form dashboard-content-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_faq">
+      {% if form.errors %}<div class="dashboard-form-errors">لطفاً خطاهای فرم را بررسی کن: {{ form.errors }}</div>{% endif %}
+      <label class="dashboard-field"><span>{{ form.question.label }}</span>{{ form.question }}</label>
+      <label class="dashboard-field"><span>{{ form.answer.label }}</span>{{ form.answer }}</label>
+      <div class="dashboard-form-grid two">
+        <label class="dashboard-field"><span>{{ form.sort_order.label }}</span>{{ form.sort_order }}{% if form.sort_order.help_text %}<small>{{ form.sort_order.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field checkbox-field"><span>{{ form.is_active.label }}</span>{{ form.is_active }}{% if form.is_active.help_text %}<small>{{ form.is_active.help_text }}</small>{% endif %}</label>
+      </div>
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">ذخیره سوال</button>
+        <a class="dashboard-btn ghost" href="{% url 'faq' %}" target="_blank">مشاهده FAQ</a>
+      </div>
+    </form>
+  </article>
+
+  <aside class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head"><h2>وضعیت سوال</h2></div>
+    {% if faq_item %}
+      <dl class="dashboard-detail-list">
+        <div><dt>شناسه</dt><dd>{{ faq_item.id }}</dd></div>
+        <div><dt>ترتیب</dt><dd>{{ faq_item.sort_order }}</dd></div>
+        <div><dt>نمایش</dt><dd>{% if faq_item.is_active %}فعال{% else %}غیرفعال{% endif %}</dd></div>
+      </dl>
+      <div class="dashboard-form-actions dashboard-danger-zone">
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_faq"><button class="dashboard-btn ghost" type="submit">{% if faq_item.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}</button></form>
+        <form method="post" onsubmit="return confirm('این سوال حذف شود؟');">{% csrf_token %}<input type="hidden" name="action" value="delete_faq"><button class="dashboard-btn danger" type="submit">حذف سوال</button></form>
+      </div>
+    {% else %}
+      <div class="dashboard-empty-state mini"><strong>سوال جدید</strong><p>بعد از ذخیره، امکان حذف و تغییر وضعیت فعال می‌شود.</p></div>
+    {% endif %}
+    <div class="dashboard-note-box muted">
+      <strong>راهنمای FAQ</strong>
+      <p>سوالات فعال در صفحه FAQ نمایش داده می‌شوند و برای تولید FAQ Schema هم استفاده می‌شوند. ترتیب کمتر بالاتر نمایش داده می‌شود.</p>
+    </div>
+  </aside>
+</section>
+{% endblock %}

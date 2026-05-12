@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>{% block title %}داشبورد مدیریت سیتباک{% endblock %}</title>
+  <link rel="preload" href="{% static 'landing/fonts/iransans/IRANSansWebFaNum-Regular.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'landing/fonts/iransans/IRANSansWebFaNum-Bold.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'landing/css/admin-dashboard.css' %}">
+</head>
+<body class="dashboard-body {% block body_class %}{% endblock %}">
+  <div class="dashboard-shell">
+    {% block shell %}
+      <aside class="dashboard-sidebar">
+        <a href="{% url 'dashboard_index' %}" class="dashboard-brand">
+          <img src="{% static 'landing/images/sitbuk_logo.png' %}" alt="سیتباک">
+          <div>
+            <strong>پنل مدیریت سیتباک</strong>
+            <span>داشبورد اختصاصی</span>
+          </div>
+        </a>
+        <nav class="dashboard-nav" aria-label="منوی داشبورد مدیریت">
+          {% for item in dashboard_menu %}
+            <a href="{{ item.url }}" class="dashboard-nav-item{% if item.is_active %} is-active{% endif %}">
+              <span class="dashboard-nav-icon">{{ item.icon }}</span>
+              <span>
+                <strong>{{ item.label }}</strong>
+                <small>{{ item.stage }}</small>
+              </span>
+            </a>
+          {% endfor %}
+        </nav>
+        <div class="dashboard-sidebar-foot">
+          <a href="{% url 'home' %}" target="_blank">مشاهده سایت</a>
+          <a href="{% url 'dashboard_logout' %}">خروج</a>
+        </div>
+      </aside>
+      <main class="dashboard-main">
+        <header class="dashboard-topbar">
+          <div>
+            <span class="dashboard-stage-pill">{{ current_stage|default:'Stage 27' }}</span>
+            <h1>{% block page_title %}{{ dashboard_title }}{% endblock %}</h1>
+            <p>{% block page_subtitle %}{{ dashboard_subtitle }}{% endblock %}</p>
+          </div>
+          <div class="dashboard-user-card">
+            <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+            <small>کاربر مجاز پنل</small>
+          </div>
+        </header>
+        {% if messages %}
+          <div class="dashboard-messages">
+            {% for message in messages %}<div class="dashboard-message {{ message.tags }}">{{ message }}</div>{% endfor %}
+          </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+    {% endblock %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{% extends 'landing/base.html' %}
+{% block content %}
+<section class="dark-page-hero page-hero error-page">
+  <div class="container narrow text-center">
+    <span class="eyebrow eyebrow-center">خطا 404</span>
+    <h1>صفحه مورد نظر پیدا نشد</h1>
+    <p>ممکن است آدرس صفحه تغییر کرده باشد یا لینک وارد شده درست نباشد.</p>
+    <div class="error-actions">
+      <a href="{% url 'home' %}" class="btn btn-primary">بازگشت به خانه</a>
+      <a href="{% url 'contact' %}" class="btn btn-secondary">تماس با ما</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

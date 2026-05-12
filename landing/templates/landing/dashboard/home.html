@@ -1,0 +1,169 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis">
+  <article class="dashboard-kpi-card accent-gold">
+    <span>آیتم‌های فعال صفحه اول</span>
+    <strong>{{ active_items_count }}</strong>
+    <p>آیتم‌هایی که اکنون در صفحه خانه نمایش داده می‌شوند.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-blue">
+    <span>کل آیتم‌های CMS</span>
+    <strong>{{ total_items_count }}</strong>
+    <p>شامل مزیت‌ها، آمارها، خدمات، ماژول‌ها و مراحل همکاری.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-green">
+    <span>Hero صفحه اول</span>
+    <strong>۱</strong>
+    <p>تیتر، توضیح، دکمه‌ها و تصویر اصلی صفحه اول.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-rose">
+    <span>پیش‌نمایش</span>
+    <strong>↗</strong>
+    <p><a href="{{ preview_url }}" target="_blank" class="dashboard-inline-link">مشاهده صفحه اول سایت</a></p>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-home-top">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>Hero صفحه اول</h2>
+        <p>متن اصلی، برچسب‌ها، دکمه‌ها و مسیر تصویر صفحه اول را از همین‌جا ویرایش کن.</p>
+      </div>
+      <span class="dashboard-stage-pill">Stage 28</span>
+    </div>
+
+    <form method="post" class="dashboard-form dashboard-hero-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_hero">
+      {% if hero_form.non_field_errors %}
+        <div class="dashboard-form-errors">{{ hero_form.non_field_errors }}</div>
+      {% endif %}
+      <div class="dashboard-form-grid two">
+        {% for field in hero_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">ذخیره Hero</button>
+        <a href="{{ preview_url }}" target="_blank" class="dashboard-btn ghost">پیش‌نمایش سایت</a>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-form-panel" id="items">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>افزودن آیتم جدید</h2>
+        <p>برای هر سکشن صفحه اول، آیتم جدید بساز و با ترتیب نمایش کنترلش کن.</p>
+      </div>
+    </div>
+    <form method="post" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_item">
+      {% if add_item_form.non_field_errors %}
+        <div class="dashboard-form-errors">{{ add_item_form.non_field_errors }}</div>
+      {% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in add_item_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">افزودن آیتم</button>
+      </div>
+    </form>
+
+    <div class="dashboard-mini-summary">
+      {% for section in section_summary %}
+        <div>
+          <span>{{ section.label }}</span>
+          <strong>{{ section.active }}/{{ section.total }}</strong>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-panel dashboard-home-items-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>مدیریت آیتم‌های صفحه اول</h2>
+      <p>هر آیتم را جداگانه ویرایش، فعال/غیرفعال یا حذف کن. نمایش واقعی صفحه اول همچنان از همین CMS خوانده می‌شود.</p>
+    </div>
+  </div>
+
+  <div class="dashboard-accordion-list">
+    {% for group in item_groups %}
+      <article class="dashboard-item-group">
+        <header class="dashboard-item-group-head">
+          <div>
+            <h3>{{ group.label }}</h3>
+            <small>{{ group.active_count }} فعال از {{ group.count }} آیتم</small>
+          </div>
+          <span>{{ group.key }}</span>
+        </header>
+
+        {% if group.items %}
+          <div class="dashboard-item-editor-list">
+            {% for row in group.items %}
+              <form method="post" class="dashboard-item-editor{% if not row.object.is_active %} is-muted{% endif %}" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_item">
+                <input type="hidden" name="item_id" value="{{ row.object.id }}">
+                <div class="dashboard-item-editor-head">
+                  <div>
+                    <strong>{{ row.object.title }}</strong>
+                    <small>ترتیب: {{ row.object.sort_order }} · آخرین تغییر: {{ row.object.updated_at|date:'Y/m/d H:i' }}</small>
+                  </div>
+                  <span class="dashboard-status-pill{% if row.object.is_active %} active{% endif %}">
+                    {% if row.object.is_active %}فعال{% else %}غیرفعال{% endif %}
+                  </span>
+                </div>
+
+                {% if row.form.non_field_errors %}
+                  <div class="dashboard-form-errors">{{ row.form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="dashboard-form-grid three compact">
+                  {% for field in row.form %}
+                    <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                      <span>{{ field.label }}</span>
+                      {{ field }}
+                      {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                      {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+                    </label>
+                  {% endfor %}
+                </div>
+
+                <div class="dashboard-form-actions compact-actions">
+                  <button type="submit" class="dashboard-btn primary small">ذخیره آیتم</button>
+                  <button type="submit" name="action" value="toggle_item" class="dashboard-btn ghost small">
+                    {% if row.object.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}
+                  </button>
+                  <button type="submit" name="action" value="delete_item" class="dashboard-btn danger small" onclick="return confirm('این آیتم حذف شود؟')">حذف</button>
+                </div>
+              </form>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="dashboard-empty-state mini">
+            <strong>هنوز آیتمی برای این بخش ثبت نشده است.</strong>
+            <p>از فرم افزودن آیتم جدید استفاده کن.</p>
+          </div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
