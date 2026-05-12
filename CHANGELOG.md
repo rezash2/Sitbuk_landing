@@ -283,3 +283,82 @@ python manage.py collectstatic --noinput
 - استایل ریسپانسیو ویدیو با تم تیره/طلایی و حالت شبیه کارت ویدیویی اضافه شد.
 - فایل راهنما `HOMEPAGE_VIDEO_ASSETS_FA.md` برای جایگذاری ویدیو اضافه شد.
 
+## Stage 32.2 - Homepage video story sections
+- Added four structured video story sections to the homepage after the hero/stats area.
+- Prepared video asset paths: `home-section-1.mp4` to `home-section-4.mp4` under `landing/static/landing/videos/`.
+- Added responsive RTL video/text layout matching the requested reference: video beside long copy and benefit items.
+- Preserved Stage 32.1 hero video and all custom dashboard work through Stage 32.
+
+## Stage 32.3 - About page video section
+- Added a new video section to the About page with a responsive HTML5 video frame.
+- Prepared `landing/static/landing/videos/about-story.mp4` as the expected video path.
+- Used the existing `about_workspace.png` image as the default poster so the page stays stable before the video file is uploaded.
+- Added copy and three benefit points explaining the story/team/product vision around the video.
+- Synced CSS and video-folder README files with `staticfiles`.
+## Stage 32.4 - Demo request workflow foundation
+- Added `DemoRequest` model and migration `0010_demo_request.py` for collecting demo access requests.
+- Added `/forms/demo/` endpoint and AJAX modal form for demo requests.
+- Connected homepage/header demo CTAs to the modal form instead of sending users directly to a generic contact section.
+- Added tracking fields, UTM fields, demo type selection, status workflow, temporary token and future demo access URL fields.
+- Added `DEMO_REQUEST_WORKFLOW_FA.md` for the next integration steps.
+
+## Stage 32.5 - Secure demo systems access
+- Added secure temporary demo access page at `/demo/<token>/`.
+- Added target launch routes for Behnico and Sitbuk demo copies.
+- Added environment variables for demo base URLs and token lifetime.
+- Demo requests now generate a temporary access URL and redirect users to the demo selection page after form submission.
+- Added tracking fields for demo link expiry, launch count, last target, and entered timestamp.
+- Added `DEMO_SYSTEM_INTEGRATION_FA.md`.
+
+
+## Stage 32.6 - Demo requests dashboard + homepage video theme alignment
+- Added a dedicated custom dashboard section for demo requests at `/dashboard/demos/`.
+- Added demo request list, filters, bulk status/priority actions, detail page, secure demo link preview, link regeneration and link-sent tracking.
+- Added Excel/CSV export for demo requests.
+- Added dashboard routes: `/dashboard/demos/`, `/dashboard/demos/export/`, `/dashboard/demos/<id>/`.
+- Updated the custom dashboard sidebar to include “درخواست‌های دمو”.
+- Aligned the four homepage video sections with the site dark/gold Sitbuk theme instead of the previous light/green treatment.
+- Preserved all previous Stage 32.1 to Stage 32.5 changes without rollback.
+
+## Stage 32.7 - Bale Bot Infrastructure
+- Added Bale bot infrastructure for Sitbuk landing.
+- Added `BaleBotSettings`, `BaleBotConversation`, and `BaleBotMessage`.
+- Added `/bale/webhook/` and `/bale/webhook/<secret>/` endpoints.
+- Added `python manage.py poll_bale` for polling mode.
+- Bot can register consultation leads as `LeadRequest` and demo requests as `DemoRequest`.
+- Bot creates secure demo access links for Bale users.
+- Added dashboard roadmap entry for the Bale bot section.
+## Stage 32.8 - Bale bot custom dashboard management
+- Added a real custom dashboard page for the Bale bot at `/dashboard/bale/`.
+- Added Bale conversation filtering by query, status, and conversation state.
+- Added Bale bot settings management inside the custom dashboard, including enabled flag, group mention behavior, bot username, and main reply texts.
+- Added Bale conversation detail page with full message thread, conversation metadata editing, flow reset, related leads/demo requests, and operator reply sending through the Bale API.
+- Added conversation export at `/dashboard/bale/export/`.
+- Updated dashboard navigation and roadmap to mark Stage 32.8 as completed.
+- Fixed the Stage 32.6 demo dashboard templates to use the correct dashboard content block.
+
+## Stage 32.9 - Homepage video poster refresh
+- Replaced the homepage hero video poster with uploaded cover image #1.
+- Replaced the four lower homepage video posters with uploaded cover images #2 to #5.
+- Rewrote the four homepage video section copy blocks and benefit items to match the text shown on the uploaded posters.
+- Reduced the title/body text size of the four lower video sections for a cleaner visual balance.
+
+## Stage 32.10 - About page video cover and theming
+- Replaced the about-page video poster with the uploaded story cover image.
+- Rewrote the about video section copy based on the cover text: story of Sitbuk and how a concern became a product.
+- Aligned the about video block with the dark/gold site theme and refined title/body/item text sizes.
+
+## Stage 32.11 - Correct homepage video cover mapping
+- Fixed the top homepage video poster to always use uploaded cover #1, independent of CMS hero image values.
+- Re-copied uploaded files `1.jpg` through `5.jpg` directly into `landing/static/landing/images/video_posters/` and mirrored them to `staticfiles`.
+- Confirmed cover #5 is assigned to the final homepage video section and its copy remains aligned with the integrated management software introduction.
+
+## Stage 32.12 - Homepage poster mapping correction
+- Reassigned the cover titled "معرفی نرم‌افزار مدیریت یکپارچه سیت‌باک" to the first/homepage hero video poster.
+- Replaced the fifth/lower final section cover with the newly uploaded image about financial savings at the purchase stage.
+- Rewrote the last lower homepage video section copy and benefit items to match the new financial-savings cover.
+
+## Stage 32.13 - Homepage hero poster final fix
+- Replaced the top homepage video poster with the latest uploaded cover image for the main hero video only.
+- Kept the four lower homepage video sections unchanged.
+

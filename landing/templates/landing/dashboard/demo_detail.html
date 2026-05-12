@@ -1,0 +1,52 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid dashboard-demo-detail-grid">
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head large">
+      <div><h2>اطلاعات مشتری و درخواست</h2><p>مشخصات ثبت‌شده در فرم مشاهده دمو.</p></div>
+      <span class="dashboard-status-pill status-{{ demo_request.status }} active">{{ demo_request.get_status_display }}</span>
+    </div>
+    <dl class="dashboard-detail-list">
+      <div><dt>نام</dt><dd>{{ demo_request.full_name }}</dd></div>
+      <div><dt>موبایل</dt><dd>{{ demo_request.phone }}</dd></div>
+      <div><dt>ایمیل</dt><dd>{{ demo_request.email }}</dd></div>
+      <div><dt>شرکت</dt><dd>{{ demo_request.company }}</dd></div>
+      <div><dt>نوع دمو</dt><dd>{{ demo_request.get_demo_type_display }}</dd></div>
+      <div><dt>تعداد ورود</dt><dd>{{ demo_request.demo_launch_count }} بار</dd></div>
+      <div><dt>آخرین دمو</dt><dd>{{ demo_request.last_demo_target|default:'-' }}</dd></div>
+      <div><dt>آخرین ورود</dt><dd>{{ demo_request.demo_entered_at|date:'Y/m/d H:i'|default:'-' }}</dd></div>
+      <div><dt>صفحه مبدا</dt><dd>{{ demo_request.source_page|default:'-' }}</dd></div>
+      <div><dt>UTM</dt><dd>{{ demo_request.utm_source|default:'-' }} / {{ demo_request.utm_campaign|default:'-' }}</dd></div>
+      <div><dt>IP</dt><dd>{{ demo_request.ip_address|default:'-' }}</dd></div>
+      <div><dt>ثبت</dt><dd>{{ demo_request.created_at|date:'Y/m/d H:i' }}</dd></div>
+    </dl>
+    <div class="dashboard-note-box"><strong>توضیح کاربر</strong><p>{{ demo_request.note|default:'توضیحی ثبت نشده است.' }}</p></div>
+    <div class="dashboard-note-box muted"><strong>Referrer / User-Agent</strong><p>{{ demo_request.referrer|default:'-' }}</p><p>{{ demo_request.user_agent|default:'-' }}</p></div>
+  </article>
+
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large"><div><h2>پیگیری و لینک دمو</h2><p>وضعیت درخواست، یادداشت داخلی و لینک امن را مدیریت کن.</p></div></div>
+    <form method="post" class="dashboard-form dashboard-content-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      {% for field in form %}
+        <label class="dashboard-field"><span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="dashboard-error-text">{{ error }}</small>{% endfor %}</label>
+      {% endfor %}
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">ذخیره تغییرات</button>
+        {% if demo_request.demo_access_url %}<a class="dashboard-btn ghost" href="{{ demo_request.demo_access_url }}" target="_blank">باز کردن لینک امن</a>{% endif %}
+        <a class="dashboard-btn ghost" href="{% url 'dashboard_section_demos' %}">بازگشت</a>
+      </div>
+    </form>
+    <div class="dashboard-demo-quick-actions">
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark_link_sent"><button class="dashboard-btn success" type="submit">ثبت ارسال لینک همین حالا</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="regenerate_link"><button class="dashboard-btn danger" type="submit">بازسازی لینک امن</button></form>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-panel dashboard-demo-link-panel">
+  <div class="dashboard-panel-head"><h2>لینک آماده ارسال به مشتری</h2><p>این لینک را می‌توانی از طریق بله، پیامک یا تماس برای مشتری ارسال کنی.</p></div>
+  <div class="dashboard-copy-line"><code>{{ demo_request.demo_access_url|default:'لینک هنوز ساخته نشده است.' }}</code></div>
+</section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{% block body_class %}theme-dark demo-access-page{% endblock %}
+{% block content %}
+<section class="demo-access-hero">
+  <div class="hero-orb hero-orb-gold"></div>
+  <div class="hero-orb hero-orb-purple"></div>
+  <div class="container demo-access-container" data-reveal>
+    <div class="demo-access-card">
+      <div class="demo-access-copy">
+        <span class="eyebrow">ورود امن به دمو</span>
+        <h1>درخواست دمو شما ثبت شد.</h1>
+        <p>
+          {{ demo_request.full_name }} عزیز، لینک موقت شما آماده است. از گزینه‌های زیر نسخه دمو موردنظر را انتخاب کنید.
+          این لینک برای {{ token_hours }} ساعت معتبر است و برای جلوگیری از دسترسی عمومی در موتورهای جستجو ثبت نمی‌شود.
+        </p>
+        <dl class="demo-access-info">
+          <div><dt>شرکت</dt><dd>{{ demo_request.company }}</dd></div>
+          <div><dt>نوع درخواست</dt><dd>{{ demo_request.get_demo_type_display }}</dd></div>
+          <div><dt>اعتبار لینک</dt><dd>{% if demo_request.demo_access_expires_at %}{{ demo_request.demo_access_expires_at|date:'Y/m/d H:i' }}{% else %}نامحدود{% endif %}</dd></div>
+        </dl>
+      </div>
+
+      <div class="demo-access-actions">
+        {% if is_expired %}
+          <div class="demo-access-warning">
+            <strong>اعتبار لینک تمام شده است.</strong>
+            <p>برای دریافت لینک جدید، دوباره فرم مشاهده دمو را ثبت کنید یا با تیم فروش تماس بگیرید.</p>
+            <a href="{% url 'home' %}#contact-block" class="btn btn-primary">ثبت درخواست جدید</a>
+          </div>
+        {% else %}
+          {% for target in target_cards %}
+            <article class="demo-target-card">
+              <div>
+                <span class="demo-target-icon">{% if target.key == 'behnico' %}B{% else %}S{% endif %}</span>
+                <h2>{{ target.label }}</h2>
+                <p>
+                  {% if target.key == 'behnico' %}
+                    نسخه دمو سامانه بهنیکو برای مشاهده فرآیندهای CRM/ERP صنعتی، فروش، نصب، مالی و انبار.
+                  {% else %}
+                    نسخه دمو سامانه سیتباک برای مشاهده فضای نرم‌افزاری، CRM، پروژه، فروش و داشبورد مدیریتی.
+                  {% endif %}
+                </p>
+              </div>
+              {% if target.is_available %}
+                <a href="{{ target.launch_url }}" class="btn btn-primary">ورود به {{ target.label }}</a>
+                <small>ورود شما در داشبورد ثبت می‌شود.</small>
+              {% else %}
+                <button class="btn btn-secondary" type="button" disabled>دامنه دمو هنوز تنظیم نشده</button>
+                <small>متغیر محیطی مربوط به این دمو را در سرور وارد کنید.</small>
+              {% endif %}
+            </article>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="demo-access-note">
+      <strong>نکته امنیتی</strong>
+      <p>نسخه‌های دمو باید روی دامنه و دیتابیس جدا اجرا شوند و به اطلاعات واقعی بهنیکو یا مشتریان اصلی متصل نباشند.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

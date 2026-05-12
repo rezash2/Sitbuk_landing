@@ -1,0 +1,80 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid dashboard-bale-detail-grid">
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head large">
+      <div><h2>مشخصات گفتگو</h2><p>اطلاعات مخاطب بله و مرحله فعلی مکالمه.</p></div>
+      <span class="dashboard-status-pill status-{{ conversation.status }} active">{{ conversation.get_status_display }}</span>
+    </div>
+    <dl class="dashboard-detail-list">
+      <div><dt>نام نمایشی</dt><dd>{{ conversation.display_name|default:'-' }}</dd></div>
+      <div><dt>Chat ID</dt><dd>{{ conversation.chat_id }}</dd></div>
+      <div><dt>نوع چت</dt><dd>{{ conversation.chat_type|default:'-' }}</dd></div>
+      <div><dt>نام کاربری</dt><dd>{{ conversation.username|default:'-' }}</dd></div>
+      <div><dt>موبایل</dt><dd>{{ conversation.phone|default:'-' }}</dd></div>
+      <div><dt>ایمیل</dt><dd>{{ conversation.email|default:'-' }}</dd></div>
+      <div><dt>شرکت</dt><dd>{{ conversation.company|default:'-' }}</dd></div>
+      <div><dt>مرحله مکالمه</dt><dd>{{ state_label }}</dd></div>
+      <div><dt>آخرین فعالیت</dt><dd>{{ conversation.updated_at|date:'Y/m/d H:i' }}</dd></div>
+      <div><dt>آخرین مشاهده</dt><dd>{{ conversation.last_seen_at|date:'Y/m/d H:i'|default:'-' }}</dd></div>
+    </dl>
+    <div class="dashboard-note-box"><strong>آخرین پیام</strong><p>{{ conversation.last_text|default:'پیامی ثبت نشده است.' }}</p></div>
+  </article>
+
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large"><div><h2>ویرایش گفتگو</h2><p>وضعیت، اطلاعات مخاطب و مرحله مکالمه را اصلاح کن.</p></div></div>
+    <form method="post" class="dashboard-form dashboard-content-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_conversation">
+      {% for field in detail_form %}
+        <label class="dashboard-field"><span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="dashboard-error-text">{{ error }}</small>{% endfor %}</label>
+      {% endfor %}
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">ذخیره گفتگو</button>
+        <a class="dashboard-btn ghost" href="{% url 'dashboard_section_bale' %}">بازگشت</a>
+      </div>
+    </form>
+    <div class="dashboard-demo-quick-actions">
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="reset_flow"><button class="dashboard-btn danger" type="submit">بازگرداندن مکالمه به منوی اصلی</button></form>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-bale-thread-grid">
+  <article class="dashboard-panel dashboard-bale-thread-panel">
+    <div class="dashboard-panel-head large"><div><h2>رشته پیام‌ها</h2><p>پیام‌های دریافتی، ارسالی و سیستمی این گفتگو.</p></div></div>
+    <div class="dashboard-bale-thread">
+      {% for message in messages_qs %}
+        <div class="bale-message-row direction-{{ message.direction }}">
+          <div class="bale-message-bubble">
+            <div class="bale-message-meta"><span>{{ message.get_direction_display }}</span><small>{{ message.created_at|date:'Y/m/d H:i' }}</small></div>
+            <p>{{ message.text|linebreaksbr|default:'-' }}</p>
+            {% if message.related_lead %}<a href="{% url 'dashboard_lead_detail' message.related_lead.id %}">لید مرتبط #{{ message.related_lead.id }}</a>{% endif %}
+            {% if message.related_demo %}<a href="{% url 'dashboard_demo_detail' message.related_demo.id %}">دموی مرتبط #{{ message.related_demo.id }}</a>{% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="dashboard-empty">برای این گفتگو هنوز پیامی ذخیره نشده است.</div>
+      {% endfor %}
+    </div>
+  </article>
+
+  <aside class="dashboard-panel dashboard-bale-reply-panel">
+    <div class="dashboard-panel-head"><h2>ارسال پاسخ از پنل</h2><p>پاسخ اپراتور از طریق API بله برای همین chat_id ارسال می‌شود.</p></div>
+    <form method="post" class="dashboard-form dashboard-content-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="send_reply">
+      {% for field in reply_form %}
+        <label class="dashboard-field"><span>{{ field.label }}</span>{{ field }}{% for error in field.errors %}<small class="dashboard-error-text">{{ error }}</small>{% endfor %}</label>
+      {% endfor %}
+      <button class="dashboard-btn primary" type="submit">ارسال پاسخ در بله</button>
+    </form>
+    <div class="dashboard-note-box muted"><strong>درخواست‌های مرتبط با همین موبایل</strong>
+      <p>لیدها:</p>
+      {% for lead in related_leads %}<p><a href="{% url 'dashboard_lead_detail' lead.id %}">#{{ lead.id }} - {{ lead.full_name }} - {{ lead.get_status_display }}</a></p>{% empty %}<p>لیدی پیدا نشد.</p>{% endfor %}
+      <p>دموها:</p>
+      {% for demo in related_demos %}<p><a href="{% url 'dashboard_demo_detail' demo.id %}">#{{ demo.id }} - {{ demo.full_name }} - {{ demo.get_status_display }}</a></p>{% empty %}<p>درخواست دمویی پیدا نشد.</p>{% endfor %}
+    </div>
+  </aside>
+</section>
+{% endblock %}

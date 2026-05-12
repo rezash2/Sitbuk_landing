@@ -269,3 +269,67 @@ It supports page settings, SEO metadata, section items, preview links, active/in
 - استایل ریسپانسیو ویدیو با تم تیره/طلایی و حالت شبیه کارت ویدیویی اضافه شد.
 - فایل راهنما `HOMEPAGE_VIDEO_ASSETS_FA.md` برای جایگذاری ویدیو اضافه شد.
 
+## Stage 32.2 - Homepage video story sections
+- Added four structured video story sections to the homepage after the hero/stats area.
+- Prepared video asset paths: `home-section-1.mp4` to `home-section-4.mp4` under `landing/static/landing/videos/`.
+- Added responsive RTL video/text layout matching the requested reference: video beside long copy and benefit items.
+- Preserved Stage 32.1 hero video and all custom dashboard work through Stage 32.
+
+## Stage 32.3 - About page video section
+- Added a new video section to the About page with a responsive HTML5 video frame.
+- Prepared `landing/static/landing/videos/about-story.mp4` as the expected video path.
+- Used the existing `about_workspace.png` image as the default poster so the page stays stable before the video file is uploaded.
+- Added copy and three benefit points explaining the story/team/product vision around the video.
+- Synced CSS and video-folder README files with `staticfiles`.
+
+### Stage 32.4 - Demo requests
+Demo request capture is now available at `/forms/demo/`. The global demo modal collects name, phone, email, company and demo type before any demo access is granted. Run migrations after deployment:
+
+```bash
+python manage.py migrate
+python manage.py collectstatic --noinput
+```
+
+## Stage 32.5 - اتصال نسخه‌های دمو
+
+برای اتصال دموهای جداگانه، این متغیرها را در محیط سرور تنظیم کن:
+
+```env
+BEHNICO_DEMO_BASE_URL=https://behnico-demo.sitbuk.com
+SITBUK_DEMO_BASE_URL=https://erp-demo.sitbuk.com
+DEMO_ACCESS_TOKEN_HOURS=72
+```
+
+بعد از ثبت فرم مشاهده دمو، کاربر به `/demo/<token>/` هدایت می‌شود و از آنجا نسخه بهنیکو یا سیتباک را باز می‌کند.
+
+
+### Stage 32.6 - مدیریت درخواست‌های دمو و اصلاح تم ویدیوهای صفحه اول
+- مدیریت درخواست‌های دمو از داشبورد اختصاصی اضافه شد: `/dashboard/demos/`
+- صفحه جزئیات درخواست دمو برای وضعیت، اولویت، مسئول پیگیری، یادداشت داخلی، لینک امن و ثبت زمان ارسال لینک اضافه شد.
+- خروجی Excel/CSV درخواست‌های دمو از `/dashboard/demos/export/` در دسترس است.
+- رنگ و ظاهر چهار سکشن ویدیویی صفحه اصلی با تم تیره/طلایی سیتباک هماهنگ شد.
+
+## Stage 32.7 - Bale bot
+
+The project now includes a Bale bot integration skeleton. Configure `BALE_BOT_TOKEN`, `BALE_BOT_USERNAME`, optional `BALE_WEBHOOK_SECRET`, then run `python manage.py poll_bale` or connect Bale webhook to `/bale/webhook/<secret>/`. The bot can register consultation requests and demo requests and stores conversations/messages for the next dashboard stage.
+
+## Stage 32.8 - مدیریت ربات بله در داشبورد اختصاصی
+- صفحه `/dashboard/bale/` برای مدیریت گفتگوهای ربات بله ساخته شد.
+- تنظیمات ربات، فیلتر گفتگوها، خروجی، صفحه جزئیات گفتگو، ریست جریان مکالمه و ارسال پاسخ اپراتور از داخل داشبورد اضافه شد.
+- پیام‌های مرتبط با LeadRequest و DemoRequest در صفحه جزئیات قابل مشاهده و پیگیری هستند.
+
+### Stage 32.9 update
+Homepage video posters now use the uploaded custom covers and the four video-story sections have topic-specific copy aligned with the poster text.
+
+### Stage 32.10 update
+The about page video section now uses a custom story poster, dark/gold styling, and updated copy aligned with the cover theme.
+
+### Stage 32.11 update
+Homepage video poster mapping was corrected: cover #1 is forced for the top video and cover #5 is assigned to the last video section.
+
+### Stage 32.12 update
+Homepage video cover mapping was corrected: the product-introduction cover is now used for the first video, and the final lower section now uses the financial-savings cover with aligned copy.
+
+### Stage 32.13 update
+The homepage hero video now uses the latest approved poster image supplied by the client. Lower video sections remain unchanged.
+

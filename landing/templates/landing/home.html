@@ -23,7 +23,7 @@
       <p class="hero-description hero-description-detail">{{ hero_description }}</p>
 
       <div class="hero-actions">
-        <a href="{{ hero_primary_button_url }}" class="btn btn-primary btn-lg">{{ hero_primary_button_label }}</a>
+        <a href="#demo-request" class="btn btn-primary btn-lg" data-demo-open>{{ hero_primary_button_label }}</a>
         <a href="{{ hero_secondary_button_url }}" class="btn btn-secondary btn-lg">{{ hero_secondary_button_label }}</a>
       </div>
 
@@ -44,7 +44,7 @@
           <span></span>
           <strong>ویدیو معرفی</strong>
         </div>
-        <video class="hero-video-player" controls preload="metadata" playsinline poster="{% static hero_image %}">
+        <video class="hero-video-player" controls preload="metadata" playsinline poster="{% static hero_video_poster %}">
           <source src="{% static 'landing/videos/home-hero.mp4' %}" type="video/mp4">
           مرورگر شما از نمایش ویدیو پشتیبانی نمی‌کند.
         </video>
@@ -60,6 +60,50 @@
         <strong>{{ item.value }}</strong>
         <h3>{{ item.title }}</h3>
         <p>{{ item.subtitle }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section section-dark home-video-stories-section" id="home-video-stories">
+  <div class="container section-head" data-reveal>
+    <span class="eyebrow eyebrow-center">ویدیوهای کوتاه سیتباک</span>
+    <h2>قبل از تصمیم‌گیری، مسیر کار را ببینید</h2>
+    <p>در این بخش‌ها فایل‌های ویدیویی را بعداً جایگذاری می‌کنی؛ قالب آماده است تا ویدیو کنار متن، توضیح و آیتم‌های کلیدی نمایش داده شود.</p>
+  </div>
+
+  <div class="container home-video-story-list" data-reveal>
+    {% for section in homepage_video_sections %}
+      <article class="home-video-story-card{% if section.reverse %} is-reversed{% endif %}">
+        <div class="home-video-story-media">
+          <div class="home-video-story-frame">
+            <div class="home-video-label home-video-story-label">
+              <span></span>
+              <strong>{{ section.duration }}</strong>
+            </div>
+            <video class="home-video-story-player" controls preload="metadata" playsinline poster="{% static section.poster %}">
+              <source src="{% static section.video %}" type="video/mp4">
+              مرورگر شما از نمایش ویدیو پشتیبانی نمی‌کند.
+            </video>
+          </div>
+          <small class="home-video-path">{{ section.video }}</small>
+        </div>
+        <div class="home-video-story-copy">
+          <span class="eyebrow">{{ section.kicker }}</span>
+          <h3>{{ section.title }}</h3>
+          <p>{{ section.description }}</p>
+          <div class="home-video-benefits">
+            {% for item in section.items %}
+              <div class="home-video-benefit-item">
+                <span><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <small>{{ item.description }}</small>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
       </article>
     {% endfor %}
   </div>

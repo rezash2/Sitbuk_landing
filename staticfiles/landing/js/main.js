@@ -140,6 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         form.reset();
         createToast(data.message || 'فرم با موفقیت ثبت شد.', 'success');
+        const parentDemoModal = form.closest('[data-demo-modal]');
+        if (parentDemoModal) {
+          setTimeout(() => {
+            parentDemoModal.classList.remove('is-open');
+            parentDemoModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('demo-modal-open');
+          }, 700);
+        }
         if (data.redirect_to && form.dataset.redirectOnSuccess === 'true') {
           window.location.href = data.redirect_to;
         }
@@ -274,4 +282,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     buttons.forEach((button) => button.addEventListener('click', () => activate(button.dataset.featureSuite)));
   });
+});
+
+
+// Stage 32.4: Demo request modal.
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.querySelector('[data-demo-modal]');
+  if (!modal) return;
+  const openButtons = document.querySelectorAll('[data-demo-open]');
+  const closeButtons = modal.querySelectorAll('[data-demo-close]');
+  const firstInput = modal.querySelector('input, select, textarea, button');
+
+  const openDemoModal = (event) => {
+    if (event) event.preventDefault();
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('demo-modal-open');
+    setTimeout(() => firstInput && firstInput.focus(), 80);
+  };
+
+  const closeDemoModal = () => {
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('demo-modal-open');
+  };
+
+  openButtons.forEach((button) => button.addEventListener('click', openDemoModal));
+  closeButtons.forEach((button) => button.addEventListener('click', closeDemoModal));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+      closeDemoModal();
+    }
+  });
+
+  if (window.location.hash === '#demo-request') {
+    openDemoModal();
+  }
 });

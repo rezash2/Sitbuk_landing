@@ -230,3 +230,59 @@ python manage.py collectstatic --noinput
 - استایل ریسپانسیو ویدیو با تم تیره/طلایی و حالت شبیه کارت ویدیویی اضافه شد.
 - فایل راهنما `HOMEPAGE_VIDEO_ASSETS_FA.md` برای جایگذاری ویدیو اضافه شد.
 
+## Stage 32.2 - Homepage video story sections
+- Added four structured video story sections to the homepage after the hero/stats area.
+- Prepared video asset paths: `home-section-1.mp4` to `home-section-4.mp4` under `landing/static/landing/videos/`.
+- Added responsive RTL video/text layout matching the requested reference: video beside long copy and benefit items.
+- Preserved Stage 32.1 hero video and all custom dashboard work through Stage 32.
+
+## Stage 32.3 - About page video section
+- Added a new video section to the About page with a responsive HTML5 video frame.
+- Prepared `landing/static/landing/videos/about-story.mp4` as the expected video path.
+- Used the existing `about_workspace.png` image as the default poster so the page stays stable before the video file is uploaded.
+- Added copy and three benefit points explaining the story/team/product vision around the video.
+- Synced CSS and video-folder README files with `staticfiles`.
+
+## Stage 32.4 - درخواست دمو قبل از ورود به سامانه‌های دمو
+- دکمه‌های مشاهده دمو به فرم پاپ‌آپ اختصاصی وصل شدند.
+- کاربر قبل از ورود به دمو باید نام، موبایل، ایمیل و شرکت را ثبت کند.
+- مرحله بعدی: مدیریت درخواست‌های دمو در داشبورد اختصاصی و تولید لینک امن ورود.
+
+## Stage 32.5 - اتصال امن نسخه‌های دمو
+- صفحه امن انتخاب دمو بعد از ثبت فرم ساخته شد.
+- جایگاه اتصال به subdomainهای دمو بهنیکو و سیتباک آماده شد.
+- مرحله بعدی: مدیریت کامل درخواست‌های دمو داخل داشبورد اختصاصی.
+
+
+## Stage 32.6
+- اصلاح تم چهار بخش ویدیویی صفحه اصلی به تم تیره/طلایی سیتباک.
+- اضافه شدن صفحه اختصاصی مدیریت درخواست‌های دمو در پنل جدید.
+- مرحله بعدی پیشنهادی: شروع ربات بله برای ثبت مشاوره/دمو و اتصال آن به همین مدل DemoRequest.
+
+
+## Stage 32.7 - ربات بله
+- زیرساخت ربات بله به پروژه اضافه شد.
+- ثبت مشاوره و درخواست دمو از طریق بله آماده شد.
+- داده‌ها به لیدها، درخواست‌های دمو و گفتگوهای قابل مدیریت وصل شدند.
+
+## Stage 32.8 - مدیریت ربات بله در داشبورد اختصاصی
+- صفحه `/dashboard/bale/` برای مدیریت گفتگوهای ربات بله ساخته شد.
+- تنظیمات ربات، فیلتر گفتگوها، خروجی، صفحه جزئیات گفتگو، ریست جریان مکالمه و ارسال پاسخ اپراتور از داخل داشبورد اضافه شد.
+- پیام‌های مرتبط با LeadRequest و DemoRequest در صفحه جزئیات قابل مشاهده و پیگیری هستند.
+
+## Stage 32.9
+- Custom poster images applied to homepage videos
+- Lower video story text resized slightly smaller and aligned to final content direction
+
+## Stage 32.10
+- About page video section refreshed with custom poster and site-aligned dark/gold visual treatment
+
+## Stage 32.11
+- Corrected homepage video poster mapping and forced the top video cover to use uploaded asset #1.
+
+## Stage 32.12
+- Fixed homepage video cover mapping and updated the final lower section to the financial-savings theme
+
+## Stage 32.13
+- Final correction of the homepage hero video poster image
+

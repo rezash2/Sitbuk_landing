@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.urls import reverse
 
@@ -66,6 +68,112 @@ class LeadRequest(models.Model):
     @property
     def is_open(self) -> bool:
         return self.status in {self.STATUS_NEW, self.STATUS_CONTACTED, self.STATUS_QUALIFIED}
+
+
+class DemoRequest(models.Model):
+    DEMO_BEHNICO = 'behnico'
+    DEMO_SITBUK = 'sitbuk'
+    DEMO_BOTH = 'both'
+
+    DEMO_TYPE_CHOICES = (
+        (DEMO_BEHNICO, 'دمو سامانه بهنیکو'),
+        (DEMO_SITBUK, 'دمو سامانه سیتباک'),
+        (DEMO_BOTH, 'هر دو دمو'),
+    )
+
+    STATUS_NEW = 'new'
+    STATUS_REVIEWING = 'reviewing'
+    STATUS_LINK_READY = 'link_ready'
+    STATUS_LINK_SENT = 'link_sent'
+    STATUS_ENTERED = 'entered'
+    STATUS_FOLLOWED = 'followed'
+    STATUS_CONVERTED = 'converted'
+    STATUS_CLOSED = 'closed'
+
+    STATUS_CHOICES = (
+        (STATUS_NEW, 'جدید'),
+        (STATUS_REVIEWING, 'در حال بررسی'),
+        (STATUS_LINK_READY, 'لینک دمو آماده'),
+        (STATUS_LINK_SENT, 'لینک دمو ارسال شد'),
+        (STATUS_ENTERED, 'کاربر وارد دمو شد'),
+        (STATUS_FOLLOWED, 'پیگیری شده'),
+        (STATUS_CONVERTED, 'تبدیل شده'),
+        (STATUS_CLOSED, 'بسته شده'),
+    )
+
+    PRIORITY_NORMAL = 'normal'
+    PRIORITY_HIGH = 'high'
+    PRIORITY_URGENT = 'urgent'
+
+    PRIORITY_CHOICES = (
+        (PRIORITY_NORMAL, 'معمولی'),
+        (PRIORITY_HIGH, 'مهم'),
+        (PRIORITY_URGENT, 'فوری'),
+    )
+
+    full_name = models.CharField(max_length=120, verbose_name='نام و نام خانوادگی')
+    phone = models.CharField(max_length=32, verbose_name='شماره موبایل')
+    email = models.EmailField(verbose_name='ایمیل')
+    company = models.CharField(max_length=140, verbose_name='نام شرکت')
+    demo_type = models.CharField(max_length=20, choices=DEMO_TYPE_CHOICES, default=DEMO_SITBUK, verbose_name='نوع دمو')
+    note = models.TextField(blank=True, verbose_name='توضیحات کاربر')
+    status = models.CharField(max_length=24, choices=STATUS_CHOICES, default=STATUS_NEW, verbose_name='وضعیت')
+    priority = models.CharField(max_length=16, choices=PRIORITY_CHOICES, default=PRIORITY_NORMAL, verbose_name='اولویت')
+    assigned_to = models.CharField(max_length=120, blank=True, verbose_name='مسئول پیگیری')
+    internal_note = models.TextField(blank=True, verbose_name='یادداشت داخلی')
+    demo_access_token = models.CharField(max_length=40, blank=True, verbose_name='توکن موقت دمو')
+    demo_access_url = models.CharField(max_length=255, blank=True, verbose_name='لینک ورود به دمو')
+    demo_access_expires_at = models.DateTimeField(null=True, blank=True, verbose_name='اعتبار لینک دمو تا')
+    demo_launch_count = models.PositiveIntegerField(default=0, verbose_name='تعداد ورود به دمو')
+    last_demo_target = models.CharField(max_length=20, blank=True, verbose_name='آخرین دمو انتخاب‌شده')
+    demo_link_sent_at = models.DateTimeField(null=True, blank=True, verbose_name='زمان ارسال لینک دمو')
+    demo_entered_at = models.DateTimeField(null=True, blank=True, verbose_name='زمان ورود به دمو')
+    source_page = models.CharField(max_length=50, blank=True, verbose_name='صفحه مبدا')
+    page_url = models.CharField(max_length=255, blank=True, verbose_name='آدرس صفحه ثبت')
+    referrer = models.CharField(max_length=255, blank=True, verbose_name='ارجاع‌دهنده')
+    utm_source = models.CharField(max_length=80, blank=True, verbose_name='UTM Source')
+    utm_campaign = models.CharField(max_length=120, blank=True, verbose_name='UTM Campaign')
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP کاربر')
+    user_agent = models.TextField(blank=True, verbose_name='مرورگر / دستگاه')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'درخواست مشاهده دمو'
+        verbose_name_plural = 'درخواست‌های مشاهده دمو'
+        indexes = [
+            models.Index(fields=['status', 'priority'], name='dreq_st_pr_idx'),
+            models.Index(fields=['demo_type', 'created_at'], name='dreq_type_cr_idx'),
+            models.Index(fields=['demo_access_token'], name='dreq_token_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.full_name} - {self.get_demo_type_display()}'
+
+    @property
+    def is_open(self) -> bool:
+        return self.status in {self.STATUS_NEW, self.STATUS_REVIEWING, self.STATUS_LINK_READY, self.STATUS_LINK_SENT}
+
+    @property
+    def allowed_demo_targets(self):
+        if self.demo_type == self.DEMO_BOTH:
+            return [self.DEMO_SITBUK, self.DEMO_BEHNICO]
+        return [self.demo_type]
+
+    @property
+    def is_demo_link_active(self) -> bool:
+        from django.utils import timezone
+        return bool(self.demo_access_token) and (not self.demo_access_expires_at or self.demo_access_expires_at > timezone.now())
+
+    def ensure_token(self):
+        if not self.demo_access_token:
+            self.demo_access_token = uuid.uuid4().hex
+        return self.demo_access_token
+
+    def save(self, *args, **kwargs):
+        self.ensure_token()
+        super().save(*args, **kwargs)
 
 
 class NewsletterSubscription(models.Model):
@@ -348,3 +456,121 @@ class PageContentItem(models.Model):
     def __str__(self) -> str:
         return f'{self.get_page_key_display()} / {self.section} - {self.title}'
 
+
+
+
+class BaleBotSettings(models.Model):
+    is_enabled = models.BooleanField(default=True, verbose_name='ربات فعال است')
+    only_respond_to_mentions_in_groups = models.BooleanField(default=True, verbose_name='در گروه فقط با منشن پاسخ بدهد')
+    bot_username = models.CharField(max_length=80, blank=True, verbose_name='نام کاربری ربات بدون @')
+    welcome_text = models.TextField(default='سلام 👋 به ربات سیتباک خوش آمدید. از منوی زیر درخواست مشاوره یا مشاهده دمو را ثبت کنید.', verbose_name='پیام خوشامد')
+    consultation_done_text = models.TextField(default='درخواست مشاوره شما ثبت شد. تیم سیتباک به‌زودی با شما تماس می‌گیرد.', verbose_name='پیام پایان مشاوره')
+    demo_done_text = models.TextField(default='درخواست دمو ثبت شد و لینک امن دمو برای شما آماده است.', verbose_name='پیام پایان دمو')
+    last_update_id = models.BigIntegerField(default=0, verbose_name='آخرین Update ID دریافت‌شده')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'تنظیمات ربات بله'
+        verbose_name_plural = 'تنظیمات ربات بله'
+
+    def __str__(self) -> str:
+        return 'تنظیمات ربات بله سیتباک'
+
+    @classmethod
+    def get_solo(cls):
+        obj = cls.objects.order_by('id').first()
+        if obj:
+            return obj
+        return cls.objects.create()
+
+
+class BaleBotConversation(models.Model):
+    STATUS_OPEN = 'open'
+    STATUS_CLOSED = 'closed'
+
+    STATUS_CHOICES = (
+        (STATUS_OPEN, 'باز'),
+        (STATUS_CLOSED, 'بسته شده'),
+    )
+
+    STATE_IDLE = 'idle'
+    STATE_CONSULT_NAME = 'consult_name'
+    STATE_CONSULT_PHONE = 'consult_phone'
+    STATE_CONSULT_COMPANY = 'consult_company'
+    STATE_CONSULT_EMAIL = 'consult_email'
+    STATE_CONSULT_NOTE = 'consult_note'
+    STATE_DEMO_NAME = 'demo_name'
+    STATE_DEMO_PHONE = 'demo_phone'
+    STATE_DEMO_EMAIL = 'demo_email'
+    STATE_DEMO_COMPANY = 'demo_company'
+    STATE_DEMO_TYPE = 'demo_type'
+    STATE_DEMO_NOTE = 'demo_note'
+    STATE_STATUS_PHONE = 'status_phone'
+
+    chat_id = models.CharField(max_length=64, unique=True, verbose_name='شناسه چت بله')
+    bale_user_id = models.CharField(max_length=64, blank=True, verbose_name='شناسه کاربر بله')
+    chat_type = models.CharField(max_length=32, blank=True, verbose_name='نوع چت')
+    display_name = models.CharField(max_length=160, blank=True, verbose_name='نام نمایشی')
+    username = models.CharField(max_length=120, blank=True, verbose_name='نام کاربری')
+    phone = models.CharField(max_length=32, blank=True, verbose_name='شماره موبایل')
+    email = models.EmailField(blank=True, verbose_name='ایمیل')
+    company = models.CharField(max_length=140, blank=True, verbose_name='نام شرکت')
+    state = models.CharField(max_length=40, default=STATE_IDLE, verbose_name='وضعیت مکالمه')
+    session_data = models.JSONField(default=dict, blank=True, verbose_name='داده موقت مکالمه')
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_OPEN, verbose_name='وضعیت گفتگو')
+    last_text = models.TextField(blank=True, verbose_name='آخرین پیام کاربر')
+    last_seen_at = models.DateTimeField(null=True, blank=True, verbose_name='آخرین فعالیت')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = 'گفتگوی ربات بله'
+        verbose_name_plural = 'گفتگوهای ربات بله'
+        indexes = [
+            models.Index(fields=['status', 'updated_at'], name='bale_conv_stat_idx'),
+            models.Index(fields=['state'], name='bale_conv_state_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return self.display_name or self.chat_id
+
+    def reset_flow(self):
+        self.state = self.STATE_IDLE
+        self.session_data = {}
+
+
+class BaleBotMessage(models.Model):
+    DIRECTION_IN = 'in'
+    DIRECTION_OUT = 'out'
+    DIRECTION_SYSTEM = 'system'
+
+    DIRECTION_CHOICES = (
+        (DIRECTION_IN, 'دریافتی'),
+        (DIRECTION_OUT, 'ارسالی'),
+        (DIRECTION_SYSTEM, 'سیستمی'),
+    )
+
+    conversation = models.ForeignKey(BaleBotConversation, on_delete=models.CASCADE, related_name='messages', verbose_name='گفتگو')
+    bale_update_id = models.BigIntegerField(null=True, blank=True, verbose_name='Update ID')
+    bale_message_id = models.CharField(max_length=80, blank=True, verbose_name='Message ID')
+    direction = models.CharField(max_length=12, choices=DIRECTION_CHOICES, default=DIRECTION_IN, verbose_name='جهت')
+    message_type = models.CharField(max_length=32, default='text', verbose_name='نوع پیام')
+    text = models.TextField(blank=True, verbose_name='متن')
+    raw_payload = models.JSONField(default=dict, blank=True, verbose_name='Payload خام')
+    related_lead = models.ForeignKey(LeadRequest, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='لید مرتبط')
+    related_demo = models.ForeignKey(DemoRequest, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='دموی مرتبط')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'پیام ربات بله'
+        verbose_name_plural = 'پیام‌های ربات بله'
+        indexes = [
+            models.Index(fields=['conversation', 'created_at'], name='bale_msg_conv_cr_idx'),
+            models.Index(fields=['direction', 'created_at'], name='bale_msg_dir_cr_idx'),
+            models.Index(fields=['bale_update_id'], name='bale_msg_upd_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.get_direction_display()} - {self.conversation}'

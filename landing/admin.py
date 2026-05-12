@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .forms import BlogAdminForm
-from .models import BlogPost, ContactMessage, FAQItem, HomeContentItem, HomeHeroContent, LeadRequest, NewsletterSubscription, PageContent, PageContentItem, SiteSettings
+from .models import BlogPost, ContactMessage, DemoRequest, FAQItem, HomeContentItem, HomeHeroContent, LeadRequest, NewsletterSubscription, PageContent, PageContentItem, SiteSettings
 
 
 def _export_rows_as_excel(modeladmin, request, queryset, filename, columns):
@@ -78,6 +78,65 @@ mark_leads_won.short_description = 'تغییر وضعیت به تبدیل شده
 def mark_leads_lost(modeladmin, request, queryset):
     queryset.update(status=LeadRequest.STATUS_LOST)
 mark_leads_lost.short_description = 'تغییر وضعیت به رد شده'
+
+
+def export_demo_requests(modeladmin, request, queryset):
+    columns = [
+        ('نام', lambda o: o.full_name),
+        ('تلفن', lambda o: o.phone),
+        ('ایمیل', lambda o: o.email),
+        ('شرکت', lambda o: o.company),
+        ('نوع دمو', lambda o: o.get_demo_type_display()),
+        ('وضعیت', lambda o: o.get_status_display()),
+        ('اولویت', lambda o: o.get_priority_display()),
+        ('لینک دمو', lambda o: o.demo_access_url),
+        ('اعتبار لینک', lambda o: o.demo_access_expires_at.strftime('%Y-%m-%d %H:%M') if getattr(o, 'demo_access_expires_at', None) else ''),
+        ('تعداد ورود', lambda o: getattr(o, 'demo_launch_count', 0)),
+        ('آخرین دمو', lambda o: getattr(o, 'last_demo_target', '')),
+        ('صفحه مبدا', lambda o: o.source_page),
+        ('زمان ثبت', lambda o: o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else ''),
+        ('توضیحات', lambda o: o.note),
+        ('یادداشت داخلی', lambda o: o.internal_note),
+    ]
+    return _export_rows_as_excel(modeladmin, request, queryset, 'sitbuk-demo-requests', columns)
+export_demo_requests.short_description = 'خروجی Excel از درخواست‌های دمو'
+
+
+def mark_demo_reviewing(modeladmin, request, queryset):
+    queryset.update(status=DemoRequest.STATUS_REVIEWING)
+mark_demo_reviewing.short_description = 'تغییر وضعیت به در حال بررسی'
+
+
+def mark_demo_link_ready(modeladmin, request, queryset):
+    queryset.update(status=DemoRequest.STATUS_LINK_READY)
+mark_demo_link_ready.short_description = 'تغییر وضعیت به لینک آماده'
+
+
+@admin.register(DemoRequest)
+class DemoRequestAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'phone', 'email', 'company', 'demo_type', 'status', 'priority', 'source_page', 'created_at')
+    list_editable = ('status', 'priority')
+    search_fields = ('full_name', 'phone', 'email', 'company', 'note', 'internal_note', 'demo_access_token', 'demo_access_url')
+    list_filter = ('demo_type', 'status', 'priority', 'source_page', 'created_at')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('demo_access_token', 'demo_launch_count', 'last_demo_target', 'page_url', 'referrer', 'utm_source', 'utm_campaign', 'ip_address', 'user_agent', 'created_at', 'updated_at')
+    actions = [export_demo_requests, mark_demo_reviewing, mark_demo_link_ready]
+    fieldsets = (
+        ('اطلاعات درخواست دمو', {
+            'fields': ('full_name', 'phone', 'email', 'company', 'demo_type', 'note')
+        }),
+        ('پیگیری و لینک دمو', {
+            'fields': ('status', 'priority', 'assigned_to', 'internal_note', 'demo_access_token', 'demo_access_url', 'demo_access_expires_at', 'demo_launch_count', 'last_demo_target', 'demo_link_sent_at', 'demo_entered_at')
+        }),
+        ('ردیابی منبع', {
+            'classes': ('collapse',),
+            'fields': ('source_page', 'page_url', 'referrer', 'utm_source', 'utm_campaign', 'ip_address', 'user_agent')
+        }),
+        ('زمان‌ها', {
+            'classes': ('collapse',),
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
 
 
 @admin.register(LeadRequest)

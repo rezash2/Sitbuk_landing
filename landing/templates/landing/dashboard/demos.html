@@ -1,0 +1,89 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-panel dashboard-lead-controls dashboard-demo-controls">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>درخواست‌های مشاهده دمو</h2>
+      <p>درخواست‌های ثبت‌شده از فرم «مشاهده دمو» را فیلتر کن، وضعیت بده، لینک امن بساز و ورود کاربر به دمو را پیگیری کن.</p>
+    </div>
+    <span class="dashboard-stage-pill">Stage 32.6</span>
+  </div>
+  <form method="get" class="dashboard-form dashboard-filter-form">
+    <div class="dashboard-form-grid four compact">
+      <label class="dashboard-field"><span>جستجو</span><input class="dashboard-input" type="search" name="q" value="{{ query_value }}" placeholder="نام، موبایل، شرکت، ایمیل..."></label>
+      <label class="dashboard-field"><span>نوع دمو</span>
+        <select class="dashboard-select" name="demo_type">
+          <option value="">همه دموها</option>
+          {% for value,label in demo_type_choices %}<option value="{{ value }}" {% if demo_type_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="dashboard-field"><span>وضعیت</span>
+        <select class="dashboard-select" name="status">
+          <option value="">همه وضعیت‌ها</option>
+          {% for value,label in demo_status_choices %}<option value="{{ value }}" {% if status_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="dashboard-field"><span>اولویت</span>
+        <select class="dashboard-select" name="priority">
+          <option value="">همه اولویت‌ها</option>
+          {% for value,label in demo_priority_choices %}<option value="{{ value }}" {% if priority_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="dashboard-form-actions">
+      <button class="dashboard-btn primary" type="submit">اعمال فیلتر</button>
+      <a class="dashboard-btn ghost" href="{% url 'dashboard_section_demos' %}">پاک کردن فیلتر</a>
+      <a class="dashboard-btn ghost" href="{% url 'dashboard_demos_export' %}?q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}">خروجی Excel/CSV</a>
+    </div>
+  </form>
+</section>
+
+<section class="dashboard-panel dashboard-demo-table-panel">
+  <form method="post" class="dashboard-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_update_demos">
+    <div class="dashboard-panel-head large">
+      <div><h2>لیست درخواست‌ها</h2><p>برای مشاهده جزئیات، ساخت/بازسازی لینک امن و ثبت پیگیری، روی نام درخواست کلیک کن.</p></div>
+      <div class="dashboard-bulk-actions">
+        <select class="dashboard-select" name="bulk_status"><option value="">وضعیت گروهی</option>{% for value,label in demo_status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <select class="dashboard-select" name="bulk_priority"><option value="">اولویت گروهی</option>{% for value,label in demo_priority_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <button class="dashboard-btn primary small" type="submit">اعمال</button>
+      </div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-demos-table">
+        <thead><tr><th></th><th>مشتری</th><th>شرکت</th><th>نوع دمو</th><th>وضعیت</th><th>اولویت</th><th>لینک</th><th>ورود</th><th>ثبت</th></tr></thead>
+        <tbody>
+          {% for demo in demo_page.object_list %}
+            <tr>
+              <td><input type="checkbox" name="selected_demos" value="{{ demo.id }}"></td>
+              <td><a class="dashboard-row-link" href="{% url 'dashboard_demo_detail' demo.id %}">{{ demo.full_name }}</a><small>{{ demo.phone }} · {{ demo.email }}</small></td>
+              <td>{{ demo.company|default:'-' }}</td>
+              <td><span class="dashboard-demo-type-pill type-{{ demo.demo_type }}">{{ demo.get_demo_type_display }}</span></td>
+              <td><span class="dashboard-status-pill status-{{ demo.status }} active">{{ demo.get_status_display }}</span></td>
+              <td><span class="dashboard-priority-pill priority-{{ demo.priority }}">{{ demo.get_priority_display }}</span></td>
+              <td>{% if demo.demo_access_url %}<a class="dashboard-inline-link" href="{{ demo.demo_access_url }}" target="_blank">باز کردن</a>{% else %}-{% endif %}<small>{% if demo.demo_access_expires_at %}تا {{ demo.demo_access_expires_at|date:'Y/m/d H:i' }}{% else %}بدون زمان{% endif %}</small></td>
+              <td>{{ demo.demo_launch_count }} بار<small>{{ demo.last_demo_target|default:'-' }}</small></td>
+              <td>{{ demo.created_at|date:'Y/m/d H:i' }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="9" class="dashboard-empty">درخواستی مطابق فیلتر فعلی پیدا نشد.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if demo_page.paginator.num_pages > 1 %}
+      <div class="dashboard-pagination">
+        {% if demo_page.has_previous %}<a href="?page={{ demo_page.previous_page_number }}&q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}">قبلی</a>{% endif %}
+        <span>صفحه {{ demo_page.number }} از {{ demo_page.paginator.num_pages }}</span>
+        {% if demo_page.has_next %}<a href="?page={{ demo_page.next_page_number }}&q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}">بعدی</a>{% endif %}
+      </div>
+    {% endif %}
+  </form>
+</section>
+
+<section class="dashboard-grid dashboard-two-col">
+  <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>قیف وضعیت درخواست‌های دمو</h2></div><div class="dashboard-pipeline demo-pipeline">{% for row in demo_status_rows %}<div><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>{% endfor %}</div></article>
+  <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>راهنمای پیگیری دمو</h2></div><div class="dashboard-roadmap-box"><ul><li>برای هر درخواست جدید مسئول پیگیری مشخص کن.</li><li>بعد از ارسال لینک، وضعیت را «لینک دمو ارسال شد» بگذار.</li><li>اگر کاربر وارد دمو شد، تعداد ورود و آخرین دمو در همین صفحه ثبت می‌شود.</li></ul></div></article>
+</section>
+{% endblock %}

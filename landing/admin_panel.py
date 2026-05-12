@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timedelta
 import csv
+import uuid
 from typing import Any, Callable, Optional
 
 from django import forms
@@ -19,8 +21,12 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .models import (
+    BaleBotConversation,
+    BaleBotMessage,
+    BaleBotSettings,
     BlogPost,
     ContactMessage,
+    DemoRequest,
     FAQItem,
     HomeContentItem,
     HomeHeroContent,
@@ -244,6 +250,101 @@ class ContactMessageDashboardForm(DashboardModelFormMixin, forms.ModelForm):
 
 
 
+
+class DemoRequestDashboardForm(DashboardModelFormMixin, forms.ModelForm):
+    textarea_rows = {'internal_note': 5, 'note': 4}
+
+    class Meta:
+        model = DemoRequest
+        fields = [
+            'status',
+            'priority',
+            'assigned_to',
+            'demo_access_url',
+            'demo_access_expires_at',
+            'demo_link_sent_at',
+            'internal_note',
+        ]
+        widgets = {
+            'demo_access_expires_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'demo_link_sent_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+        }
+        help_texts = {
+            'assigned_to': 'نام کارشناس فروش یا پشتیبان مسئول این درخواست.',
+            'demo_access_url': 'لینک امنی که برای مشتری ارسال می‌شود. با دکمه بازسازی لینک می‌توان آن را دوباره ساخت.',
+            'demo_access_expires_at': 'زمان پایان اعتبار لینک دمو.',
+            'demo_link_sent_at': 'زمان ارسال لینک به مشتری؛ اگر خالی باشد از دکمه ثبت ارسال استفاده کن.',
+            'internal_note': 'یادداشت داخلی فقط داخل داشبورد نمایش داده می‌شود.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['demo_access_expires_at'].required = False
+        self.fields['demo_link_sent_at'].required = False
+        self.fields['demo_access_expires_at'].input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S']
+        self.fields['demo_link_sent_at'].input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S']
+        self._apply_dashboard_widgets()
+
+
+class BaleBotSettingsDashboardForm(DashboardModelFormMixin, forms.ModelForm):
+    textarea_rows = {
+        'welcome_text': 4,
+        'consultation_done_text': 3,
+        'demo_done_text': 3,
+    }
+
+    class Meta:
+        model = BaleBotSettings
+        fields = [
+            'is_enabled',
+            'only_respond_to_mentions_in_groups',
+            'bot_username',
+            'welcome_text',
+            'consultation_done_text',
+            'demo_done_text',
+            'last_update_id',
+        ]
+        help_texts = {
+            'bot_username': 'نام کاربری ربات بدون @؛ برای گروه‌ها لازم است تا ربات فقط با منشن پاسخ بدهد.',
+            'last_update_id': 'برای polling استفاده می‌شود. معمولاً نیازی به تغییر دستی ندارد.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['last_update_id'].required = False
+        self._apply_dashboard_widgets()
+
+
+class BaleConversationDashboardForm(DashboardModelFormMixin, forms.ModelForm):
+    class Meta:
+        model = BaleBotConversation
+        fields = [
+            'status',
+            'state',
+            'display_name',
+            'phone',
+            'email',
+            'company',
+        ]
+        help_texts = {
+            'state': 'اگر مکالمه گیر کرده باشد، می‌توانی آن را به idle برگردانی.',
+            'status': 'گفتگوهای بسته‌شده همچنان در آرشیو باقی می‌مانند.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['state'].widget = forms.Select(choices=BALE_STATE_CHOICES)
+        self._apply_dashboard_widgets()
+
+
+class BaleReplyDashboardForm(forms.Form):
+    text = forms.CharField(
+        label='متن پاسخ',
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'dashboard-textarea', 'placeholder': 'پاسخ اپراتور را بنویسید...'}),
+    )
+
+
+
 class BlogPostDashboardForm(DashboardModelFormMixin, forms.ModelForm):
     textarea_rows = {
         'summary': 4,
@@ -324,6 +425,25 @@ class FAQDashboardForm(DashboardModelFormMixin, forms.ModelForm):
         self._apply_dashboard_widgets()
 
 
+BALE_STATE_CHOICES = (
+    (BaleBotConversation.STATE_IDLE, 'آماده / منوی اصلی'),
+    (BaleBotConversation.STATE_CONSULT_NAME, 'مشاوره - دریافت نام'),
+    (BaleBotConversation.STATE_CONSULT_PHONE, 'مشاوره - دریافت موبایل'),
+    (BaleBotConversation.STATE_CONSULT_COMPANY, 'مشاوره - دریافت شرکت'),
+    (BaleBotConversation.STATE_CONSULT_EMAIL, 'مشاوره - دریافت ایمیل'),
+    (BaleBotConversation.STATE_CONSULT_NOTE, 'مشاوره - دریافت توضیح'),
+    (BaleBotConversation.STATE_DEMO_NAME, 'دمو - دریافت نام'),
+    (BaleBotConversation.STATE_DEMO_PHONE, 'دمو - دریافت موبایل'),
+    (BaleBotConversation.STATE_DEMO_EMAIL, 'دمو - دریافت ایمیل'),
+    (BaleBotConversation.STATE_DEMO_COMPANY, 'دمو - دریافت شرکت'),
+    (BaleBotConversation.STATE_DEMO_TYPE, 'دمو - انتخاب نوع'),
+    (BaleBotConversation.STATE_DEMO_NOTE, 'دمو - دریافت توضیح'),
+    (BaleBotConversation.STATE_STATUS_PHONE, 'پیگیری وضعیت - دریافت موبایل'),
+)
+BALE_STATE_LABELS = dict(BALE_STATE_CHOICES)
+
+
+
 @dataclass(frozen=True)
 class DashboardMenuItem:
     key: str
@@ -338,7 +458,9 @@ DASHBOARD_MENU: tuple[DashboardMenuItem, ...] = (
     DashboardMenuItem('overview', 'داشبورد', 'نمای کلی سایت و وضعیت محتوا', 'dashboard_index', '◈', 'Stage 27'),
     DashboardMenuItem('home', 'صفحه اول', 'مدیریت Hero و سکشن‌های صفحه خانه', 'dashboard_section_home', '⌂', 'Stage 28'),
     DashboardMenuItem('pages', 'صفحات داخلی', 'درباره ما، تماس، امکانات و مطالعه موردی', 'dashboard_section_pages', '▣', 'Stage 29'),
-    DashboardMenuItem('leads', 'لیدها و پیام‌ها', 'پیگیری درخواست‌های دمو و فرم تماس', 'dashboard_section_leads', '◎', 'Stage 30'),
+    DashboardMenuItem('leads', 'لیدها و پیام‌ها', 'پیگیری فرم‌های مشاوره و تماس', 'dashboard_section_leads', '◎', 'Stage 30'),
+    DashboardMenuItem('demos', 'درخواست‌های دمو', 'مدیریت درخواست‌ها، لینک‌های امن و ورود دمو', 'dashboard_section_demos', '◉', 'Stage 32.6'),
+    DashboardMenuItem('bale', 'ربات بله', 'مدیریت گفتگوها، پاسخ اپراتور و تنظیمات ربات', 'dashboard_section_bale', '☏', 'Stage 32.8'),
     DashboardMenuItem('content', 'بلاگ و FAQ', 'مدیریت مقاله‌ها، سوالات متداول و محتوا', 'dashboard_section_content', '✎', 'Stage 31'),
     DashboardMenuItem('pricing', 'قیمت‌ها و پلن‌ها', 'مدیریت تخصصی تعرفه‌ها، پلن‌ها و CTAهای فروش', 'dashboard_section_pricing', '◍', 'Stage 32'),
     DashboardMenuItem('seo', 'SEO و تنظیمات', 'متادیتا، اسکیما، تنظیمات سایت و اشتراک‌گذاری', 'dashboard_section_seo', '⌁', 'Stage 33'),
@@ -380,6 +502,28 @@ SECTION_CONTENT: dict[str, dict[str, Any]] = {
             'نمایش UTM، referrer، IP و user-agent',
         ],
         'models': ['LeadRequest', 'ContactMessage'],
+    },
+    'demos': {
+        'title': 'مدیریت درخواست‌های دمو',
+        'subtitle': 'درخواست‌های مشاهده دمو، لینک‌های امن و ورود کاربران به نسخه‌های دمو از این بخش مدیریت می‌شود.',
+        'items': [
+            'لیست درخواست‌های دمو با فیلتر وضعیت، اولویت، نوع دمو و جستجو',
+            'صفحه جزئیات برای ثبت یادداشت داخلی، مسئول پیگیری و زمان ارسال لینک',
+            'بازسازی لینک امن و ثبت زمان ارسال لینک به مشتری',
+            'خروجی Excel/CSV از درخواست‌های دمو',
+        ],
+        'models': ['DemoRequest'],
+    },
+    'bale': {
+        'title': 'ربات بله سیتباک',
+        'subtitle': 'گفتگوهای ربات بله، پاسخ اپراتور، تنظیمات ربات و اتصال به درخواست‌های مشاوره/دمو از داشبورد اختصاصی مدیریت می‌شود.',
+        'items': [
+            'مشاهده و فیلتر گفتگوهای بله بر اساس وضعیت، مرحله مکالمه و جستجو',
+            'مشاهده رشته پیام‌ها و ارسال پاسخ اپراتور از داخل داشبورد',
+            'مدیریت تنظیمات ربات، متن‌های آماده، وضعیت فعال/غیرفعال و منشن گروه‌ها',
+            'اتصال هر گفتگو به لیدها و درخواست‌های دمو ثبت‌شده از ربات',
+        ],
+        'models': ['BaleBotSettings', 'BaleBotConversation', 'BaleBotMessage', 'LeadRequest', 'DemoRequest'],
     },
     'content': {
         'title': 'مدیریت بلاگ و FAQ',
@@ -1051,6 +1195,164 @@ def _message_export_columns() -> list[tuple[str, Callable]]:
     ]
 
 
+
+
+def _demo_status_rows() -> list[dict[str, Any]]:
+    try:
+        status_counts = dict(DemoRequest.objects.values('status').annotate(total=Count('id')).values_list('status', 'total'))
+    except (OperationalError, ProgrammingError):
+        status_counts = {}
+    return [{'value': value, 'label': label, 'count': status_counts.get(value, 0)} for value, label in DemoRequest.STATUS_CHOICES]
+
+
+def _filtered_demos(request: HttpRequest):
+    queryset = DemoRequest.objects.all().order_by('-created_at')
+    query = _get_query_param(request, 'q')
+    status = _get_query_param(request, 'status')
+    priority = _get_query_param(request, 'priority')
+    demo_type = _get_query_param(request, 'demo_type')
+    if query:
+        queryset = queryset.filter(
+            Q(full_name__icontains=query)
+            | Q(phone__icontains=query)
+            | Q(email__icontains=query)
+            | Q(company__icontains=query)
+            | Q(note__icontains=query)
+            | Q(internal_note__icontains=query)
+        )
+    if status:
+        queryset = queryset.filter(status=status)
+    if priority:
+        queryset = queryset.filter(priority=priority)
+    if demo_type:
+        queryset = queryset.filter(demo_type=demo_type)
+    return queryset
+
+
+def _demo_export_columns() -> list[tuple[str, Callable]]:
+    return [
+        ('نام', lambda o: o.full_name),
+        ('تلفن', lambda o: o.phone),
+        ('ایمیل', lambda o: o.email),
+        ('شرکت', lambda o: o.company),
+        ('نوع دمو', lambda o: o.get_demo_type_display()),
+        ('وضعیت', lambda o: o.get_status_display()),
+        ('اولویت', lambda o: o.get_priority_display()),
+        ('مسئول پیگیری', lambda o: o.assigned_to),
+        ('لینک دمو', lambda o: o.demo_access_url),
+        ('اعتبار لینک', lambda o: timezone.localtime(o.demo_access_expires_at).strftime('%Y-%m-%d %H:%M') if o.demo_access_expires_at else ''),
+        ('زمان ارسال لینک', lambda o: timezone.localtime(o.demo_link_sent_at).strftime('%Y-%m-%d %H:%M') if o.demo_link_sent_at else ''),
+        ('تعداد ورود', lambda o: o.demo_launch_count),
+        ('آخرین دمو', lambda o: o.last_demo_target),
+        ('زمان ورود', lambda o: timezone.localtime(o.demo_entered_at).strftime('%Y-%m-%d %H:%M') if o.demo_entered_at else ''),
+        ('صفحه مبدا', lambda o: o.source_page),
+        ('UTM Source', lambda o: o.utm_source),
+        ('UTM Campaign', lambda o: o.utm_campaign),
+        ('زمان ثبت', lambda o: timezone.localtime(o.created_at).strftime('%Y-%m-%d %H:%M') if o.created_at else ''),
+        ('توضیح کاربر', lambda o: o.note),
+        ('یادداشت داخلی', lambda o: o.internal_note),
+    ]
+
+
+def _ensure_demo_dashboard_url(request: HttpRequest, demo_request: DemoRequest, *, force_new_token: bool = False) -> DemoRequest:
+    if force_new_token or not demo_request.demo_access_token:
+        demo_request.demo_access_token = uuid.uuid4().hex
+    if not demo_request.demo_access_expires_at or demo_request.demo_access_expires_at <= timezone.now():
+        demo_request.demo_access_expires_at = timezone.now() + timedelta(hours=72)
+    demo_request.demo_access_url = request.build_absolute_uri(reverse('demo_access', kwargs={'token': demo_request.demo_access_token}))
+    if demo_request.status == DemoRequest.STATUS_NEW:
+        demo_request.status = DemoRequest.STATUS_LINK_READY
+    return demo_request
+
+
+@dashboard_required
+def dashboard_demos(request: HttpRequest) -> HttpResponse:
+    """Stage 32.6: manage demo requests, secure links and demo access tracking."""
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        if action == 'bulk_update_demos':
+            selected_ids = request.POST.getlist('selected_demos')
+            next_status = request.POST.get('bulk_status') or ''
+            next_priority = request.POST.get('bulk_priority') or ''
+            updates: dict[str, str] = {}
+            if next_status:
+                updates['status'] = next_status
+            if next_priority:
+                updates['priority'] = next_priority
+            if selected_ids and updates:
+                DemoRequest.objects.filter(id__in=selected_ids).update(**updates)
+                messages.success(request, 'تغییرات گروهی درخواست‌های دمو ذخیره شد.')
+            else:
+                messages.error(request, 'برای تغییر گروهی، حداقل یک درخواست و یک مقدار جدید انتخاب کن.')
+            return redirect('dashboard_section_demos')
+        messages.error(request, 'عملیات درخواستی معتبر نیست.')
+        return redirect('dashboard_section_demos')
+
+    queryset = _filtered_demos(request)
+    demo_page = _paginate(request, queryset, per_page=14)
+    context = _dashboard_context(
+        'demos',
+        dashboard_title='مدیریت درخواست‌های دمو',
+        dashboard_subtitle='درخواست‌های مشاهده دمو، لینک‌های امن ورود و وضعیت ورود کاربران به نسخه‌های دمو را از این بخش پیگیری کن.',
+        current_stage='Stage 32.6',
+        demo_page=demo_page,
+        demo_total=queryset.count(),
+        demo_status_choices=DemoRequest.STATUS_CHOICES,
+        demo_priority_choices=DemoRequest.PRIORITY_CHOICES,
+        demo_type_choices=DemoRequest.DEMO_TYPE_CHOICES,
+        demo_status_rows=_demo_status_rows(),
+        query_value=_get_query_param(request, 'q'),
+        status_value=_get_query_param(request, 'status'),
+        priority_value=_get_query_param(request, 'priority'),
+        demo_type_value=_get_query_param(request, 'demo_type'),
+    )
+    return render(request, 'landing/dashboard/demos.html', context)
+
+
+@dashboard_required
+def dashboard_demos_export(request: HttpRequest) -> HttpResponse:
+    return _export_rows_as_xlsx_or_csv('sitbuk-demo-requests', _demo_export_columns(), _filtered_demos(request))
+
+
+@dashboard_required
+def dashboard_demo_detail(request: HttpRequest, demo_id: int) -> HttpResponse:
+    demo_request = get_object_or_404(DemoRequest, id=demo_id)
+    if not demo_request.demo_access_url or not demo_request.is_demo_link_active:
+        demo_request = _ensure_demo_dashboard_url(request, demo_request)
+        demo_request.save(update_fields=['demo_access_token', 'demo_access_url', 'demo_access_expires_at', 'status', 'updated_at'])
+
+    form = DemoRequestDashboardForm(instance=demo_request)
+    if request.method == 'POST':
+        action = request.POST.get('action') or 'save'
+        form = DemoRequestDashboardForm(request.POST, instance=demo_request)
+        if action == 'regenerate_link':
+            demo_request = _ensure_demo_dashboard_url(request, demo_request, force_new_token=True)
+            demo_request.status = DemoRequest.STATUS_LINK_READY
+            demo_request.save(update_fields=['demo_access_token', 'demo_access_url', 'demo_access_expires_at', 'status', 'updated_at'])
+            messages.success(request, 'لینک امن دمو دوباره ساخته شد.')
+            return redirect('dashboard_demo_detail', demo_id=demo_request.id)
+        if form.is_valid():
+            saved = form.save(commit=False)
+            saved = _ensure_demo_dashboard_url(request, saved)
+            if action == 'mark_link_sent':
+                saved.demo_link_sent_at = timezone.now()
+                saved.status = DemoRequest.STATUS_LINK_SENT
+            saved.save()
+            messages.success(request, 'اطلاعات درخواست دمو ذخیره شد.')
+            return redirect('dashboard_demo_detail', demo_id=saved.id)
+        messages.error(request, 'اطلاعات درخواست دمو نیاز به اصلاح دارد.')
+
+    context = _dashboard_context(
+        'demos',
+        dashboard_title=f'جزئیات درخواست دمو: {demo_request.full_name}',
+        dashboard_subtitle='وضعیت، لینک امن، مسئول پیگیری، یادداشت داخلی و آمار ورود به دمو را مدیریت کن.',
+        current_stage='Stage 32.6',
+        demo_request=demo_request,
+        form=form,
+    )
+    return render(request, 'landing/dashboard/demo_detail.html', context)
+
+
 @dashboard_required
 def dashboard_leads(request: HttpRequest) -> HttpResponse:
     """Stage 30: manage leads and contact messages inside the custom dashboard."""
@@ -1331,6 +1633,205 @@ def _pricing_section_guides(page_key: str) -> list[dict[str, str]]:
         {'section': 'plan_recommendations', 'usage': 'پیشنهاد انتخاب پلن؛ title، value به عنوان نام پلن، description و icon.'},
         {'section': 'plan_badges', 'usage': 'Badgeهای مزیت صفحه پلن؛ title/description/icon.'},
     ]
+
+
+
+def _filtered_bale_conversations(request: HttpRequest):
+    queryset = BaleBotConversation.objects.annotate(message_total=Count('messages'))
+    query = _get_query_param(request, 'q')
+    status = _get_query_param(request, 'status')
+    state = _get_query_param(request, 'state')
+    if query:
+        queryset = queryset.filter(
+            Q(display_name__icontains=query)
+            | Q(username__icontains=query)
+            | Q(phone__icontains=query)
+            | Q(email__icontains=query)
+            | Q(company__icontains=query)
+            | Q(last_text__icontains=query)
+            | Q(chat_id__icontains=query)
+        )
+    if status:
+        queryset = queryset.filter(status=status)
+    if state:
+        queryset = queryset.filter(state=state)
+    return queryset.order_by('-updated_at')
+
+
+def _bale_status_rows() -> list[dict[str, Any]]:
+    try:
+        status_counts = dict(BaleBotConversation.objects.values('status').annotate(total=Count('id')).values_list('status', 'total'))
+    except (OperationalError, ProgrammingError):
+        status_counts = {}
+    return [{'value': value, 'label': label, 'count': status_counts.get(value, 0)} for value, label in BaleBotConversation.STATUS_CHOICES]
+
+
+def _bale_state_rows() -> list[dict[str, Any]]:
+    try:
+        state_counts = dict(BaleBotConversation.objects.values('state').annotate(total=Count('id')).values_list('state', 'total'))
+    except (OperationalError, ProgrammingError):
+        state_counts = {}
+    rows = []
+    for value, label in BALE_STATE_CHOICES:
+        count = state_counts.get(value, 0)
+        if count or value == BaleBotConversation.STATE_IDLE:
+            rows.append({'value': value, 'label': label, 'count': count})
+    for value, count in state_counts.items():
+        if value not in BALE_STATE_LABELS:
+            rows.append({'value': value, 'label': value, 'count': count})
+    return rows
+
+
+def _bale_export_columns() -> list[tuple[str, Callable]]:
+    return [
+        ('نام نمایشی', lambda o: o.display_name),
+        ('Chat ID', lambda o: o.chat_id),
+        ('نوع چت', lambda o: o.chat_type),
+        ('نام کاربری', lambda o: o.username),
+        ('موبایل', lambda o: o.phone),
+        ('ایمیل', lambda o: o.email),
+        ('شرکت', lambda o: o.company),
+        ('وضعیت گفتگو', lambda o: o.get_status_display()),
+        ('مرحله مکالمه', lambda o: BALE_STATE_LABELS.get(o.state, o.state)),
+        ('آخرین پیام', lambda o: o.last_text),
+        ('آخرین فعالیت', lambda o: timezone.localtime(o.updated_at).strftime('%Y-%m-%d %H:%M') if o.updated_at else ''),
+        ('تعداد پیام', lambda o: getattr(o, 'message_total', o.messages.count())),
+    ]
+
+
+@dashboard_required
+def dashboard_bale(request: HttpRequest) -> HttpResponse:
+    """Stage 32.8: manage Bale bot conversations, settings and operator workflow."""
+    bot_settings = BaleBotSettings.get_solo()
+    settings_form = BaleBotSettingsDashboardForm(instance=bot_settings)
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+        if action == 'save_settings':
+            settings_form = BaleBotSettingsDashboardForm(request.POST, instance=bot_settings)
+            if settings_form.is_valid():
+                settings_form.save()
+                messages.success(request, 'تنظیمات ربات بله ذخیره شد.')
+                return redirect('dashboard_section_bale')
+            messages.error(request, 'تنظیمات ربات بله نیاز به اصلاح دارد.')
+        elif action == 'bulk_update_conversations':
+            selected_ids = request.POST.getlist('selected_conversations')
+            next_status = request.POST.get('bulk_status') or ''
+            if selected_ids and next_status:
+                BaleBotConversation.objects.filter(id__in=selected_ids).update(status=next_status)
+                messages.success(request, 'وضعیت گفتگوهای انتخاب‌شده تغییر کرد.')
+            else:
+                messages.error(request, 'برای تغییر گروهی، حداقل یک گفتگو و یک وضعیت انتخاب کن.')
+            return redirect('dashboard_section_bale')
+        else:
+            messages.error(request, 'عملیات درخواستی معتبر نیست.')
+            return redirect('dashboard_section_bale')
+
+    queryset = _filtered_bale_conversations(request)
+    conversation_page = _paginate(request, queryset, per_page=12)
+    context = _dashboard_context(
+        'bale',
+        dashboard_title='مدیریت ربات بله',
+        dashboard_subtitle='گفتگوهای ربات بله، پاسخ اپراتور، وضعیت مکالمه‌ها و تنظیمات ربات را از این بخش مدیریت کن.',
+        current_stage='Stage 32.8',
+        settings_form=settings_form,
+        bot_settings=bot_settings,
+        conversation_page=conversation_page,
+        conversation_total=queryset.count(),
+        status_choices=BaleBotConversation.STATUS_CHOICES,
+        state_choices=BALE_STATE_CHOICES,
+        status_rows=_bale_status_rows(),
+        state_rows=_bale_state_rows(),
+        query_value=_get_query_param(request, 'q'),
+        status_value=_get_query_param(request, 'status'),
+        state_value=_get_query_param(request, 'state'),
+        message_total=_safe_count(BaleBotMessage),
+        inbound_total=_safe_count(BaleBotMessage.objects.filter(direction=BaleBotMessage.DIRECTION_IN)),
+        outbound_total=_safe_count(BaleBotMessage.objects.filter(direction=BaleBotMessage.DIRECTION_OUT)),
+    )
+    return render(request, 'landing/dashboard/bale.html', context)
+
+
+@dashboard_required
+def dashboard_bale_export(request: HttpRequest) -> HttpResponse:
+    return _export_rows_as_xlsx_or_csv('sitbuk-bale-conversations', _bale_export_columns(), _filtered_bale_conversations(request))
+
+
+@dashboard_required
+def dashboard_bale_detail(request: HttpRequest, conversation_id: int) -> HttpResponse:
+    conversation = get_object_or_404(BaleBotConversation, id=conversation_id)
+    detail_form = BaleConversationDashboardForm(instance=conversation)
+    reply_form = BaleReplyDashboardForm()
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip() or 'save_conversation'
+        if action == 'save_conversation':
+            detail_form = BaleConversationDashboardForm(request.POST, instance=conversation)
+            if detail_form.is_valid():
+                detail_form.save()
+                messages.success(request, 'اطلاعات گفتگو ذخیره شد.')
+                return redirect('dashboard_bale_detail', conversation_id=conversation.id)
+            messages.error(request, 'اطلاعات گفتگو نیاز به اصلاح دارد.')
+        elif action == 'reset_flow':
+            conversation.reset_flow()
+            conversation.save(update_fields=['state', 'session_data', 'updated_at'])
+            BaleBotMessage.objects.create(
+                conversation=conversation,
+                direction=BaleBotMessage.DIRECTION_SYSTEM,
+                text='Conversation flow reset from custom dashboard.',
+                raw_payload={'source': 'dashboard'},
+            )
+            messages.success(request, 'مرحله مکالمه به منوی اصلی برگردانده شد.')
+            return redirect('dashboard_bale_detail', conversation_id=conversation.id)
+        elif action == 'send_reply':
+            reply_form = BaleReplyDashboardForm(request.POST)
+            if reply_form.is_valid():
+                text = reply_form.cleaned_data['text'].strip()
+                from .bale_bot import BaleBotAPI
+                result = BaleBotAPI().send_message(conversation.chat_id, text)
+                if result.get('ok'):
+                    BaleBotMessage.objects.create(
+                        conversation=conversation,
+                        direction=BaleBotMessage.DIRECTION_OUT,
+                        text=text,
+                        raw_payload=result,
+                    )
+                    conversation.last_text = text[:1000]
+                    conversation.status = BaleBotConversation.STATUS_OPEN
+                    conversation.save(update_fields=['last_text', 'status', 'updated_at'])
+                    messages.success(request, 'پاسخ از طریق بله ارسال شد.')
+                    return redirect('dashboard_bale_detail', conversation_id=conversation.id)
+                BaleBotMessage.objects.create(
+                    conversation=conversation,
+                    direction=BaleBotMessage.DIRECTION_SYSTEM,
+                    text='Dashboard reply failed: ' + str(result.get('description') or result),
+                    raw_payload=result,
+                )
+                messages.error(request, 'ارسال پیام انجام نشد. توکن/اتصال ربات را بررسی کن.')
+            else:
+                messages.error(request, 'متن پاسخ معتبر نیست.')
+        else:
+            messages.error(request, 'عملیات درخواستی معتبر نیست.')
+            return redirect('dashboard_bale_detail', conversation_id=conversation.id)
+
+    messages_qs = conversation.messages.select_related('related_lead', 'related_demo').order_by('created_at')
+    related_leads = LeadRequest.objects.filter(phone__icontains=conversation.phone).order_by('-created_at')[:5] if conversation.phone else []
+    related_demos = DemoRequest.objects.filter(phone__icontains=conversation.phone).order_by('-created_at')[:5] if conversation.phone else []
+    context = _dashboard_context(
+        'bale',
+        dashboard_title=f'گفتگوی بله: {conversation.display_name or conversation.chat_id}',
+        dashboard_subtitle='پیام‌ها، وضعیت مکالمه، اطلاعات مخاطب و پاسخ اپراتور را مدیریت کن.',
+        current_stage='Stage 32.8',
+        conversation=conversation,
+        detail_form=detail_form,
+        reply_form=reply_form,
+        messages_qs=messages_qs,
+        state_label=BALE_STATE_LABELS.get(conversation.state, conversation.state),
+        related_leads=related_leads,
+        related_demos=related_demos,
+    )
+    return render(request, 'landing/dashboard/bale_detail.html', context)
+
 
 
 @dashboard_required
@@ -1647,12 +2148,16 @@ def dashboard_faq_edit(request: HttpRequest, faq_id: int) -> HttpResponse:
 @dashboard_required
 def dashboard_index(request: HttpRequest) -> HttpResponse:
     lead_open = _safe_count(LeadRequest.objects.filter(status__in=[LeadRequest.STATUS_NEW, LeadRequest.STATUS_CONTACTED, LeadRequest.STATUS_QUALIFIED]))
+    demo_open = _safe_count(DemoRequest.objects.filter(status__in=[DemoRequest.STATUS_NEW, DemoRequest.STATUS_REVIEWING, DemoRequest.STATUS_LINK_READY, DemoRequest.STATUS_LINK_SENT]))
+    bale_open = _safe_count(BaleBotConversation.objects.filter(status=BaleBotConversation.STATUS_OPEN))
     message_new = _safe_count(ContactMessage.objects.filter(status=ContactMessage.STATUS_NEW))
     published_posts = _safe_count(BlogPost.objects.filter(is_published=True))
     cms_pages = _safe_count(PageContent.objects.filter(is_active=True))
 
     cards = [
         {'label': 'لیدهای باز', 'value': lead_open, 'hint': 'درخواست‌هایی که هنوز نیاز به پیگیری دارند', 'accent': 'gold'},
+        {'label': 'درخواست‌های دمو', 'value': demo_open, 'hint': 'درخواست‌های آماده بررسی و ارسال لینک دمو', 'accent': 'green'},
+        {'label': 'گفتگوهای بله', 'value': bale_open, 'hint': 'گفتگوهای ثبت‌شده از ربات بله', 'accent': 'blue'},
         {'label': 'پیام‌های جدید', 'value': message_new, 'hint': 'پیام‌های تماس با ما که هنوز بسته نشده‌اند', 'accent': 'rose'},
         {'label': 'مقاله‌های منتشرشده', 'value': published_posts, 'hint': 'محتوای فعال وبلاگ', 'accent': 'blue'},
         {'label': 'صفحات CMS فعال', 'value': cms_pages, 'hint': 'صفحات داخلی قابل مدیریت', 'accent': 'green'},
@@ -1662,6 +2167,9 @@ def dashboard_index(request: HttpRequest) -> HttpResponse:
         {'title': 'Hero صفحه اول', 'count': 1 if _safe_first(HomeHeroContent) else 0, 'status': 'آماده برای UI اختصاصی'},
         {'title': 'آیتم‌های صفحه اول', 'count': _safe_count(HomeContentItem.objects.filter(is_active=True)), 'status': 'Stage 28'},
         {'title': 'آیتم‌های صفحات داخلی', 'count': _safe_count(PageContentItem.objects.filter(is_active=True)), 'status': 'Stage 29'},
+        {'title': 'درخواست‌های مشاهده دمو', 'count': _safe_count(DemoRequest), 'status': 'Stage 32.6 / پنل مدیریت دمو آماده'},
+        {'title': 'گفتگوهای ربات بله', 'count': _safe_count(BaleBotConversation), 'status': 'Stage 32.8 / مدیریت در پنل اختصاصی'},
+        {'title': 'پیام‌های ربات بله', 'count': _safe_count(BaleBotMessage), 'status': 'Stage 32.8'},
         {'title': 'عضویت‌های خبرنامه', 'count': _safe_count(NewsletterSubscription), 'status': 'در صف مدیریت پنل'},
         {'title': 'سوالات متداول فعال', 'count': _safe_count(FAQItem.objects.filter(is_active=True)), 'status': 'Stage 31'},
         {'title': 'تنظیمات سایت', 'count': 1 if _safe_first(SiteSettings) else 0, 'status': 'Stage 33'},
@@ -1687,8 +2195,8 @@ def dashboard_index(request: HttpRequest) -> HttpResponse:
         recent_leads=recent_leads,
         recent_messages=recent_messages,
         lead_status_rows=lead_status_rows,
-        current_stage='Stage 32',
-        next_stage='Stage 33 - SEO و تنظیمات سایت از پنل جدید',
+        current_stage='Stage 32.8',
+        next_stage='Stage 33 - SEO و تنظیمات سایت داخل داشبورد اختصاصی',
     )
     return render(request, 'landing/dashboard/index.html', context)
 

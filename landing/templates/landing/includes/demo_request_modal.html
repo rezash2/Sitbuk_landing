@@ -1,0 +1,58 @@
+<div class="demo-modal" id="demo-request" data-demo-modal aria-hidden="true">
+  <div class="demo-modal-backdrop" data-demo-close></div>
+  <section class="demo-modal-card" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
+    <button type="button" class="demo-modal-close" data-demo-close aria-label="بستن فرم دمو">×</button>
+    <div class="demo-modal-copy">
+      <span class="eyebrow">مشاهده دمو</span>
+      <h2 id="demo-modal-title">برای ورود به نسخه دمو، اطلاعاتت را ثبت کن</h2>
+      <p>بعد از ثبت اطلاعات، لینک امن و موقت ورود به دمو ساخته می‌شود و می‌توانید نسخه بهنیکو، سیتباک یا هر دو را انتخاب کنید.</p>
+      <div class="demo-modal-flow">
+        <span>ثبت اطلاعات</span>
+        <i></i>
+        <span>ساخت لینک امن</span>
+        <i></i>
+        <span>ارسال لینک دمو</span>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'submit_demo_request' %}" class="demo-request-form js-ajax-form" data-ajax-form data-redirect-on-success="true">
+      {% csrf_token %}
+      <input type="hidden" name="page_url" value="{{ current_path }}">
+      <input type="hidden" name="utm_source" value="{{ request.GET.utm_source|default:'' }}">
+      <input type="hidden" name="utm_campaign" value="{{ request.GET.utm_campaign|default:'' }}">
+      <input type="hidden" name="source_page" value="{{ form_source_page|default:active_page }}">
+
+      <div class="demo-form-grid">
+        <label class="form-field">
+          <small>نام و نام خانوادگی</small>
+          {{ demo_form.full_name }}
+        </label>
+        <label class="form-field">
+          <small>شماره موبایل</small>
+          {{ demo_form.phone }}
+        </label>
+        <label class="form-field">
+          <small>ایمیل</small>
+          {{ demo_form.email }}
+        </label>
+        <label class="form-field">
+          <small>نام شرکت</small>
+          {{ demo_form.company }}
+        </label>
+        <label class="form-field form-field-wide">
+          <small>نوع دمو</small>
+          {{ demo_form.demo_type }}
+        </label>
+        <label class="form-field form-field-wide">
+          <small>توضیح اختیاری</small>
+          {{ demo_form.note }}
+        </label>
+      </div>
+
+      <div class="demo-form-actions">
+        <button class="btn btn-primary btn-block" type="submit">ثبت درخواست مشاهده دمو</button>
+        <small>اطلاعات شما فقط برای هماهنگی دمو و پیگیری فروش استفاده می‌شود.</small>
+      </div>
+    </form>
+  </section>
+</div>

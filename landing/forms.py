@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import BlogPost, ContactMessage, LeadRequest, NewsletterSubscription
+from .models import BlogPost, ContactMessage, DemoRequest, LeadRequest, NewsletterSubscription
 
 
 class LeadRequestForm(forms.ModelForm):
@@ -20,6 +20,35 @@ class LeadRequestForm(forms.ModelForm):
         if len(phone) < 8:
             raise forms.ValidationError('شماره تماس معتبر وارد کنید.')
         return phone
+
+
+class DemoRequestForm(forms.ModelForm):
+    class Meta:
+        model = DemoRequest
+        fields = ['full_name', 'phone', 'email', 'company', 'demo_type', 'note']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'placeholder': 'نام و نام خانوادگی'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'شماره موبایل'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'ایمیل کاری'}),
+            'company': forms.TextInput(attrs={'placeholder': 'نام شرکت / سازمان'}),
+            'demo_type': forms.Select(),
+            'note': forms.Textarea(attrs={'placeholder': 'در صورت نیاز، حوزه فعالیت یا انتظارتان از دمو را بنویسید', 'rows': 3}),
+        }
+
+    def clean_phone(self):
+        phone = ''.join(ch for ch in self.cleaned_data.get('phone', '') if ch.isdigit())
+        if len(phone) < 8:
+            raise forms.ValidationError('شماره موبایل معتبر وارد کنید.')
+        return phone
+
+    def clean_email(self):
+        return self.cleaned_data.get('email', '').strip().lower()
+
+    def clean_company(self):
+        company = self.cleaned_data.get('company', '').strip()
+        if len(company) < 2:
+            raise forms.ValidationError('نام شرکت را وارد کنید.')
+        return company
 
 
 class NewsletterSubscriptionForm(forms.ModelForm):

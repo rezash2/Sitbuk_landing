@@ -257,3 +257,41 @@ Stage 29 اجرا شد و بخش **مدیریت صفحات داخلی** از ح�
 - استایل ریسپانسیو ویدیو با تم تیره/طلایی و حالت شبیه کارت ویدیویی اضافه شد.
 - فایل راهنما `HOMEPAGE_VIDEO_ASSETS_FA.md` برای جایگذاری ویدیو اضافه شد.
 
+## Stage 32.2 - Homepage video story sections
+- Added four structured video story sections to the homepage after the hero/stats area.
+- Prepared video asset paths: `home-section-1.mp4` to `home-section-4.mp4` under `landing/static/landing/videos/`.
+- Added responsive RTL video/text layout matching the requested reference: video beside long copy and benefit items.
+- Preserved Stage 32.1 hero video and all custom dashboard work through Stage 32.
+
+## Stage 32.3 - About page video section
+- Added a new video section to the About page with a responsive HTML5 video frame.
+- Prepared `landing/static/landing/videos/about-story.mp4` as the expected video path.
+- Used the existing `about_workspace.png` image as the default poster so the page stays stable before the video file is uploaded.
+- Added copy and three benefit points explaining the story/team/product vision around the video.
+- Synced CSS and video-folder README files with `staticfiles`.
+
+## به‌روزرسانی بعد از Stage 32.4
+قبل از اتصال مستقیم به نسخه‌های دمو، مدل `DemoRequest` و فرم عمومی درخواست دمو ساخته شد. مرحله بعد باید مدیریت همین درخواست‌ها در داشبورد اختصاصی و سپس تولید لینک امن ورود به نسخه‌های دمو بهنیکو/سیتباک باشد.
+
+## به‌روزرسانی Stage 32.5
+قبل از ادامه Stage 33، مسیر دموها تکمیل شد: ثبت درخواست دمو حالا لینک امن موقت می‌سازد و کاربر را به صفحه انتخاب نسخه دمو هدایت می‌کند. مرحله بعدی، داشبورد مدیریت درخواست‌های دمو و ارسال لینک/یادداشت داخلی است.
+
+
+## Stage 32.6 - تکمیل مدیریت درخواست‌های دمو
+- مسیر `/dashboard/demos/` به پنل اختصاصی اضافه شد.
+- درخواست‌های دمو، لینک امن، وضعیت ارسال لینک، تعداد ورود و یادداشت داخلی از پنل جدید مدیریت می‌شوند.
+- این مرحله جایگزین وابستگی به Django Admin برای DemoRequest است.
+- مرحله بعد: ربات بله و اتصال گفتگوها/درخواست‌ها به داشبورد.
+
+
+## Stage 32.7 - زیرساخت ربات بله
+- مدل‌های گفتگو، پیام و تنظیمات ربات اضافه شدند.
+- ربات می‌تواند درخواست مشاوره را به LeadRequest و درخواست دمو را به DemoRequest تبدیل کند.
+- Polling و Webhook آماده شد.
+- مرحله بعد: ساخت صفحه کامل مدیریت گفتگوهای بله داخل داشبورد اختصاصی.
+
+## Stage 32.8 - مدیریت ربات بله در داشبورد اختصاصی
+- صفحه `/dashboard/bale/` برای مدیریت گفتگوهای ربات بله ساخته شد.
+- تنظیمات ربات، فیلتر گفتگوها، خروجی، صفحه جزئیات گفتگو، ریست جریان مکالمه و ارسال پاسخ اپراتور از داخل داشبورد اضافه شد.
+- پیام‌های مرتبط با LeadRequest و DemoRequest در صفحه جزئیات قابل مشاهده و پیگیری هستند.
+

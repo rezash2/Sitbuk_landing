@@ -1,4 +1,6 @@
 import json
+from datetime import timedelta
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
@@ -9,6 +11,8 @@ from django.db.utils import OperationalError, ProgrammingError
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from .context_processors import DEFAULT_SITE_SETTINGS
@@ -25,8 +29,8 @@ from .data import (
     plans_context,
     pricing_context,
 )
-from .forms import ContactMessageForm, LeadRequestForm, NewsletterSubscriptionForm
-from .models import BlogPost, FAQItem, HomeContentItem, HomeHeroContent, PageContent, PageContentItem, SiteSettings
+from .forms import ContactMessageForm, DemoRequestForm, LeadRequestForm, NewsletterSubscriptionForm
+from .models import BlogPost, DemoRequest, FAQItem, HomeContentItem, HomeHeroContent, PageContent, PageContentItem, SiteSettings
 
 
 SEO_DEFAULT_KEYWORDS = 'سیتباک, نرم افزار سازمانی, اتوماسیون کسب و کار, CRM, ERP, مدیریت فرآیندها'
@@ -40,6 +44,50 @@ def _absolute_url(path: str) -> str:
     if not path.startswith('/'):
         path = f'/{path}'
     return f'{settings.SITE_URL}{path}'
+
+
+def _demo_target_label(target: str) -> str:
+    return {
+        DemoRequest.DEMO_BEHNICO: 'دمو سامانه بهنیکو',
+        DemoRequest.DEMO_SITBUK: 'دمو سامانه سیتباک',
+    }.get(target, 'دمو')
+
+
+def _demo_base_url(target: str) -> str:
+    if target == DemoRequest.DEMO_BEHNICO:
+        return getattr(settings, 'BEHNICO_DEMO_BASE_URL', '').strip().rstrip('/')
+    if target == DemoRequest.DEMO_SITBUK:
+        return getattr(settings, 'SITBUK_DEMO_BASE_URL', '').strip().rstrip('/')
+    return ''
+
+
+def _demo_access_hours() -> int:
+    try:
+        return max(1, int(getattr(settings, 'DEMO_ACCESS_TOKEN_HOURS', 72)))
+    except (TypeError, ValueError):
+        return 72
+
+
+def _build_external_demo_url(demo_request: DemoRequest, target: str) -> str:
+    base_url = _demo_base_url(target)
+    if not base_url:
+        return ''
+    query = urlencode({
+        'demo_token': demo_request.demo_access_token,
+        'source': 'sitbuk_landing',
+        'request_id': demo_request.id,
+    })
+    separator = '&' if '?' in base_url else '?'
+    return f'{base_url}{separator}{query}'
+
+
+def _prepare_demo_access_url(request, demo_request: DemoRequest) -> DemoRequest:
+    demo_request.ensure_token()
+    demo_request.demo_access_expires_at = timezone.now() + timedelta(hours=_demo_access_hours())
+    demo_request.demo_access_url = request.build_absolute_uri(reverse('demo_access', kwargs={'token': demo_request.demo_access_token}))
+    if demo_request.status == DemoRequest.STATUS_NEW:
+        demo_request.status = DemoRequest.STATUS_LINK_READY
+    return demo_request
 
 
 def _site_settings_payload():
@@ -435,6 +483,7 @@ def _internal_page_cms_context(page_key: str) -> dict:
 def _forms_context(source_page: str):
     return {
         'lead_form': LeadRequestForm(prefix='lead'),
+        'demo_form': DemoRequestForm(prefix='demo'),
         'newsletter_form': NewsletterSubscriptionForm(prefix='newsletter'),
         'contact_form': ContactMessageForm(prefix='contact'),
         'form_source_page': source_page,
@@ -577,10 +626,71 @@ def home(request):
     data.setdefault('hero_title_prefix', 'نرم‌افزارهای سازمانی و')
     data.setdefault('hero_title_suffix', 'کسب‌وکار')
     data.setdefault('hero_primary_button_label', 'درخواست دمو رایگان')
-    data.setdefault('hero_primary_button_url', '#contact-block')
+    data.setdefault('hero_primary_button_url', '#demo-request')
     data.setdefault('hero_secondary_button_label', 'مشاهده امکانات')
     data.setdefault('hero_secondary_button_url', reverse('features'))
-    data.setdefault('hero_image', 'landing/images/home_story_sitbuk.png')
+    data.setdefault('hero_image', 'landing/images/video_posters/home_video_intro.jpg')
+    # Stage 32.11: force the top homepage video cover to use uploaded file #1,
+    # independent from CMS hero_image values used elsewhere.
+    data['hero_video_poster'] = 'landing/images/video_posters/home_video_intro.jpg'
+    data.setdefault('homepage_video_sections', [
+        {
+            'kicker': 'یکپارچگی سیستم‌ها',
+            'title': 'در سیت‌باک یکپارچگی چطور اتفاق می‌افتد؟',
+            'description': 'در این ویدیو کاربر می‌بیند که اطلاعات فروش، مالی، منابع انسانی، ارتباط با مشتری و فرآیندهای داخلی در یک بستر واحد به هم متصل می‌شوند تا دوباره‌کاری، جزیره‌ای شدن داده‌ها و خطاهای ناشی از پراکندگی کاهش پیدا کند.',
+            'video': 'landing/videos/home-section-1.mp4',
+            'poster': 'landing/images/video_posters/home_video_2.jpg',
+            'duration': 'ویدیو ۲',
+            'reverse': False,
+            'items': [
+                {'title': 'داده واحد', 'description': 'اطلاعات هر بخش یک‌بار ثبت می‌شود و در کل سیستم قابل استفاده است', 'icon': 'layers'},
+                {'title': 'اتصال ماژول‌ها', 'description': 'فروش، CRM، مالی و عملیات به‌صورت هماهنگ با هم کار می‌کنند', 'icon': 'workflow'},
+                {'title': 'کاهش دوباره‌کاری', 'description': 'نیازی به ثبت تکراری اطلاعات در چند ابزار و چند فایل مختلف نیست', 'icon': 'check-square'},
+            ],
+        },
+        {
+            'kicker': 'ارزیابی و منابع انسانی',
+            'title': 'در سیت‌باک چگونه عملکرد پرسنل بررسی می‌شود؟',
+            'description': 'این بخش نشان می‌دهد که مدیران می‌توانند عملکرد افراد، میزان پیگیری، کیفیت اجرای وظایف، روند تحقق اهداف و خروجی تیم‌ها را بر اساس داده‌های واقعی بررسی کنند و تصمیم‌های بهتری بگیرند.',
+            'video': 'landing/videos/home-section-2.mp4',
+            'poster': 'landing/images/video_posters/home_video_3.jpg',
+            'duration': 'ویدیو ۳',
+            'reverse': True,
+            'items': [
+                {'title': 'شاخص‌های عملکرد', 'description': 'برای هر نقش می‌توان KPI و معیارهای قابل سنجش تعریف کرد', 'icon': 'chart'},
+                {'title': 'گزارش پرسنل', 'description': 'خروجی عملکرد افراد و تیم‌ها به‌صورت شفاف در دسترس مدیر است', 'icon': 'file'},
+                {'title': 'پایش مستمر', 'description': 'نقاط ضعف و قوت تیم در بازه‌های زمانی مختلف قابل بررسی است', 'icon': 'target'},
+            ],
+        },
+        {
+            'kicker': 'پیاده‌سازی منعطف',
+            'title': 'سیت‌باک قابلیت شخصی‌سازی دارد یا نه؟',
+            'description': 'در این ویدیو می‌توانی نشان بدهی که سیت‌باک فقط یک نرم‌افزار ثابت نیست؛ فرم‌ها، فرآیندها، فیلدها، نقش‌ها و جریان‌های کاری با توجه به نیاز هر کسب‌وکار قابل تنظیم و سفارشی‌سازی هستند.',
+            'video': 'landing/videos/home-section-3.mp4',
+            'poster': 'landing/images/video_posters/home_video_4.jpg',
+            'duration': 'ویدیو ۴',
+            'reverse': False,
+            'items': [
+                {'title': 'فرم و فیلد سفارشی', 'description': 'اطلاعات و ساختار فرم‌ها متناسب با مدل کاری شما تنظیم می‌شود', 'icon': 'gear'},
+                {'title': 'گردش‌کار اختصاصی', 'description': 'مراحل تأیید، پیگیری و اجرای فرآیندها بر اساس نیاز سازمان طراحی می‌شود', 'icon': 'workflow'},
+                {'title': 'نقش و دسترسی', 'description': 'دسترسی هر واحد و کاربر متناسب با ساختار سازمان قابل تعریف است', 'icon': 'shield'},
+            ],
+        },
+        {
+            'kicker': 'تحلیل مالی خرید',
+            'title': 'چطور در لحظه خرید سیت‌باک صرفه‌جویی مالی ایجاد می‌شود؟',
+            'description': 'این بخش نشان می‌دهد که خرید سیت‌باک فقط یک هزینه نیست، بلکه از همان ابتدا می‌تواند باعث کاهش هزینه‌های پنهان، جلوگیری از خرید ابزارهای پراکنده و بهینه‌تر شدن مسیر سرمایه‌گذاری نرم‌افزاری در سازمان شود.',
+            'video': 'landing/videos/home-section-4.mp4',
+            'poster': 'landing/images/video_posters/home_video_5.jpg',
+            'duration': 'ویدیو ۵',
+            'reverse': True,
+            'items': [
+                {'title': 'حذف ابزارهای اضافی', 'description': 'به‌جای چند نرم‌افزار جداگانه، چند نیاز کلیدی در یک بستر یکپارچه پوشش داده می‌شود', 'icon': 'layers'},
+                {'title': 'شروع هدفمند و مرحله‌ای', 'description': 'می‌توان فقط از بخش‌های ضروری شروع کرد و هزینه پیاده‌سازی را کنترل‌شده جلو برد', 'icon': 'rocket'},
+                {'title': 'کاهش اتلاف منابع', 'description': 'از دوباره‌کاری، خطاهای فرآیندی و اتلاف زمان نیروها کم می‌شود و این موضوع به صرفه‌جویی مالی منجر می‌شود', 'icon': 'chart'},
+            ],
+        },
+    ])
     data['latest_posts'] = latest_posts
     data['faq_items'] = faq_items
     data.setdefault('seo_title', 'سیتباک | CRM، ERP و اتوماسیون کسب‌وکار')
@@ -798,6 +908,92 @@ def submit_lead(request):
 
 
 @require_POST
+def submit_demo_request(request):
+    form = DemoRequestForm(request.POST, prefix='demo')
+    if form.is_valid():
+        demo_request = form.save(commit=False)
+        _apply_tracking(demo_request, _tracking_payload(request), include_utm=True)
+        _prepare_demo_access_url(request, demo_request)
+        demo_request.save()
+        _notify_new_lead(
+            'درخواست مشاهده دمو در سایت سیتباک',
+            (
+                f'نام: {demo_request.full_name}\n'
+                f'تلفن: {demo_request.phone}\n'
+                f'ایمیل: {demo_request.email}\n'
+                f'شرکت: {demo_request.company}\n'
+                f'نوع دمو: {demo_request.get_demo_type_display()}\n'
+                f'لینک امن دمو: {demo_request.demo_access_url}\n'
+                f'اعتبار تا: {demo_request.demo_access_expires_at}\n'
+                f'صفحه: {demo_request.source_page}\n'
+                f'توضیح: {demo_request.note}'
+            ),
+        )
+        message = 'درخواست دمو ثبت شد. اکنون می‌توانید از صفحه امن دمو، نسخه موردنظر را باز کنید.'
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('accept') == 'application/json'
+        if is_ajax:
+            return JsonResponse({'ok': True, 'message': message, 'redirect_to': demo_request.demo_access_url, 'demo_url': demo_request.demo_access_url})
+        messages.success(request, message)
+        return redirect(demo_request.demo_access_url)
+    response = _json_or_redirect(request, False, 'اطلاعات درخواست دمو کامل نیست. لطفاً دوباره بررسی کنید.', reverse('home'))
+    if isinstance(response, JsonResponse):
+        response = JsonResponse({'ok': False, 'message': 'اطلاعات درخواست دمو کامل نیست.', 'errors': _json_form_errors(form)}, status=400)
+    return response
+
+
+@require_GET
+def demo_access(request, token: str):
+    demo_request = get_object_or_404(DemoRequest, demo_access_token=token)
+    is_expired = not demo_request.is_demo_link_active
+    target_cards = []
+    for target in demo_request.allowed_demo_targets:
+        target_cards.append({
+            'key': target,
+            'label': _demo_target_label(target),
+            'base_url': _demo_base_url(target),
+            'launch_url': reverse('demo_launch', kwargs={'token': demo_request.demo_access_token, 'target': target}),
+            'is_available': bool(_demo_base_url(target)),
+        })
+    context = {
+        **_build_base_context(
+            'demo',
+            'ورود امن به نسخه دمو سیتباک',
+            'صفحه امن انتخاب و ورود به نسخه‌های دمو بهنیکو و سیتباک.',
+            request=request,
+            robots='noindex,nofollow',
+            schema_type='WebPage',
+        ),
+        **_forms_context('demo'),
+        'demo_request': demo_request,
+        'target_cards': target_cards,
+        'is_expired': is_expired,
+        'token_hours': _demo_access_hours(),
+    }
+    return render(request, 'landing/demo_access.html', context)
+
+
+@require_GET
+def demo_launch(request, token: str, target: str):
+    demo_request = get_object_or_404(DemoRequest, demo_access_token=token)
+    if not demo_request.is_demo_link_active:
+        messages.error(request, 'اعتبار لینک دمو به پایان رسیده است. لطفاً دوباره درخواست دمو ثبت کنید.')
+        return redirect('demo_access', token=demo_request.demo_access_token)
+    if target not in demo_request.allowed_demo_targets:
+        messages.error(request, 'این دمو برای درخواست شما فعال نیست.')
+        return redirect('demo_access', token=demo_request.demo_access_token)
+    external_url = _build_external_demo_url(demo_request, target)
+    if not external_url:
+        messages.error(request, 'آدرس نسخه دمو هنوز در تنظیمات سرور وارد نشده است.')
+        return redirect('demo_access', token=demo_request.demo_access_token)
+    demo_request.demo_launch_count = (demo_request.demo_launch_count or 0) + 1
+    demo_request.last_demo_target = target
+    demo_request.demo_entered_at = timezone.now()
+    demo_request.status = DemoRequest.STATUS_ENTERED
+    demo_request.save(update_fields=['demo_launch_count', 'last_demo_target', 'demo_entered_at', 'status', 'updated_at'])
+    return redirect(external_url)
+
+
+@require_POST
 def submit_newsletter(request):
     form = NewsletterSubscriptionForm(request.POST, prefix='newsletter')
     if form.is_valid():
@@ -827,6 +1023,21 @@ def submit_contact(request):
     return response
 
 
+@csrf_exempt
+@require_POST
+def bale_webhook(request, secret: str = ''):
+    from .bale_bot import is_webhook_allowed, process_update
+
+    if not is_webhook_allowed(secret):
+        return JsonResponse({'ok': False, 'message': 'invalid webhook secret'}, status=403)
+    try:
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'ok': False, 'message': 'invalid json'}, status=400)
+    processed = process_update(payload)
+    return JsonResponse({'ok': True, 'processed': processed})
+
+
 @require_GET
 def robots_txt(request):
     lines = [
@@ -835,6 +1046,8 @@ def robots_txt(request):
         'Allow: /static/',
         'Disallow: /admin/',
         'Disallow: /dashboard/',
+        'Disallow: /demo/',
+        'Disallow: /bale/',
         'Disallow: /*?q=',
         'Disallow: /*?page=',
         'Disallow: /*?category=',

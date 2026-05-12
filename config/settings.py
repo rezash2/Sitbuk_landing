@@ -11,6 +11,19 @@ CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('DJANGO_CSRF_TRUS
 SITE_URL = os.getenv('DJANGO_SITE_URL', 'http://127.0.0.1:8000').rstrip('/')
 SITE_DEFAULT_IMAGE = os.getenv('DJANGO_SITE_DEFAULT_IMAGE', '/static/landing/images/sitbuk_logo.png')
 
+# Stage 32.5 - demo systems integration placeholders
+# Configure these URLs after deploying the separated demo copies of Behnico and Sitbuk.
+BEHNICO_DEMO_BASE_URL = os.getenv('BEHNICO_DEMO_BASE_URL', 'https://behnico-demo.sitbuk.com').rstrip('/')
+SITBUK_DEMO_BASE_URL = os.getenv('SITBUK_DEMO_BASE_URL', 'https://erp-demo.sitbuk.com').rstrip('/')
+DEMO_ACCESS_TOKEN_HOURS = int(os.getenv('DEMO_ACCESS_TOKEN_HOURS', '72'))
+
+# Stage 32.7 - Bale bot integration placeholders
+BALE_BOT_TOKEN = os.getenv('BALE_BOT_TOKEN', '')
+BALE_BOT_USERNAME = os.getenv('BALE_BOT_USERNAME', '')
+BALE_WEBHOOK_SECRET = os.getenv('BALE_WEBHOOK_SECRET', '')
+BALE_BOT_API_BASE = os.getenv('BALE_BOT_API_BASE', 'https://tapi.bale.ai').rstrip('/')
+
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
