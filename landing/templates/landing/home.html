@@ -65,73 +65,249 @@
   </div>
 </section>
 
-<section class="section section-dark sitbuk-suite-section" id="sitbuk-suite-wall" aria-label="محصولات و پکیج‌های سیت‌باک">
+<section class="section section-dark sitbuk-suite-section sitbuk-suite-flip-section" id="sitbuk-suite-wall" aria-label="محصولات و پکیج‌های سیت‌باک">
+  <div class="suite-bg-glow suite-bg-glow-blue" aria-hidden="true"></div>
+  <div class="suite-bg-glow suite-bg-glow-gold" aria-hidden="true"></div>
+  <div class="container section-head section-head-light sitbuk-suite-head" data-reveal>
+    <span class="suite-title-line"></span>
+    <h2>محصولات سیت‌باک</h2>
+    <span class="suite-title-line"></span>
+    <p>هر محصول، برای یک بخش کلیدی از کسب‌وکار شما</p>
+  </div>
+
   <div class="container sitbuk-suite-shell" data-reveal>
     <div class="sitbuk-suite-grid">
-      <article class="sitbuk-suite-card suite-blue">
-        <span class="suite-card-title">مدیریت وظایف</span>
-        <div class="suite-hex">
-          <svg class="suite-icon" aria-hidden="true"><use href="#i-check-square"></use></svg>
+      <article class="sitbuk-suite-card suite-blue" tabindex="0" aria-label="کارمان، مدیریت وظایف">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title">مدیریت وظایف</span>
+            <div class="suite-hex">
+              <svg class="suite-icon" aria-hidden="true"><use href="#i-check-square"></use></svg>
+            </div>
+            <strong class="suite-card-name">کارمان</strong>
+          </div>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-check-square"></use></svg></span>
+              <div>
+                <h3>کارمان</h3>
+                <b>TMS</b>
+              </div>
+            </div>
+            <p class="suite-detail-copy">مدیریت وظایف و پروژه‌ها برای افزایش بهره‌وری تیم‌ها</p>
+            <ul class="suite-detail-list">
+              <li>مدیریت پروژه و وظایف</li>
+              <li>تقویم و برنامه‌ریزی</li>
+              <li>همکاری تیمی</li>
+              <li>گزارش زمان و عملکرد</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
+          </div>
         </div>
-        <strong class="suite-card-name">کارمان</strong>
       </article>
 
-      <article class="sitbuk-suite-card suite-purple">
-        <span class="suite-card-title">اتوماسیون</span>
-        <div class="suite-hex suite-automation-icon">
-          <span class="suite-sync-ring"></span>
-          <svg class="suite-icon suite-icon-small" aria-hidden="true"><use href="#i-refresh"></use></svg>
+      <article class="sitbuk-suite-card suite-purple" tabindex="0" aria-label="پیکسا، اتوماسیون">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title">اتوماسیون</span>
+            <div class="suite-hex suite-automation-icon">
+              <span class="suite-sync-ring"></span>
+              <svg class="suite-icon suite-icon-small" aria-hidden="true"><use href="#i-refresh"></use></svg>
+            </div>
+            <strong class="suite-card-name">پیکسا</strong>
+          </div>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg></span>
+              <div>
+                <h3>پیکسا</h3>
+                <b>اتوماسیون</b>
+              </div>
+            </div>
+            <p class="suite-detail-copy">اتوماسیون فرآیندها و گردش کارها بدون نیاز به کدنویسی</p>
+            <ul class="suite-detail-list">
+              <li>طراحی فرآیندهای هوشمند</li>
+              <li>اتصال سامانه‌ها و API</li>
+              <li>اعلان‌ها و وظایف خودکار</li>
+              <li>مانیتورینگ و گزارش‌گیری</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
+          </div>
         </div>
-        <strong class="suite-card-name">پیکسا</strong>
       </article>
 
-      <article class="sitbuk-suite-card suite-green">
-        <span class="suite-card-title suite-card-title-latin">OKR</span>
-        <div class="suite-hex">
-          <svg class="suite-icon" aria-hidden="true"><use href="#i-target"></use></svg>
+      <article class="sitbuk-suite-card suite-green" tabindex="0" aria-label="فراز، OKR">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title suite-card-title-latin">OKR</span>
+            <div class="suite-hex">
+              <svg class="suite-icon" aria-hidden="true"><use href="#i-target"></use></svg>
+            </div>
+            <strong class="suite-card-name">فراز</strong>
+          </div>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-target"></use></svg></span>
+              <div>
+                <h3>فراز</h3>
+                <b>OKR</b>
+              </div>
+            </div>
+            <p class="suite-detail-copy">مدیریت اهداف و نتیجه‌محور کردن تیم‌ها با متد OKR</p>
+            <ul class="suite-detail-list">
+              <li>تعریف و پایش اهداف</li>
+              <li>مستندسازی نتایج کلیدی</li>
+              <li>داشبورد پیشرفت اهداف</li>
+              <li>گزارش‌گیری و تحلیل عملکرد</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
+          </div>
         </div>
-        <strong class="suite-card-name">فراز</strong>
       </article>
 
-      <article class="sitbuk-suite-card suite-gold">
-        <span class="suite-card-title">حسابداری</span>
-        <div class="suite-hex">
-          <svg class="suite-icon" aria-hidden="true"><use href="#i-diamond"></use></svg>
+      <article class="sitbuk-suite-card suite-gold" tabindex="0" aria-label="قیراط، حسابداری">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title">حسابداری</span>
+            <div class="suite-hex">
+              <svg class="suite-icon" aria-hidden="true"><use href="#i-diamond"></use></svg>
+            </div>
+            <strong class="suite-card-name">قیراط</strong>
+          </div>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-diamond"></use></svg></span>
+              <div>
+                <h3>قیراط</h3>
+                <b>حسابداری</b>
+              </div>
+            </div>
+            <p class="suite-detail-copy">نرم‌افزار حسابداری هوشمند و دقیق برای مدیریت مالی و گزارش‌های مالیاتی</p>
+            <ul class="suite-detail-list">
+              <li>دفتر کل و اسناد حسابداری</li>
+              <li>گزارش‌های مالی و سود و زیان</li>
+              <li>مدیریت مالیات و ارزش افزوده</li>
+              <li>چند شرکت و چند دوره مالی</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
+          </div>
         </div>
-        <strong class="suite-card-name">قیراط</strong>
       </article>
 
-      <article class="sitbuk-suite-card suite-yellow suite-sitbuk">
-        <span class="suite-card-title">پکیج های سیت باک</span>
-        <div class="suite-hex suite-logo-hex">
-          <img src="{% static 'landing/images/sitbuk_mark.png' %}" alt="نشان سیت‌باک">
+      <article class="sitbuk-suite-card suite-yellow suite-sitbuk" tabindex="0" aria-label="سیت‌باک، پکیج‌های سیت‌باک">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title">پکیج های سیت باک</span>
+            <div class="suite-hex suite-logo-hex">
+              <img src="{% static 'landing/images/sitbuk_mark.png' %}" alt="نشان سیت‌باک">
+            </div>
+            <strong class="suite-card-name">سیت باک</strong>
+          </div>
+          <div class="suite-face suite-card-back suite-card-back-combo">
+            <div class="suite-combo-copy">
+              <h3>همه چیز یکپارچه<br><span>در سیت‌باک</span></h3>
+              <p>تمام محصولات ما به صورت یکپارچه با یکدیگر کار می‌کنند تا بهترین نتیجه را برای کسب‌وکار شما بسازند</p>
+            </div>
+            <div class="suite-combo-stage" aria-hidden="true">
+              <span class="combo-node combo-node-gold"><svg class="icon"><use href="#i-diamond"></use></svg></span>
+              <span class="combo-node combo-node-green"><svg class="icon"><use href="#i-target"></use></svg></span>
+              <span class="combo-node combo-node-blue"><svg class="icon"><use href="#i-check-square"></use></svg></span>
+              <span class="combo-node combo-node-purple"><svg class="icon"><use href="#i-refresh"></use></svg></span>
+              <span class="combo-node combo-node-orange"><svg class="icon"><use href="#i-cube"></use></svg></span>
+              <span class="combo-node combo-node-cyan"><svg class="icon"><use href="#i-users"></use></svg></span>
+              <span class="combo-node combo-node-red"><svg class="icon"><use href="#i-shield"></use></svg></span>
+              <span class="combo-logo"><img src="{% static 'landing/images/sitbuk_mark.png' %}" alt=""></span>
+            </div>
+          </div>
         </div>
-        <strong class="suite-card-name">سیت باک</strong>
       </article>
 
-      <article class="sitbuk-suite-card suite-red">
-        <span class="suite-card-title">مدیریت وظایف</span>
-        <div class="suite-hex">
-          <svg class="suite-icon" aria-hidden="true"><use href="#i-shield"></use></svg>
-          <span class="suite-alert-dot"></span>
+      <article class="sitbuk-suite-card suite-red" tabindex="0" aria-label="آژیر، مدیریت تداوم کسب‌وکار">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title">مدیریت وظایف</span>
+            <div class="suite-hex">
+              <svg class="suite-icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+              <span class="suite-alert-dot"></span>
+            </div>
+            <strong class="suite-card-name">آژیر</strong>
+          </div>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span>
+              <div>
+                <h3>آژیر</h3>
+                <b>BAU</b>
+              </div>
+            </div>
+            <p class="suite-detail-copy">مدیریت تداوم کسب‌وکار و آمادگی در برابر بحران‌ها و اختلالات</p>
+            <ul class="suite-detail-list">
+              <li>تحلیل ریسک و تهدیدات</li>
+              <li>برنامه‌ریزی تداوم کسب‌وکار</li>
+              <li>مدیریت بحران</li>
+              <li>مانیتورینگ و هشداردهی</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
+          </div>
         </div>
-        <strong class="suite-card-name">آژیر</strong>
       </article>
 
-      <article class="sitbuk-suite-card suite-cyan">
-        <span class="suite-card-title suite-card-title-latin">CRM</span>
-        <div class="suite-hex">
-          <svg class="suite-icon" aria-hidden="true"><use href="#i-users"></use></svg>
+      <article class="sitbuk-suite-card suite-cyan" tabindex="0" aria-label="سامان، CRM">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title suite-card-title-latin">CRM</span>
+            <div class="suite-hex">
+              <svg class="suite-icon" aria-hidden="true"><use href="#i-users"></use></svg>
+            </div>
+            <strong class="suite-card-name">سامان</strong>
+          </div>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg></span>
+              <div>
+                <h3>سامان</h3>
+                <b>CRM</b>
+              </div>
+            </div>
+            <p class="suite-detail-copy">مدیریت ارتباط با مشتریان و افزایش فروش و رضایت مشتری</p>
+            <ul class="suite-detail-list">
+              <li>مدیریت سرنخ‌ها و مشتریان</li>
+              <li>پیگیری و تعاملات</li>
+              <li>فرصت‌های فروش</li>
+              <li>گزارش‌های تحلیل فروش</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
+          </div>
         </div>
-        <strong class="suite-card-name">سامان</strong>
       </article>
 
-      <article class="sitbuk-suite-card suite-orange">
-        <span class="suite-card-title suite-card-title-latin">ERP</span>
-        <div class="suite-hex">
-          <svg class="suite-icon" aria-hidden="true"><use href="#i-cube"></use></svg>
+      <article class="sitbuk-suite-card suite-orange" tabindex="0" aria-label="روند، ERP">
+        <div class="suite-flip-inner">
+          <div class="suite-face suite-card-front">
+            <span class="suite-card-title suite-card-title-latin">ERP</span>
+            <div class="suite-hex">
+              <svg class="suite-icon" aria-hidden="true"><use href="#i-cube"></use></svg>
+            </div>
+            <strong class="suite-card-name">روند</strong>
+          </div>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-cube"></use></svg></span>
+              <div>
+                <h3>روند</h3>
+                <b>ERP</b>
+              </div>
+            </div>
+            <p class="suite-detail-copy">نرم‌افزار جامع برنامه‌ریزی منابع سازمان، یکپارچه‌سازی کل بخش‌های کسب‌وکار</p>
+            <ul class="suite-detail-list">
+              <li>مدیریت منابع و عملیات</li>
+              <li>زنجیره تامین و تدارکات</li>
+              <li>انبار و موجودی</li>
+              <li>گزارش‌های مدیریتی</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
+          </div>
         </div>
-        <strong class="suite-card-name">روند</strong>
       </article>
     </div>
   </div>
@@ -181,39 +357,6 @@
   </div>
 </section>
 
-<section class="section section-light showcase-section section-tight-top home-compact-section home-compact-showcase">
-  <div class="container showcase-panel premium-showcase showcase-panel-detail" data-reveal>
-    <div class="showcase-copy">
-      <span class="eyebrow">نمای محصول</span>
-      <h2>یک داشبورد تمیز برای فروش، اجرا و مدیریت</h2>
-      <p>به جای توضیحات طولانی، تمرکز صفحه اول روی پیام اصلی است: کنترل بهتر فرآیندها، گزارش دقیق‌تر و شروع ساده‌تر.</p>
-      <div class="showcase-points">
-        {% for title, description, icon in showcase_points|slice:':3' %}
-          <div class="showcase-point-item">
-            <span class="showcase-point-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
-            <div>
-              <strong>{{ title }}</strong>
-              <p>{{ description }}</p>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-      <div class="showcase-actions">
-        <a href="{% url 'case_study' %}" class="btn btn-dark">مطالعه موردی</a>
-        <a href="{% url 'pricing' %}" class="btn btn-secondary">قیمت‌ها</a>
-      </div>
-    </div>
-    <div class="showcase-visual premium-showcase-visual">
-      <div class="showcase-browser-card showcase-browser-card-detail">
-        <div class="showcase-browser-top">
-          <span></span><span></span><span></span>
-          <small>app.sitbuk.com/dashboard</small>
-        </div>
-        <img src="{% static 'landing/images/hero_feature.png' %}" alt="نمای محصول سیتباک">
-      </div>
-    </div>
-  </div>
-</section>
 
 <section class="section section-dark module-showcase-section home-compact-section home-compact-modules">
   <div class="container section-head section-head-light" data-reveal>

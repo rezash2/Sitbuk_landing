@@ -289,3 +289,9 @@ python manage.py collectstatic --noinput
 ### Stage 35 - Homepage coded Sitbuk suite wall
 - Replace the old quick “سیتباک در یک نگاه” block with a premium coded eight-card module/product wall after the home hero video.
 - Keep the section maintainable with HTML/CSS so text, icons, colors, and responsive behavior can be edited later from code.
+
+## Stage 36 - تکمیل تعامل کارت‌های محصولات صفحه اصلی
+- انجام شد: حذف سکشن «نمای محصول» از صفحه اصلی.
+- انجام شد: تبدیل کارت‌های محصولی Stage 35 به کارت‌های دوطرفه با انیمیشن flip و جزئیات محصول در پشت کارت.
+- حفظ شد: ترتیب کارت‌ها، رنگ‌های نئونی، جایگاه بخش بعد از ویدیوی اول، و تمام اصلاحات قبلی صفحه درباره ما و داشبورد اختصاصی.
+- پیشنهاد مرحله بعد: در صورت نیاز، اتصال هر کارت به صفحه اختصاصی محصول یا مدیریت محتوای آن از داشبورد اختصاصی.

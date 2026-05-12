@@ -394,3 +394,18 @@ python manage.py collectstatic --noinput
 - Cards include: مدیریت وظایف/کارمان، اتوماسیون/پیکسا، OKR/فراز، حسابداری/قیراط، پکیج های سیت باک/سیت باک، مدیریت وظایف/آژیر، CRM/سامان، ERP/روند.
 - Added responsive styling, dark technical background, neon borders, hexagon icon frames, per-card color themes, and mobile-safe stacking.
 - No model changes and no new migrations were added.
+
+## Stage 36 - Flip details for Sitbuk product cards
+- صفحه اصلی از نسخه Stage 35 ادامه یافت و هیچ‌کدام از تغییرات قبلی rollback نشد.
+- بخش «نمای محصول» از صفحه اصلی حذف شد تا بعد از ویدیو، تمرکز روی دیوار محصولات سیت‌باک بماند.
+- کارت‌های جدید محصولات سیت‌باک به حالت flip تعاملی تبدیل شدند؛ با hover یا focus کارت برمی‌گردد و جزئیات همان محصول را نمایش می‌دهد.
+- متن‌های پشت کارت‌ها طبق تصویر مرجع کاربر برای کارمان، پیکسا، فراز، قیراط، سیت‌باک، آژیر، سامان و روند وارد شد.
+- انیمیشن سه‌بعدی، پشت‌کارت تیره/نئونی، bulletهای رنگی، CTA و حالت ریسپانسیو برای موبایل و تبلت اضافه شد.
+- migration جدیدی نیاز نبود.
+
+## Stage 37 - Compact flip-card detail text
+- ادامه از Stage 36 بدون rollback انجام شد.
+- اندازه متن‌های پشت کارت‌های محصولات سیت‌باک کوچک‌تر و فشرده‌تر شد تا همه آیتم‌ها کامل داخل پشت کارت نمایش داده شوند.
+- فاصله‌ها، padding، اندازه آیکن، عنوان، badge، توضیح، bulletها و لینک «بیشتر بدانید» در پشت کارت‌ها بهینه شد.
+- چیدمان جلوی کارت‌ها و ترتیب محصولات تغییر نکرد.
+- migration جدیدی نیاز نبود.
