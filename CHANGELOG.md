@@ -386,3 +386,11 @@ python manage.py collectstatic --noinput
 - Updated fallback data, the bundled SQLite CMS rows, and the internal-page seed migration references so the About page uses the correct portrait for each name.
 - Redesigned the About page leadership cards with larger portrait-first cards while preserving the existing copy and CMS-driven structure.
 - No model changes and no new migrations were added.
+## Stage 35 - Homepage coded Sitbuk suite wall
+- Continued from the user-uploaded `Sitbuk_landing.zip` without rolling back previous changes.
+- Removed the homepage section titled “سیتباک در یک نگاه”.
+- Added a fully coded dark product-suite wall immediately after the first/home hero video area.
+- Recreated the provided eight-card visual with HTML/CSS instead of using the uploaded reference image as a static bitmap.
+- Cards include: مدیریت وظایف/کارمان، اتوماسیون/پیکسا، OKR/فراز، حسابداری/قیراط، پکیج های سیت باک/سیت باک، مدیریت وظایف/آژیر، CRM/سامان، ERP/روند.
+- Added responsive styling, dark technical background, neon borders, hexagon icon frames, per-card color themes, and mobile-safe stacking.
+- No model changes and no new migrations were added.

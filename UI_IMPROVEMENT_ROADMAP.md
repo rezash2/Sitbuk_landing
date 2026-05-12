@@ -286,3 +286,6 @@ python manage.py collectstatic --noinput
 ## Stage 32.13
 - Final correction of the homepage hero video poster image
 
+### Stage 35 - Homepage coded Sitbuk suite wall
+- Replace the old quick “سیتباک در یک نگاه” block with a premium coded eight-card module/product wall after the home hero video.
+- Keep the section maintainable with HTML/CSS so text, icons, colors, and responsive behavior can be edited later from code.

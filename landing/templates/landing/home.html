@@ -65,6 +65,78 @@
   </div>
 </section>
 
+<section class="section section-dark sitbuk-suite-section" id="sitbuk-suite-wall" aria-label="محصولات و پکیج‌های سیت‌باک">
+  <div class="container sitbuk-suite-shell" data-reveal>
+    <div class="sitbuk-suite-grid">
+      <article class="sitbuk-suite-card suite-blue">
+        <span class="suite-card-title">مدیریت وظایف</span>
+        <div class="suite-hex">
+          <svg class="suite-icon" aria-hidden="true"><use href="#i-check-square"></use></svg>
+        </div>
+        <strong class="suite-card-name">کارمان</strong>
+      </article>
+
+      <article class="sitbuk-suite-card suite-purple">
+        <span class="suite-card-title">اتوماسیون</span>
+        <div class="suite-hex suite-automation-icon">
+          <span class="suite-sync-ring"></span>
+          <svg class="suite-icon suite-icon-small" aria-hidden="true"><use href="#i-refresh"></use></svg>
+        </div>
+        <strong class="suite-card-name">پیکسا</strong>
+      </article>
+
+      <article class="sitbuk-suite-card suite-green">
+        <span class="suite-card-title suite-card-title-latin">OKR</span>
+        <div class="suite-hex">
+          <svg class="suite-icon" aria-hidden="true"><use href="#i-target"></use></svg>
+        </div>
+        <strong class="suite-card-name">فراز</strong>
+      </article>
+
+      <article class="sitbuk-suite-card suite-gold">
+        <span class="suite-card-title">حسابداری</span>
+        <div class="suite-hex">
+          <svg class="suite-icon" aria-hidden="true"><use href="#i-diamond"></use></svg>
+        </div>
+        <strong class="suite-card-name">قیراط</strong>
+      </article>
+
+      <article class="sitbuk-suite-card suite-yellow suite-sitbuk">
+        <span class="suite-card-title">پکیج های سیت باک</span>
+        <div class="suite-hex suite-logo-hex">
+          <img src="{% static 'landing/images/sitbuk_mark.png' %}" alt="نشان سیت‌باک">
+        </div>
+        <strong class="suite-card-name">سیت باک</strong>
+      </article>
+
+      <article class="sitbuk-suite-card suite-red">
+        <span class="suite-card-title">مدیریت وظایف</span>
+        <div class="suite-hex">
+          <svg class="suite-icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+          <span class="suite-alert-dot"></span>
+        </div>
+        <strong class="suite-card-name">آژیر</strong>
+      </article>
+
+      <article class="sitbuk-suite-card suite-cyan">
+        <span class="suite-card-title suite-card-title-latin">CRM</span>
+        <div class="suite-hex">
+          <svg class="suite-icon" aria-hidden="true"><use href="#i-users"></use></svg>
+        </div>
+        <strong class="suite-card-name">سامان</strong>
+      </article>
+
+      <article class="sitbuk-suite-card suite-orange">
+        <span class="suite-card-title suite-card-title-latin">ERP</span>
+        <div class="suite-hex">
+          <svg class="suite-icon" aria-hidden="true"><use href="#i-cube"></use></svg>
+        </div>
+        <strong class="suite-card-name">روند</strong>
+      </article>
+    </div>
+  </div>
+</section>
+
 <section class="section section-dark home-video-stories-section" id="home-video-stories">
   <div class="container section-head" data-reveal>
     <span class="eyebrow eyebrow-center">ویدیوهای کوتاه سیتباک</span>
@@ -104,28 +176,6 @@
             {% endfor %}
           </div>
         </div>
-      </article>
-    {% endfor %}
-  </div>
-</section>
-
-<section class="section section-light services-detail-section home-compact-section home-compact-services">
-  <div class="container section-head" data-reveal>
-    <span class="eyebrow eyebrow-center">سیتباک در یک نگاه</span>
-    <h2>همه چیز کوتاه، کاربردی و قابل شروع</h2>
-    <p>صفحه اول خلاصه شد تا کاربر سریع بفهمد سیتباک چه مشکلی را حل می‌کند و برای جزئیات وارد صفحات اختصاصی شود.</p>
-  </div>
-
-  <div class="container card-grid card-grid-3 service-grid-detail service-grid-compact" data-reveal>
-    {% for item in services|slice:':3' %}
-      <article class="soft-card service-card service-card-detail">
-        <div class="service-icon">
-          <svg class="icon"><use href="#i-{{ item.icon }}"></use></svg>
-          {% if item.badge %}<span class="badge">{{ item.badge }}</span>{% endif %}
-        </div>
-        <h3>{{ item.title }}</h3>
-        <p>{{ item.description }}</p>
-        <a href="{% url 'features' %}" class="service-link">جزئیات بیشتر</a>
       </article>
     {% endfor %}
   </div>
