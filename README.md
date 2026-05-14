@@ -333,3 +333,9 @@ Homepage video cover mapping was corrected: the product-introduction cover is no
 ### Stage 32.13 update
 The homepage hero video now uses the latest approved poster image supplied by the client. Lower video sections remain unchanged.
 
+## Stage 39 - پاکسازی متن‌های آماده‌سازی از صفحات عمومی
+- متن راهنمای «فایل ویدیو را با نام home-hero.mp4...» از Hero صفحه اصلی حذف شد.
+- متن آماده‌سازی ویدیوهای پایین صفحه اصلی با متن نهایی و بازاریابی جایگزین شد.
+- نمایش مسیر فایل‌های ویدیویی زیر ویدیوهای صفحه اصلی و صفحه درباره ما حذف شد.
+- چند عبارت نمایان که حس تستی/ناتمام بودن سایت می‌دادند در صفحات عمومی، صفحه تماس و متن‌های ویدیویی اصلاح شدند.
+- راهنمای داخلی فایل‌های ویدیویی بازنویسی شد تا فقط در مستندات پروژه باقی بماند و در UI نمایش داده نشود.

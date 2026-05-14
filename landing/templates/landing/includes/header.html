@@ -5,11 +5,11 @@
       <img src="{% static 'landing/images/sitbuk_logo.png' %}" alt="Sitbuk logo">
     </a>
 
-    <button class="menu-toggle" type="button" data-menu-toggle aria-label="باز کردن منو">
+    <button class="menu-toggle" type="button" data-menu-toggle aria-controls="site-mobile-menu" aria-expanded="false" aria-label="باز کردن منو">
       <span></span><span></span><span></span>
     </button>
 
-    <nav class="site-nav" data-menu>
+    <nav class="site-nav" id="site-mobile-menu" data-menu>
       <ul>
         {% for item in nav_items %}
           <li>

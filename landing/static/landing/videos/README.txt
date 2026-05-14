@@ -1,1 +1,1 @@
-Place homepage video files here. Stage 32.1 expects home-hero.mp4 for the homepage hero video.
+Video assets for Sitbuk landing pages. Use production MP4 files with the configured filenames.

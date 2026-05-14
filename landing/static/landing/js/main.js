@@ -20,23 +20,88 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuButton = document.querySelector('[data-menu-toggle]');
   const menu = document.querySelector('[data-menu]');
   if (menuButton && menu) {
-    const syncMenuState = () => {
-      const isOpen = menu.classList.contains('is-open');
-      menuButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      document.body.classList.toggle('nav-open', isOpen);
-    };
-    menuButton.setAttribute('aria-expanded', 'false');
-    menuButton.addEventListener('click', () => {
-      menu.classList.toggle('is-open');
-      menuButton.classList.toggle('is-open');
-      syncMenuState();
-    });
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 920 && menu.classList.contains('is-open')) {
+    const mobileQuery = window.matchMedia('(max-width: 920px)');
+    const mobileBackdrop = document.createElement('div');
+    mobileBackdrop.className = 'mobile-menu-backdrop';
+    mobileBackdrop.setAttribute('data-mobile-menu-backdrop', '');
+    document.body.appendChild(mobileBackdrop);
+
+    const mobilePanel = document.createElement('nav');
+    mobilePanel.className = 'mobile-menu-panel';
+    mobilePanel.id = 'site-mobile-menu-panel';
+    mobilePanel.setAttribute('data-mobile-menu-panel', '');
+    mobilePanel.setAttribute('aria-label', 'منوی موبایل سیت‌باک');
+    mobilePanel.setAttribute('aria-hidden', 'true');
+    mobilePanel.setAttribute('dir', 'rtl');
+    mobilePanel.innerHTML = menu.innerHTML;
+    document.body.appendChild(mobilePanel);
+
+    const isMobileMenu = () => mobileQuery.matches;
+
+    const setMenuState = (isOpen) => {
+      const mobileMode = isMobileMenu();
+
+      if (mobileMode) {
+        mobilePanel.classList.toggle('is-open', isOpen);
+        mobileBackdrop.classList.toggle('is-open', isOpen);
+        mobilePanel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
         menu.classList.remove('is-open');
-        menuButton.classList.remove('is-open');
-        syncMenuState();
+      } else {
+        menu.classList.toggle('is-open', isOpen);
+        mobilePanel.classList.remove('is-open');
+        mobileBackdrop.classList.remove('is-open');
+        mobilePanel.setAttribute('aria-hidden', 'true');
       }
+
+      menuButton.classList.toggle('is-open', isOpen);
+      menuButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuButton.setAttribute('aria-label', isOpen ? 'بستن منو' : 'باز کردن منو');
+      document.body.classList.toggle('nav-open', isOpen && mobileMode);
+    };
+
+    const closeMenu = () => setMenuState(false);
+
+    const toggleMenu = (event) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      const targetMenu = isMobileMenu() ? mobilePanel : menu;
+      setMenuState(!targetMenu.classList.contains('is-open'));
+    };
+
+    setMenuState(false);
+    menuButton.addEventListener('click', toggleMenu);
+    mobileBackdrop.addEventListener('click', closeMenu);
+
+    document.addEventListener('click', (event) => {
+      const targetMenu = isMobileMenu() ? mobilePanel : menu;
+      if (!targetMenu.classList.contains('is-open')) return;
+      if (targetMenu.contains(event.target) || menuButton.contains(event.target)) return;
+      setMenuState(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      const targetMenu = isMobileMenu() ? mobilePanel : menu;
+      if (event.key === 'Escape' && targetMenu.classList.contains('is-open')) {
+        setMenuState(false);
+      }
+    });
+
+    const handleMenuViewportChange = () => setMenuState(false);
+    if (mobileQuery.addEventListener) {
+      mobileQuery.addEventListener('change', handleMenuViewportChange);
+    } else if (mobileQuery.addListener) {
+      mobileQuery.addListener(handleMenuViewportChange);
+    }
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 920) setMenuState(false);
+    });
+
+    [menu, mobilePanel].forEach((menuElement) => {
+      menuElement.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', closeMenu);
+      });
     });
   }
 
