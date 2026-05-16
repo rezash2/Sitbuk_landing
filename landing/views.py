@@ -691,6 +691,12 @@ def home(request):
             ],
         },
     ])
+    # Stage 43: hide the old trust-count statistic from the public homepage,
+    # even when the row still exists in a previously seeded CMS database.
+    data['stats'] = [
+        item for item in data.get('stats', [])
+        if not (item.get('value') == '+۳۳۰' and item.get('title') == 'کسب‌وکار')
+    ]
     data['latest_posts'] = latest_posts
     data['faq_items'] = faq_items
     data.setdefault('seo_title', 'سیتباک | CRM، ERP و اتوماسیون کسب‌وکار')

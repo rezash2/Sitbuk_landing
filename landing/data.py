@@ -125,7 +125,6 @@ def home_context():
         ],
         'stats': [
             {'value': '۹۸٪', 'title': 'رضایت کاربران', 'subtitle': 'از نرم‌افزارهای سیتباک', 'icon': 'smile'},
-            {'value': '+۳۳۰', 'title': 'کسب‌وکار', 'subtitle': 'اعتماد کرده‌اند', 'icon': 'users'},
             {'value': '۱۲+', 'title': 'ماژول تخصصی', 'subtitle': 'برای نیازهای مختلف و قابل توسعه', 'icon': 'cube'},
             {'value': '۲۴/۷', 'title': 'پشتیبانی', 'subtitle': 'همیشه در کنار شما', 'icon': 'headphones'},
         ],

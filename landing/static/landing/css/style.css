@@ -1484,3 +1484,65 @@ body.demo-modal-open{overflow:hidden}.demo-modal{position:fixed;inset:0;z-index:
     display:none !important;
   }
 }
+
+
+/* Stage 43 - Homepage workflow readability and cleanup */
+.workflow-detail-grid-compact{
+  grid-template-columns:1fr !important;
+}
+.workflow-detail-grid-compact .workflow-map{
+  width:min(100%, 980px);
+  margin-inline:auto;
+  gap:14px;
+}
+.workflow-detail-grid-compact .workflow-map-card{
+  padding:20px 22px;
+  border-radius:22px;
+  gap:18px;
+}
+.workflow-detail-grid-compact .workflow-step-no,
+.workflow-detail-grid-compact .workflow-step-icon{
+  width:44px;
+  height:44px;
+  border-radius:15px;
+  font-size:15px;
+}
+.workflow-detail-grid-compact .workflow-map-card h3{
+  font-size:18px;
+  line-height:1.55;
+  margin-bottom:7px;
+}
+.workflow-detail-grid-compact .workflow-map-card p{
+  font-size:15px;
+  line-height:2;
+}
+.workflow-detail-grid-compact .workflow-map-card:not(:last-child)::after{
+  right:44px;
+  bottom:-14px;
+  height:14px;
+}
+@media (max-width:640px){
+  .workflow-detail-grid-compact .workflow-map{
+    gap:12px;
+  }
+  .workflow-detail-grid-compact .workflow-map-card{
+    padding:17px 16px;
+    border-radius:19px;
+  }
+  .workflow-detail-grid-compact .workflow-step-no{
+    width:38px;
+    height:38px;
+    border-radius:13px;
+    font-size:13px;
+  }
+  .workflow-detail-grid-compact .workflow-step-icon{
+    display:none;
+  }
+  .workflow-detail-grid-compact .workflow-map-card h3{
+    font-size:16px;
+  }
+  .workflow-detail-grid-compact .workflow-map-card p{
+    font-size:13.6px;
+    line-height:1.95;
+  }
+}
