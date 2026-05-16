@@ -697,6 +697,11 @@ def home(request):
         item for item in data.get('stats', [])
         if not (item.get('value') == '+۳۳۰' and item.get('title') == 'کسب‌وکار')
     ]
+    # Stage 50: production CMS databases may still contain the older ۹۸٪ value.
+    # Force the public homepage satisfaction stat to ۱۰۰٪ after CMS overrides.
+    for item in data.get('stats', []):
+        if item.get('title') == 'رضایت کاربران':
+            item['value'] = '۱۰۰٪'
     data['latest_posts'] = latest_posts
     data['faq_items'] = faq_items
     data.setdefault('seo_title', 'سیتباک | CRM، ERP و اتوماسیون کسب‌وکار')

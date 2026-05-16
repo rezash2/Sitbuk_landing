@@ -357,27 +357,6 @@
 </section>
 
 
-<section class="section section-dark module-showcase-section home-compact-section home-compact-modules">
-  <div class="container section-head section-head-light" data-reveal>
-    <span class="eyebrow eyebrow-center">هسته‌های اصلی محصول</span>
-    <h2>ماژول‌های مهم، بدون شلوغی اضافه</h2>
-    <p>جزئیات کامل ماژول‌ها به صفحه امکانات منتقل شده تا صفحه اول کوتاه و سریع بماند.</p>
-  </div>
-
-  <div class="container module-showcase-grid module-showcase-grid-compact" data-reveal>
-    {% for item in home_modules|slice:':4' %}
-      <article class="home-module-card">
-        <div class="home-module-head">
-          <span><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
-          <small>{{ item.badge }}</small>
-        </div>
-        <h3>{{ item.title }}</h3>
-        <p>{{ item.description }}</p>
-      </article>
-    {% endfor %}
-  </div>
-</section>
-
 <section class="section section-light workflow-detail-section home-compact-section home-compact-process">
   <div class="container section-head" data-reveal>
     <span class="eyebrow eyebrow-center">مسیر همکاری</span>
