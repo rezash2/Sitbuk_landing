@@ -193,30 +193,31 @@
         </div>
       </article>
 
-      <article class="sitbuk-suite-card suite-yellow suite-sitbuk" tabindex="0" aria-label="سیت‌باک، پکیج‌های سیت‌باک">
+      <article class="sitbuk-suite-card suite-yellow suite-tmo" tabindex="0" aria-label="بینا، TMO">
         <div class="suite-flip-inner">
           <div class="suite-face suite-card-front">
-            <span class="suite-card-title">پکیج های سیت باک</span>
-            <div class="suite-hex suite-logo-hex">
-              <img src="{% static 'landing/images/sitbuk_mark.png' %}" alt="نشان سیت‌باک">
+            <span class="suite-card-title suite-card-title-latin">TMO</span>
+            <div class="suite-hex suite-tmo-hex">
+              <svg class="suite-icon suite-tmo-icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+              <span class="suite-tmo-pulse"></span>
             </div>
-            <strong class="suite-card-name">سیت باک</strong>
+            <strong class="suite-card-name">بینا</strong>
           </div>
-          <div class="suite-face suite-card-back suite-card-back-combo">
-            <div class="suite-combo-copy">
-              <h3>همه چیز یکپارچه<br><span>در سیت‌باک</span></h3>
-              <p>تمام محصولات ما به صورت یکپارچه با یکدیگر کار می‌کنند تا بهترین نتیجه را برای کسب‌وکار شما بسازند</p>
+          <div class="suite-face suite-card-back">
+            <div class="suite-detail-head">
+              <span class="suite-detail-icon"><svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg></span>
+              <div>
+                <h3>بینا</h3>
+                <b>TMO</b>
+              </div>
             </div>
-            <div class="suite-combo-stage" aria-hidden="true">
-              <span class="combo-node combo-node-gold"><svg class="icon"><use href="#i-diamond"></use></svg></span>
-              <span class="combo-node combo-node-green"><svg class="icon"><use href="#i-target"></use></svg></span>
-              <span class="combo-node combo-node-blue"><svg class="icon"><use href="#i-check-square"></use></svg></span>
-              <span class="combo-node combo-node-purple"><svg class="icon"><use href="#i-refresh"></use></svg></span>
-              <span class="combo-node combo-node-orange"><svg class="icon"><use href="#i-cube"></use></svg></span>
-              <span class="combo-node combo-node-cyan"><svg class="icon"><use href="#i-users"></use></svg></span>
-              <span class="combo-node combo-node-red"><svg class="icon"><use href="#i-shield"></use></svg></span>
-              <span class="combo-logo"><img src="{% static 'landing/images/sitbuk_mark.png' %}" alt=""></span>
-            </div>
+            <p class="suite-detail-copy">راهکار نظارت و پایش اجرای امور واگذارشده برای کنترل دقیق فرآیندها و بهبود پیگیری‌های عملیاتی</p>
+            <ul class="suite-detail-list">
+              <li>کنترل فرآیند های واسپاری شده</li>
+              <li>چکاپ تسک ها</li>
+              <li>بررسی علل عدم اجرا یا تاخیر</li>
+            </ul>
+            <a href="{% url 'features' %}" class="suite-detail-link">بیشتر بدانید</a>
           </div>
         </div>
       </article>

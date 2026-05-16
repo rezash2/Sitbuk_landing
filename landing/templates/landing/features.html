@@ -227,7 +227,7 @@
 </section>
 
 <section class="section section-light pt-sm">
-  <div class="container card-grid card-grid-4" data-reveal>
+  <div class="container card-grid card-grid-4 feature-centered-grid feature-security-grid" data-reveal>
     {% for item in feature_security_points %}
       <article class="soft-card feature-security-card">
         <span><svg class="icon"><use href="#i-{{ item.icon }}"></use></svg></span>
@@ -243,7 +243,7 @@
     <span class="eyebrow eyebrow-center">کاربردهای واقعی سیتباک</span>
     <h2>هر تیم، داشبورد و جریان‌کار مخصوص خودش را دارد</h2>
   </div>
-  <div class="container card-grid card-grid-4" data-reveal>
+  <div class="container card-grid card-grid-4 feature-centered-grid feature-usecase-grid" data-reveal>
     {% for title, description, icon in feature_usecases %}
       <article class="soft-card usecase-card">
         <span class="usecase-icon"><svg class="icon"><use href="#i-{{ icon }}"></use></svg></span>
