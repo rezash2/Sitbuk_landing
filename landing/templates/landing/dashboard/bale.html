@@ -13,7 +13,17 @@
       <h2>تنظیمات ربات بله</h2>
       <p>وضعیت فعال بودن ربات، منشن در گروه‌ها و متن‌های اصلی مکالمه را همین‌جا مدیریت کن.</p>
     </div>
-    <span class="dashboard-stage-pill">Stage 32.8</span>
+    <span class="dashboard-stage-pill">تنظیمات عملیاتی</span>
+  </div>
+  <div class="dashboard-bale-health-grid">
+    <article><span>کد ربات</span><strong>{% if token_configured %}ثبت شده{% else %}نیازمند ثبت{% endif %}</strong><small>توکن بله را در همین فرم وارد کن.</small></article>
+    <article><span>اجرای خودکار</span><strong>{% if auto_polling_enabled %}فعال{% else %}خاموش{% endif %}</strong><small>همراه با اجرای سایت، پیام‌ها بررسی می‌شوند.</small></article>
+    <article><span>فاصله بررسی</span><strong>{{ polling_interval }} ثانیه</strong><small>برای بیشتر سایت‌ها ۳ تا ۱۰ ثانیه مناسب است.</small></article>
+    <article><span>Webhook</span><strong>اختیاری</strong><small>{{ webhook_url }}</small></article>
+  </div>
+  <div class="dashboard-bale-actions-row">
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="test_connection"><button class="dashboard-btn ghost small" type="submit">تست اتصال ربات</button></form>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="poll_now"><button class="dashboard-btn ghost small" type="submit">بررسی دستی پیام‌های جدید</button></form>
   </div>
   <form method="post" class="dashboard-form dashboard-content-form dashboard-bale-settings-form">
     {% csrf_token %}

@@ -13,7 +13,7 @@
 <section class="dashboard-grid dashboard-two-col">
   <article class="dashboard-panel">
     <div class="dashboard-panel-head">
-      <h2>وضعیت انتقال CMS به پنل جدید</h2>
+      <h2>وضعیت بخش‌های اصلی داشبورد</h2>
       <small>{{ next_stage }}</small>
     </div>
     <div class="dashboard-status-list">
@@ -30,7 +30,7 @@
   <article class="dashboard-panel">
     <div class="dashboard-panel-head">
       <h2>قیف لیدها</h2>
-      <small>آماده مدیریت محتوای سایت</small>
+      <small>پیگیری وضعیت فروش و مشاوره</small>
     </div>
     <div class="dashboard-pipeline">
       {% for row in lead_status_rows %}
@@ -75,5 +75,23 @@
       </table>
     </div>
   </article>
+</section>
+
+
+<section class="dashboard-panel dashboard-improvement-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>پیشنهادهای بهبود بعدی داشبورد</h2>
+      <p>این موارد برای تبدیل داشبورد به پنل عملیاتی کامل‌تر پیشنهاد می‌شوند.</p>
+    </div>
+  </div>
+  <div class="dashboard-improvement-grid">
+    {% for item in improvement_actions %}
+      <article>
+        <strong>{{ item.title }}</strong>
+        <p>{{ item.text }}</p>
+      </article>
+    {% endfor %}
+  </div>
 </section>
 {% endblock %}

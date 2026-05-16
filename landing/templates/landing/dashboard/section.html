@@ -6,21 +6,21 @@
       <h2>{{ section.title }}</h2>
       <p>{{ section.subtitle }}</p>
     </div>
-    <span class="dashboard-stage-pill">در صف پیاده‌سازی</span>
+    <span class="dashboard-stage-pill">برنامه تکمیل عملیاتی</span>
   </div>
   <div class="dashboard-section-grid">
     <div class="dashboard-roadmap-box">
-      <h3>قابلیت‌هایی که در همین پنل ساخته می‌شود</h3>
+      <h3>قابلیت‌های پیشنهادی برای تکمیل این بخش</h3>
       <ul>
         {% for item in section.items %}<li>{{ item }}</li>{% endfor %}
       </ul>
     </div>
     <div class="dashboard-roadmap-box muted">
-      <h3>مدل‌ها / بخش‌های مرتبط</h3>
+      <h3>بخش‌ها و داده‌های مرتبط</h3>
       <div class="dashboard-chip-list">
         {% for model in section.models %}<span>{{ model }}</span>{% endfor %}
       </div>
-      <p>در Stage 27 فقط اسکلت پنل ساخته شده است. از Stage 28 به بعد فرم‌های واقعی صفحه‌به‌صفحه به همین layout وصل می‌شوند.</p>
+      <p>این بخش برای توسعه بعدی آماده است و بدون اثر روی سایت عمومی می‌تواند به فرم‌ها، دسترسی‌ها و گزارش‌های عملیاتی متصل شود.</p>
     </div>
   </div>
 </section>

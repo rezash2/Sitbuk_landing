@@ -154,7 +154,7 @@ class PageContentDashboardForm(DashboardModelFormMixin, forms.ModelForm):
             'hero_image': 'نمونه: landing/images/about_building.png یا فقط نام فایل اگر قالب همان را استفاده می‌کند.',
             'canonical_path': 'نمونه: /about/ یا /pricing/؛ خالی باشد از آدرس فعلی استفاده می‌شود.',
             'og_image': 'نمونه: /static/landing/images/home_story_sitbuk.png یا landing/images/...',
-            'robots': 'معمولاً index,follow؛ برای صفحات آزمایشی noindex,follow',
+            'robots': 'معمولاً index,follow؛ برای صفحات غیرقابل انتشار noindex,follow',
             'schema_type': 'WebPage، AboutPage، ContactPage، FAQPage یا Product',
         }
 
@@ -298,21 +298,33 @@ class BaleBotSettingsDashboardForm(DashboardModelFormMixin, forms.ModelForm):
         model = BaleBotSettings
         fields = [
             'is_enabled',
+            'auto_polling_enabled',
             'only_respond_to_mentions_in_groups',
             'bot_username',
+            'bot_token',
+            'polling_interval_seconds',
             'welcome_text',
             'consultation_done_text',
             'demo_done_text',
             'last_update_id',
         ]
+        widgets = {
+            'bot_token': forms.PasswordInput(render_value=True),
+        }
         help_texts = {
+            'auto_polling_enabled': 'اگر روشن باشد، ربات همراه با اجرای سایت پیام‌های جدید را بررسی می‌کند و به دستور جداگانه نیاز ندارد.',
             'bot_username': 'نام کاربری ربات بدون @؛ برای گروه‌ها لازم است تا ربات فقط با منشن پاسخ بدهد.',
-            'last_update_id': 'برای polling استفاده می‌شود. معمولاً نیازی به تغییر دستی ندارد.',
+            'bot_token': 'توکن/کد دریافتی از BotFather بله را اینجا وارد کن. اگر خالی باشد از BALE_BOT_TOKEN در env استفاده می‌شود.',
+            'polling_interval_seconds': 'فاصله اجرای polling خودکار؛ مقدار پیشنهادی ۳ تا ۱۰ ثانیه است.',
+            'last_update_id': 'برای جلوگیری از پردازش تکراری پیام‌ها استفاده می‌شود. معمولاً نیازی به تغییر دستی ندارد.',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['last_update_id'].required = False
+        self.fields['bot_token'].required = False
+        self.fields['polling_interval_seconds'].min_value = 2
+        self.fields['polling_interval_seconds'].max_value = 60
         self._apply_dashboard_widgets()
 
 
@@ -556,24 +568,24 @@ class DashboardMenuItem:
 
 
 DASHBOARD_MENU: tuple[DashboardMenuItem, ...] = (
-    DashboardMenuItem('overview', 'داشبورد', 'نمای کلی سایت و وضعیت محتوا', 'dashboard_index', '◈', 'Stage 27'),
-    DashboardMenuItem('home', 'صفحه اول', 'مدیریت Hero و سکشن‌های صفحه خانه', 'dashboard_section_home', '⌂', 'Stage 28'),
-    DashboardMenuItem('pages', 'صفحات داخلی', 'درباره ما، تماس، امکانات و مطالعه موردی', 'dashboard_section_pages', '▣', 'Stage 29'),
-    DashboardMenuItem('leads', 'لیدها و پیام‌ها', 'پیگیری فرم‌های مشاوره و تماس', 'dashboard_section_leads', '◎', 'Stage 30'),
-    DashboardMenuItem('demos', 'درخواست‌های دمو', 'مدیریت درخواست‌ها، لینک‌های امن و ورود دمو', 'dashboard_section_demos', '◉', 'Stage 32.6'),
-    DashboardMenuItem('bale', 'ربات بله', 'مدیریت گفتگوها، پاسخ اپراتور و تنظیمات ربات', 'dashboard_section_bale', '☏', 'Stage 32.8'),
-    DashboardMenuItem('content', 'بلاگ و FAQ', 'مدیریت مقاله‌ها، سوالات متداول و محتوا', 'dashboard_section_content', '✎', 'Stage 31'),
-    DashboardMenuItem('pricing', 'قیمت‌ها و پلن‌ها', 'مدیریت تخصصی تعرفه‌ها، پلن‌ها و CTAهای فروش', 'dashboard_section_pricing', '◍', 'Stage 32'),
-    DashboardMenuItem('seo', 'SEO و تنظیمات', 'متادیتا، اسکیما، تنظیمات سایت و اشتراک‌گذاری', 'dashboard_section_seo', '⌁', 'Stage 33'),
-    DashboardMenuItem('media', 'رسانه‌ها', 'آپلود و انتخاب تصاویر و فایل‌ها', 'dashboard_section_media', '▧', 'Stage 34'),
-    DashboardMenuItem('security', 'دسترسی و امنیت', 'نقش‌ها، مجوزها و گزارش تغییرات', 'dashboard_section_security', '◇', 'Stage 35'),
+    DashboardMenuItem('overview', 'داشبورد', 'نمای کلی سایت و وضعیت محتوا', 'dashboard_index', '◈', 'نمای کلی'),
+    DashboardMenuItem('home', 'صفحه اول', 'Hero، آمار و سکشن‌های خانه', 'dashboard_section_home', '⌂', 'محتوای صفحه اصلی'),
+    DashboardMenuItem('pages', 'صفحات داخلی', 'درباره ما، تماس، امکانات و مطالعه موردی', 'dashboard_section_pages', '▣', 'مدیریت صفحات'),
+    DashboardMenuItem('leads', 'لیدها و پیام‌ها', 'پیگیری فرم‌های مشاوره و تماس', 'dashboard_section_leads', '◎', 'CRM سبک'),
+    DashboardMenuItem('demos', 'درخواست‌های دمو', 'لینک امن، وضعیت و پیگیری دمو', 'dashboard_section_demos', '◉', 'فروش و دمو'),
+    DashboardMenuItem('bale', 'ربات بله', 'توکن، اجرای خودکار، گفتگو و پاسخ اپراتور', 'dashboard_section_bale', '☏', 'ربات و پیام‌رسان'),
+    DashboardMenuItem('content', 'بلاگ و FAQ', 'مدیریت مقاله‌ها، سوالات متداول و محتوا', 'dashboard_section_content', '✎', 'محتوا'),
+    DashboardMenuItem('pricing', 'قیمت‌ها و پلن‌ها', 'تعرفه‌ها، پلن‌ها و CTAهای فروش', 'dashboard_section_pricing', '◍', 'فروش'),
+    DashboardMenuItem('seo', 'SEO و تنظیمات', 'متادیتا، اسکیما، تنظیمات سایت و اشتراک‌گذاری', 'dashboard_section_seo', '⌁', 'SEO'),
+    DashboardMenuItem('media', 'رسانه‌ها', 'مدیریت تصاویر، ویدیوها و فایل‌های سایت', 'dashboard_section_media', '▧', 'رسانه'),
+    DashboardMenuItem('security', 'دسترسی و امنیت', 'کاربران مجاز، نقش‌ها و کنترل امنیت', 'dashboard_section_security', '◇', 'امنیت'),
 )
 
 
 SECTION_CONTENT: dict[str, dict[str, Any]] = {
     'home': {
         'title': 'مدیریت صفحه اول',
-        'subtitle': 'در مرحله بعدی، تمام بخش‌های صفحه خانه از این پنل قابل ویرایش می‌شوند.',
+        'subtitle': 'محتوای اصلی صفحه خانه، آمارها، سکشن‌ها و ترتیب نمایش از این بخش مدیریت می‌شود.',
         'items': [
             'ویرایش تیتر، متن، دکمه‌ها و تصویر Hero',
             'مدیریت مزیت‌های سریع و آمارها',
@@ -584,18 +596,18 @@ SECTION_CONTENT: dict[str, dict[str, Any]] = {
     },
     'pages': {
         'title': 'مدیریت صفحات داخلی',
-        'subtitle': 'صفحات درباره ما، تماس، مطالعه موردی، امکانات، قیمت‌ها، پلن‌ها و FAQ به پنل اختصاصی منتقل می‌شوند.',
+        'subtitle': 'متن، تصویر، SEO و کارت‌های صفحات داخلی از همین بخش قابل کنترل است.',
         'items': [
             'ویرایش عنوان، توضیح، Hero و تصویر صفحه',
             'مدیریت سکشن‌ها و کارت‌های هر صفحه',
             'جستجو، فیلتر و وضعیت فعال/غیرفعال',
-            'حفظ fallback فعلی برای جلوگیری از خطا در production',
+            'حفظ مقدارهای پیش‌فرض امن برای جلوگیری از خطا در سایت',
         ],
         'models': ['PageContent', 'PageContentItem'],
     },
     'leads': {
         'title': 'مدیریت لیدها و پیام‌ها',
-        'subtitle': 'فرم‌ها به یک CRM سبک داخل پنل جدید تبدیل می‌شوند.',
+        'subtitle': 'لیدها و پیام‌های ورودی سایت برای پیگیری فروش و پشتیبانی در این بخش مدیریت می‌شوند.',
         'items': [
             'لیست لیدها با فیلتر وضعیت، اولویت، منبع و تاریخ',
             'صفحه جزئیات، یادداشت داخلی و مسئول پیگیری',
@@ -668,18 +680,18 @@ SECTION_CONTENT: dict[str, dict[str, Any]] = {
             'انتخاب تصویر برای Hero، اعضای تیم، بلاگ و OG',
             'حذف امن فایل‌های استفاده‌نشده',
         ],
-        'models': ['Media manager - planned'],
+        'models': ['Site static/media', 'PageContentItem.image', 'BlogPost.cover_image', 'SiteSettings.default_og_image'],
     },
     'security': {
         'title': 'دسترسی و امنیت',
-        'subtitle': 'برای استفاده واقعی تیم، نقش‌ها و گزارش تغییرات اضافه می‌شود.',
+        'subtitle': 'وضعیت دسترسی کاربران مجاز، نکات امنیت پنل و پیشنهادهای کنترلی در این بخش نمایش داده می‌شود.',
         'items': [
             'نقش‌های مدیر کل، محتوا، فروش، پشتیبانی و SEO',
             'مجوز صفحه‌ای و عملیات حساس',
             'Audit log برای تغییرات مهم',
             'ثبت آخرین ورود، IP و محافظت بیشتر پنل',
         ],
-        'models': ['User permissions', 'AuditLog - planned'],
+        'models': ['User.is_staff', 'User.is_superuser', 'Session security', 'Audit log پیشنهادی'],
     },
 }
 
@@ -722,6 +734,9 @@ def _safe_latest(queryset, limit: int = 5):
 
 def _dashboard_context(active_key: str = 'overview', **extra) -> dict[str, Any]:
     now = timezone.now()
+    stage_label = str(extra.get('current_stage') or '').strip()
+    if not stage_label or stage_label.lower().startswith('stage'):
+        extra['current_stage'] = 'پنل عملیاتی'
     return {
         'active_dashboard': active_key,
         'dashboard_menu': [
@@ -1815,6 +1830,21 @@ def dashboard_bale(request: HttpRequest) -> HttpResponse:
                 messages.success(request, 'تنظیمات ربات بله ذخیره شد.')
                 return redirect('dashboard_section_bale')
             messages.error(request, 'تنظیمات ربات بله نیاز به اصلاح دارد.')
+        elif action == 'test_connection':
+            from .bale_bot import BaleBotAPI
+            result = BaleBotAPI().get_me()
+            if result.get('ok'):
+                bot_info = result.get('result') or {}
+                title = bot_info.get('username') or bot_info.get('first_name') or 'ربات بله'
+                messages.success(request, f'اتصال ربات بله برقرار است: {title}')
+            else:
+                messages.error(request, 'اتصال ربات برقرار نشد. کد/توکن بله و دسترسی اینترنت سرور را بررسی کن.')
+            return redirect('dashboard_section_bale')
+        elif action == 'poll_now':
+            from .bale_bot import poll_once
+            processed = poll_once(limit=20, timeout=2)
+            messages.success(request, f'بررسی دستی انجام شد؛ {processed} پیام/به‌روزرسانی پردازش شد.')
+            return redirect('dashboard_section_bale')
         elif action == 'bulk_update_conversations':
             selected_ids = request.POST.getlist('selected_conversations')
             next_status = request.POST.get('bulk_status') or ''
@@ -1849,6 +1879,10 @@ def dashboard_bale(request: HttpRequest) -> HttpResponse:
         message_total=_safe_count(BaleBotMessage),
         inbound_total=_safe_count(BaleBotMessage.objects.filter(direction=BaleBotMessage.DIRECTION_IN)),
         outbound_total=_safe_count(BaleBotMessage.objects.filter(direction=BaleBotMessage.DIRECTION_OUT)),
+        token_configured=bool((bot_settings.bot_token or '').strip() or getattr(settings, 'BALE_BOT_TOKEN', '').strip()),
+        auto_polling_enabled=bool(bot_settings.is_enabled and bot_settings.auto_polling_enabled),
+        polling_interval=bot_settings.polling_interval_seconds,
+        webhook_url=request.build_absolute_uri(reverse('bale_webhook')),
     )
     return render(request, 'landing/dashboard/bale.html', context)
 
@@ -2482,15 +2516,23 @@ def dashboard_index(request: HttpRequest) -> HttpResponse:
     ]
 
     model_status = [
-        {'title': 'Hero صفحه اول', 'count': 1 if _safe_first(HomeHeroContent) else 0, 'status': 'آماده برای UI اختصاصی'},
-        {'title': 'آیتم‌های صفحه اول', 'count': _safe_count(HomeContentItem.objects.filter(is_active=True)), 'status': 'Stage 28'},
-        {'title': 'آیتم‌های صفحات داخلی', 'count': _safe_count(PageContentItem.objects.filter(is_active=True)), 'status': 'Stage 29'},
-        {'title': 'درخواست‌های مشاهده دمو', 'count': _safe_count(DemoRequest), 'status': 'Stage 32.6 / پنل مدیریت دمو آماده'},
-        {'title': 'گفتگوهای ربات بله', 'count': _safe_count(BaleBotConversation), 'status': 'Stage 32.8 / مدیریت در پنل اختصاصی'},
-        {'title': 'پیام‌های ربات بله', 'count': _safe_count(BaleBotMessage), 'status': 'Stage 32.8'},
-        {'title': 'عضویت‌های خبرنامه', 'count': _safe_count(NewsletterSubscription), 'status': 'در صف مدیریت پنل'},
-        {'title': 'سوالات متداول فعال', 'count': _safe_count(FAQItem.objects.filter(is_active=True)), 'status': 'Stage 31'},
-        {'title': 'تنظیمات سایت', 'count': 1 if _safe_first(SiteSettings) else 0, 'status': 'Stage 33'},
+        {'title': 'Hero صفحه اول', 'count': 1 if _safe_first(HomeHeroContent) else 0, 'status': 'قابل ویرایش از پنل'},
+        {'title': 'آیتم‌های صفحه اول', 'count': _safe_count(HomeContentItem.objects.filter(is_active=True)), 'status': 'فعال در سایت'},
+        {'title': 'آیتم‌های صفحات داخلی', 'count': _safe_count(PageContentItem.objects.filter(is_active=True)), 'status': 'قابل مدیریت'},
+        {'title': 'درخواست‌های مشاهده دمو', 'count': _safe_count(DemoRequest), 'status': 'دارای لینک امن و پیگیری'},
+        {'title': 'گفتگوهای ربات بله', 'count': _safe_count(BaleBotConversation), 'status': 'متصل به پنل ربات'},
+        {'title': 'پیام‌های ربات بله', 'count': _safe_count(BaleBotMessage), 'status': 'آرشیو مکالمات'},
+        {'title': 'عضویت‌های خبرنامه', 'count': _safe_count(NewsletterSubscription), 'status': 'ثبت و قابل توسعه'},
+        {'title': 'سوالات متداول فعال', 'count': _safe_count(FAQItem.objects.filter(is_active=True)), 'status': 'قابل انتشار'},
+        {'title': 'تنظیمات سایت', 'count': 1 if _safe_first(SiteSettings) else 0, 'status': 'SEO و اطلاعات تماس'},
+    ]
+
+    improvement_actions = [
+        {'title': 'مدیریت رسانه‌ها', 'text': 'اضافه شدن آپلود تصویر/ویدیو، گالری فایل‌ها و انتخاب مستقیم رسانه برای صفحات و بلاگ.'},
+        {'title': 'دسترسی نقش‌محور', 'text': 'تفکیک دسترسی کاربر محتوا، فروش، SEO و مدیر کل برای جلوگیری از تغییرات ناخواسته.'},
+        {'title': 'گزارش تغییرات', 'text': 'ثبت اینکه چه کسی متن، قیمت، SEO یا وضعیت لیدها را تغییر داده است.'},
+        {'title': 'اعلان پیگیری', 'text': 'یادآوری لیدها و دموهای دارای زمان پیگیری، همراه با هشدار داخل داشبورد.'},
+        {'title': 'سلامت اتصال‌ها', 'text': 'نمایش وضعیت ربات بله، لینک دمو، sitemap و فرم‌ها در یک صفحه سلامت عملیاتی.'},
     ]
 
     recent_leads = _safe_latest(LeadRequest.objects.order_by('-created_at'), 5)
@@ -2513,8 +2555,9 @@ def dashboard_index(request: HttpRequest) -> HttpResponse:
         recent_leads=recent_leads,
         recent_messages=recent_messages,
         lead_status_rows=lead_status_rows,
-        current_stage='Stage 32.8',
-        next_stage='Stage 33 - SEO و تنظیمات سایت داخل داشبورد اختصاصی',
+        current_stage='پنل عملیاتی',
+        next_stage='وضعیت بخش‌های اصلی داشبورد',
+        improvement_actions=improvement_actions,
     )
     return render(request, 'landing/dashboard/index.html', context)
 

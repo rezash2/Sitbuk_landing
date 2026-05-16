@@ -27,7 +27,7 @@
               <span class="dashboard-nav-icon">{{ item.icon }}</span>
               <span>
                 <strong>{{ item.label }}</strong>
-                <small>{{ item.stage }}</small>
+                <small>{{ item.description }}</small>
               </span>
             </a>
           {% endfor %}
@@ -40,7 +40,7 @@
       <main class="dashboard-main">
         <header class="dashboard-topbar">
           <div>
-            <span class="dashboard-stage-pill">{{ current_stage|default:'Stage 27' }}</span>
+            <span class="dashboard-stage-pill">{{ current_stage|default:'پنل عملیاتی' }}</span>
             <h1>{% block page_title %}{{ dashboard_title }}{% endblock %}</h1>
             <p>{% block page_subtitle %}{{ dashboard_subtitle }}{% endblock %}</p>
           </div>

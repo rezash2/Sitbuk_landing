@@ -6,7 +6,7 @@
       <h2>مرکز SEO و تنظیمات سایت</h2>
       <p>اطلاعات عمومی برند، متادیتای صفحات، Open Graph، Schema و فایل‌های راهنمای robots/llms از این بخش کنترل می‌شود.</p>
     </div>
-    <span class="dashboard-stage-pill">Stage 33</span>
+    <span class="dashboard-stage-pill">SEO عملیاتی</span>
   </div>
   <div class="dashboard-seo-summary-grid">
     <article>
@@ -137,7 +137,7 @@
     <div class="dashboard-panel-head large">
       <div>
         <h2>چک‌لیست صفحات</h2>
-        <p>برای هر صفحه مشخص است عنوان و توضیح اختصاصی SEO ثبت شده یا از fallback استفاده می‌شود.</p>
+        <p>برای هر صفحه مشخص است عنوان و توضیح اختصاصی SEO ثبت شده یا از مقدار پیش‌فرض امن استفاده می‌شود.</p>
       </div>
     </div>
     <div class="dashboard-table-wrap">
@@ -147,8 +147,8 @@
           {% for row in page_status_rows %}
             <tr>
               <td>{{ row.label }}</td>
-              <td>{% if row.seo_title %}<span class="dashboard-status-pill active">ثبت شده</span>{% else %}<span class="dashboard-status-pill">fallback</span>{% endif %}</td>
-              <td>{% if row.description %}<span class="dashboard-status-pill active">ثبت شده</span>{% else %}<span class="dashboard-status-pill">fallback</span>{% endif %}</td>
+              <td>{% if row.seo_title %}<span class="dashboard-status-pill active">ثبت شده</span>{% else %}<span class="dashboard-status-pill">پیش‌فرض</span>{% endif %}</td>
+              <td>{% if row.description %}<span class="dashboard-status-pill active">ثبت شده</span>{% else %}<span class="dashboard-status-pill">پیش‌فرض</span>{% endif %}</td>
               <td><a href="{{ row.url }}" target="_blank" class="dashboard-inline-link">باز کردن</a></td>
             </tr>
           {% empty %}

@@ -461,8 +461,11 @@ class PageContentItem(models.Model):
 
 class BaleBotSettings(models.Model):
     is_enabled = models.BooleanField(default=True, verbose_name='ربات فعال است')
+    auto_polling_enabled = models.BooleanField(default=True, verbose_name='اجرای خودکار همراه سایت')
     only_respond_to_mentions_in_groups = models.BooleanField(default=True, verbose_name='در گروه فقط با منشن پاسخ بدهد')
     bot_username = models.CharField(max_length=80, blank=True, verbose_name='نام کاربری ربات بدون @')
+    bot_token = models.CharField(max_length=255, blank=True, verbose_name='کد / توکن ربات بله')
+    polling_interval_seconds = models.PositiveSmallIntegerField(default=3, verbose_name='فاصله بررسی پیام‌ها بر حسب ثانیه')
     welcome_text = models.TextField(default='سلام 👋 به ربات سیتباک خوش آمدید. از منوی زیر درخواست مشاوره یا مشاهده دمو را ثبت کنید.', verbose_name='پیام خوشامد')
     consultation_done_text = models.TextField(default='درخواست مشاوره شما ثبت شد. تیم سیتباک به‌زودی با شما تماس می‌گیرد.', verbose_name='پیام پایان مشاوره')
     demo_done_text = models.TextField(default='درخواست دمو ثبت شد و لینک امن دمو برای شما آماده است.', verbose_name='پیام پایان دمو')

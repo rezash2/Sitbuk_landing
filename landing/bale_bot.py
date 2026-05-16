@@ -49,9 +49,19 @@ class BaleIncomingMessage:
     raw: dict[str, Any]
 
 
+def _configured_bot_token() -> str:
+    try:
+        db_token = (BaleBotSettings.objects.order_by('id').values_list('bot_token', flat=True).first() or '').strip()
+        if db_token:
+            return db_token
+    except Exception:
+        pass
+    return (getattr(settings, 'BALE_BOT_TOKEN', '') or '').strip()
+
+
 class BaleBotAPI:
     def __init__(self, token: str | None = None):
-        self.token = token or getattr(settings, 'BALE_BOT_TOKEN', '')
+        self.token = (token or _configured_bot_token()).strip()
         self.api_base = getattr(settings, 'BALE_BOT_API_BASE', 'https://tapi.bale.ai').rstrip('/')
 
     @property
@@ -90,6 +100,9 @@ class BaleBotAPI:
         if offset:
             payload['offset'] = offset
         return self._request('getUpdates', payload, timeout=timeout + 10)
+
+    def get_me(self) -> dict[str, Any]:
+        return self._request('getMe', {})
 
 
 def normalize_phone(value: str) -> str:

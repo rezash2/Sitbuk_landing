@@ -22,6 +22,8 @@ BALE_BOT_TOKEN = os.getenv('BALE_BOT_TOKEN', '')
 BALE_BOT_USERNAME = os.getenv('BALE_BOT_USERNAME', '')
 BALE_WEBHOOK_SECRET = os.getenv('BALE_WEBHOOK_SECRET', '')
 BALE_BOT_API_BASE = os.getenv('BALE_BOT_API_BASE', 'https://tapi.bale.ai').rstrip('/')
+BALE_BOT_AUTO_START = os.getenv('BALE_BOT_AUTO_START', '1') == '1'
+BALE_BOT_POLL_TIMEOUT = int(os.getenv('BALE_BOT_POLL_TIMEOUT', '15'))
 
 
 INSTALLED_APPS = [
@@ -32,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
-    'landing',
+    'landing.apps.LandingConfig',
 ]
 
 MIDDLEWARE = [
