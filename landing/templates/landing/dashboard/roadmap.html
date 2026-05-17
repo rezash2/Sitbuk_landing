@@ -1,0 +1,55 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-kpi-grid dashboard-roadmap-summary">
+  {% for card in roadmap_summary %}
+    <article class="dashboard-kpi-card accent-{% cycle 'gold' 'green' 'blue' 'rose' %}">
+      <span>{{ card.label }}</span>
+      <strong>{{ card.value }}</strong>
+      <p>{{ card.hint }}</p>
+    </article>
+  {% endfor %}
+</section>
+
+<section class="dashboard-panel dashboard-roadmap-intro">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>مسیر پیشنهادی ارتقای داشبورد</h2>
+      <p>این نقشه راه برای ادامه توسعه مرحله‌به‌مرحله پنل اختصاصی سیتباک است. اولویت بعدی، کامل کردن ویرایش قیمت‌ها، پلن‌ها و جدول مقایسه از داخل داشبورد است.</p>
+    </div>
+    <a href="{% url 'dashboard_section_pricing' %}" class="dashboard-action-link dashboard-roadmap-cta">رفتن به قیمت‌ها و پلن‌ها</a>
+  </div>
+  <div class="dashboard-roadmap-note">
+    <strong>قاعده ادامه کار:</strong> هر مرحله باید از آخرین ZIP ساخته شود، تغییرات قبلی را حفظ کند، در CHANGELOG ثبت شود و تا حد امکان بدون تغییر ناخواسته در ظاهر سایت عمومی انجام شود.
+  </div>
+</section>
+
+<section class="dashboard-roadmap-list">
+  {% for phase in roadmap_phases %}
+    <article class="dashboard-panel dashboard-roadmap-card {% if forloop.first %}is-done{% endif %}{% if phase.stage == 'Stage 54' %} is-next{% endif %}">
+      <div class="dashboard-roadmap-card-head">
+        <div>
+          <span class="dashboard-roadmap-stage">{{ phase.stage }}</span>
+          <h2>{{ phase.title }}</h2>
+          <p>{{ phase.summary }}</p>
+        </div>
+        <div class="dashboard-roadmap-meta">
+          <span>{{ phase.status }}</span>
+          <strong>{{ phase.priority }}</strong>
+        </div>
+      </div>
+      <div class="dashboard-roadmap-body">
+        <div class="dashboard-roadmap-box">
+          <h3>کارهای این مرحله</h3>
+          <ul>
+            {% for task in phase.tasks %}<li>{{ task }}</li>{% endfor %}
+          </ul>
+        </div>
+        <div class="dashboard-roadmap-box muted">
+          <h3>خروجی مورد انتظار</h3>
+          <p>{{ phase.deliverables }}</p>
+        </div>
+      </div>
+    </article>
+  {% endfor %}
+</section>
+{% endblock %}

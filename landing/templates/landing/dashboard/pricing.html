@@ -41,6 +41,158 @@
   </article>
 </section>
 
+
+<section class="dashboard-panel dashboard-home-items-panel" id="pricing-plans">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>{{ plan_context_label }}</h2>
+      <p>{{ plan_context_hint }}</p>
+    </div>
+    <span class="dashboard-stage-pill">{{ plan_active_count }}/{{ plan_total_count }} فعال</span>
+  </div>
+
+  <form method="post" class="dashboard-form dashboard-item-editor" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create_plan">
+    {% if add_plan_form.non_field_errors %}<div class="dashboard-form-errors">{{ add_plan_form.non_field_errors }}</div>{% endif %}
+    <div class="dashboard-form-grid three compact">
+      {% for field in add_plan_form %}
+        <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+          <span>{{ field.label }}</span>
+          {{ field }}
+          {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+          {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+        </label>
+      {% endfor %}
+    </div>
+    <div class="dashboard-form-actions compact-actions">
+      <button type="submit" class="dashboard-btn primary small">افزودن پلن</button>
+      <a href="{{ preview_url }}" target="_blank" class="dashboard-btn ghost small">پیش‌نمایش صفحه</a>
+    </div>
+  </form>
+
+  <div class="dashboard-item-editor-list">
+    {% for row in plan_rows %}
+      <form method="post" class="dashboard-item-editor{% if not row.object.is_active %} is-muted{% endif %}" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_plan">
+        <input type="hidden" name="plan_id" value="{{ row.object.id }}">
+        <div class="dashboard-item-editor-head">
+          <div>
+            <strong>{{ row.object.name }}</strong>
+            <small>قیمت ماهانه: {{ row.object.monthly_price|default:'—' }} · قیمت سالانه: {{ row.object.annual_price|default:'—' }} · {{ row.features_count }} ویژگی</small>
+          </div>
+          <span class="dashboard-status-pill{% if row.object.is_active %} active{% endif %}">{% if row.object.is_active %}فعال{% else %}غیرفعال{% endif %}</span>
+        </div>
+        {% if row.form.non_field_errors %}<div class="dashboard-form-errors">{{ row.form.non_field_errors }}</div>{% endif %}
+        <div class="dashboard-form-grid three compact">
+          {% for field in row.form %}
+            <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+              <span>{{ field.label }}</span>
+              {{ field }}
+              {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+            </label>
+          {% endfor %}
+        </div>
+        <div class="dashboard-form-actions compact-actions">
+          <button type="submit" class="dashboard-btn primary small">ذخیره پلن</button>
+          <button type="submit" name="action" value="toggle_plan" class="dashboard-btn ghost small">{% if row.object.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}</button>
+          <button type="submit" name="action" value="delete_plan" class="dashboard-btn danger small" onclick="return confirm('این پلن حذف شود؟')">حذف</button>
+        </div>
+      </form>
+    {% empty %}
+      <div class="dashboard-empty-state mini">
+        <strong>هنوز پلنی برای این صفحه ثبت نشده است.</strong>
+        <p>از فرم بالا پلن‌های قابل نمایش در صفحه عمومی را اضافه کن.</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-panel dashboard-home-items-panel" id="pricing-tables">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>مدیریت جدول‌های قیمت و پلن</h2>
+      <p>ردیف‌های جدول‌های عمومی سایت را از همین‌جا اضافه، ویرایش، غیرفعال یا حذف کن. ترتیب نمایش با فیلد «ترتیب» کنترل می‌شود.</p>
+    </div>
+    <span class="dashboard-stage-pill">{{ row_active_count }}/{{ row_total_count }} ردیف فعال</span>
+  </div>
+
+  <div class="dashboard-accordion-list dashboard-pricing-table-groups">
+    {% for group in pricing_row_groups %}
+      <article class="dashboard-item-group">
+        <header class="dashboard-item-group-head">
+          <div>
+            <h3>{{ group.label }}</h3>
+            <small>{{ group.hint }}</small>
+          </div>
+          <span>{{ group.active_count }}/{{ group.count }}</span>
+        </header>
+
+        <form method="post" class="dashboard-form dashboard-item-editor" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_pricing_row">
+          <input type="hidden" name="new_table_key" value="{{ group.key }}">
+          <div class="dashboard-form-grid three compact">
+            {% for field in group.add_form %}
+              <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+              </label>
+            {% endfor %}
+          </div>
+          <div class="dashboard-form-actions compact-actions">
+            <button type="submit" class="dashboard-btn primary small">افزودن ردیف جدول</button>
+          </div>
+        </form>
+
+        {% if group.rows %}
+          <div class="dashboard-item-editor-list">
+            {% for row in group.rows %}
+              <form method="post" class="dashboard-item-editor{% if not row.object.is_active %} is-muted{% endif %}" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_pricing_row">
+                <input type="hidden" name="row_id" value="{{ row.object.id }}">
+                <div class="dashboard-item-editor-head">
+                  <div>
+                    <strong>{{ row.object.label }}</strong>
+                    <small>{% if row.object.group_title %}گروه: {{ row.object.group_title }} · {% endif %}ترتیب: {{ row.object.sort_order }} · آخرین تغییر: {{ row.object.updated_at|date:'Y/m/d H:i' }}</small>
+                  </div>
+                  <span class="dashboard-status-pill{% if row.object.is_active %} active{% endif %}">{% if row.object.is_active %}فعال{% else %}غیرفعال{% endif %}</span>
+                </div>
+                {% if row.form.non_field_errors %}<div class="dashboard-form-errors">{{ row.form.non_field_errors }}</div>{% endif %}
+                <div class="dashboard-form-grid three compact">
+                  {% for field in row.form %}
+                    <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                      <span>{{ field.label }}</span>
+                      {{ field }}
+                      {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                      {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+                    </label>
+                  {% endfor %}
+                </div>
+                <div class="dashboard-form-actions compact-actions">
+                  <button type="submit" class="dashboard-btn primary small">ذخیره ردیف</button>
+                  <button type="submit" name="action" value="toggle_pricing_row" class="dashboard-btn ghost small">{% if row.object.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}</button>
+                  <button type="submit" name="action" value="delete_pricing_row" class="dashboard-btn danger small" onclick="return confirm('این ردیف حذف شود؟')">حذف</button>
+                </div>
+              </form>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="dashboard-empty-state mini">
+            <strong>هنوز ردیفی برای این جدول ثبت نشده است.</strong>
+            <p>از فرم بالا ردیف‌های جدول را بساز.</p>
+          </div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="dashboard-grid dashboard-two-col dashboard-home-top">
   <article class="dashboard-panel dashboard-form-panel">
     <div class="dashboard-panel-head large">

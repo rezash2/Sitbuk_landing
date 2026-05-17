@@ -1,0 +1,101 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis">
+  <article class="dashboard-kpi-card accent-green"><span>سناریوهای فعال</span><strong>{{ active_scenario_total }}</strong><p>مسیرهایی که ربات بر اساس کلمات محرک اجرا می‌کند.</p></article>
+  <article class="dashboard-kpi-card accent-rose"><span>سناریوهای غیرفعال</span><strong>{{ inactive_scenario_total }}</strong><p>سناریوهایی که فعلاً در پاسخ‌دهی استفاده نمی‌شوند.</p></article>
+  <article class="dashboard-kpi-card accent-blue"><span>قالب‌های پاسخ فعال</span><strong>{{ active_template_total }}</strong><p>برای پاسخ سریع اپراتور در صفحه گفتگو.</p></article>
+  <article class="dashboard-kpi-card accent-gold"><span>مرحله فعلی</span><strong>۵۹</strong><p>کنترل‌سنتر سناریوهای بله و پاسخ‌های آماده.</p></article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-bale-scenario-layout">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>{% if scenario_instance %}ویرایش سناریو{% else %}سناریوی جدید{% endif %}</h2>
+        <p>کلمات محرک را در هر خط جدا کن و مشخص کن ربات چه عملی انجام دهد.</p>
+      </div>
+      {% if scenario_instance %}<a class="dashboard-btn ghost small" href="{% url 'dashboard_bale_scenarios' %}">سناریوی جدید</a>{% endif %}
+    </div>
+    <form method="post" class="dashboard-form dashboard-content-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_scenario">
+      {% if scenario_instance %}<input type="hidden" name="scenario_id" value="{{ scenario_instance.id }}">{% endif %}
+      {% for field in scenario_form %}
+        <label class="dashboard-field"><span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="dashboard-error-text">{{ error }}</small>{% endfor %}</label>
+      {% endfor %}
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">ذخیره سناریو</button>
+        <a class="dashboard-btn ghost" href="{% url 'dashboard_section_bale' %}">بازگشت به ربات بله</a>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel">
+    <div class="dashboard-panel-head large">
+      <div><h2>لیست سناریوها</h2><p>ترتیب کمتر، زودتر بررسی می‌شود؛ سناریوهای دقیق را بالاتر قرار بده.</p></div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-bale-scenario-table">
+        <thead><tr><th>سناریو</th><th>عملیات</th><th>محرک‌ها</th><th>وضعیت</th><th>مدیریت</th></tr></thead>
+        <tbody>
+          {% for scenario in scenarios %}
+            <tr>
+              <td><strong>{{ scenario.title }}</strong><small>{{ scenario.key }} · ترتیب {{ scenario.sort_order }}</small></td>
+              <td>{{ scenario.get_action_display }}<small>{{ scenario.get_match_mode_display }}</small></td>
+              <td class="dashboard-scenario-keywords">{{ scenario.trigger_keywords|linebreaksbr|truncatechars:120 }}</td>
+              <td><span class="dashboard-status-pill {% if scenario.is_active %}active{% endif %}">{% if scenario.is_active %}فعال{% else %}غیرفعال{% endif %}</span></td>
+              <td class="dashboard-row-actions">
+                <a class="dashboard-btn ghost xsmall" href="?scenario_id={{ scenario.id }}">ویرایش</a>
+                <form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="action" value="delete_scenario"><input type="hidden" name="scenario_id" value="{{ scenario.id }}"><button class="dashboard-btn danger xsmall" type="submit">حذف</button></form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="dashboard-empty">هنوز سناریویی تعریف نشده است.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-bale-template-layout">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>{% if template_instance %}ویرایش قالب پاسخ{% else %}قالب پاسخ جدید{% endif %}</h2>
+        <p>این قالب‌ها در صفحه جزئیات گفتگو برای ارسال سریع اپراتور نمایش داده می‌شوند.</p>
+      </div>
+      {% if template_instance %}<a class="dashboard-btn ghost small" href="{% url 'dashboard_bale_scenarios' %}">قالب جدید</a>{% endif %}
+    </div>
+    <form method="post" class="dashboard-form dashboard-content-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_template">
+      {% if template_instance %}<input type="hidden" name="template_id" value="{{ template_instance.id }}">{% endif %}
+      {% for field in template_form %}
+        <label class="dashboard-field"><span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="dashboard-error-text">{{ error }}</small>{% endfor %}</label>
+      {% endfor %}
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">ذخیره قالب پاسخ</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel">
+    <div class="dashboard-panel-head large"><div><h2>قالب‌های پاسخ اپراتور</h2><p>برای ارسال سریع در گفتگوهای بله.</p></div></div>
+    <div class="dashboard-status-list dashboard-template-list">
+      {% for template in reply_templates %}
+        <div class="dashboard-status-row dashboard-template-row">
+          <span><strong>{{ template.title }}</strong><small>{{ template.get_category_display }} · ترتیب {{ template.sort_order }}</small></span>
+          <small>{% if template.is_active %}فعال{% else %}غیرفعال{% endif %}</small>
+          <div class="dashboard-row-actions">
+            <a class="dashboard-btn ghost xsmall" href="?template_id={{ template.id }}">ویرایش</a>
+            <form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="action" value="delete_template"><input type="hidden" name="template_id" value="{{ template.id }}"><button class="dashboard-btn danger xsmall" type="submit">حذف</button></form>
+          </div>
+        </div>
+      {% empty %}
+        <div class="dashboard-empty-state compact"><strong>قالبی تعریف نشده است.</strong><p>از فرم سمت راست اولین پاسخ آماده اپراتور را بساز.</p></div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+{% endblock %}

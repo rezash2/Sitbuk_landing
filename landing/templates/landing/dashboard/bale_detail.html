@@ -69,6 +69,19 @@
       {% endfor %}
       <button class="dashboard-btn primary" type="submit">ارسال پاسخ در بله</button>
     </form>
+    <div class="dashboard-note-box muted dashboard-bale-template-box"><strong>پاسخ‌های آماده اپراتور</strong>
+      {% for template in reply_templates %}
+        <form method="post" class="inline-form dashboard-template-reply-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_template_reply">
+          <input type="hidden" name="template_id" value="{{ template.id }}">
+          <button class="dashboard-btn ghost small" type="submit">{{ template.title }} <small>{{ template.get_category_display }}</small></button>
+        </form>
+      {% empty %}
+        <p>هنوز قالب پاسخ فعالی تعریف نشده است. از بخش سناریوهای ربات بله، قالب‌های آماده را اضافه کن.</p>
+      {% endfor %}
+      <p><a class="dashboard-inline-link" href="{% url 'dashboard_bale_scenarios' %}">مدیریت قالب‌ها</a></p>
+    </div>
     <div class="dashboard-note-box muted"><strong>درخواست‌های مرتبط با همین موبایل</strong>
       <p>لیدها:</p>
       {% for lead in related_leads %}<p><a href="{% url 'dashboard_lead_detail' lead.id %}">#{{ lead.id }} - {{ lead.full_name }} - {{ lead.get_status_display }}</a></p>{% empty %}<p>لیدی پیدا نشد.</p>{% endfor %}

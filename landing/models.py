@@ -1,5 +1,7 @@
 import uuid
+from pathlib import Path
 
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -68,6 +70,61 @@ class LeadRequest(models.Model):
     @property
     def is_open(self) -> bool:
         return self.status in {self.STATUS_NEW, self.STATUS_CONTACTED, self.STATUS_QUALIFIED}
+
+
+class LeadFollowUpActivity(models.Model):
+    ACTIVITY_CALL = 'call'
+    ACTIVITY_MESSAGE = 'message'
+    ACTIVITY_MEETING = 'meeting'
+    ACTIVITY_NOTE = 'note'
+    ACTIVITY_STATUS = 'status'
+    ACTIVITY_REMINDER = 'reminder'
+
+    ACTIVITY_CHOICES = (
+        (ACTIVITY_CALL, 'تماس'),
+        (ACTIVITY_MESSAGE, 'پیام / واتساپ / بله'),
+        (ACTIVITY_MEETING, 'جلسه / دمو'),
+        (ACTIVITY_NOTE, 'یادداشت داخلی'),
+        (ACTIVITY_STATUS, 'تغییر وضعیت'),
+        (ACTIVITY_REMINDER, 'یادآوری پیگیری'),
+    )
+
+    RESULT_NONE = 'none'
+    RESULT_CONNECTED = 'connected'
+    RESULT_NO_ANSWER = 'no_answer'
+    RESULT_INTERESTED = 'interested'
+    RESULT_NOT_INTERESTED = 'not_interested'
+    RESULT_NEXT_STEP = 'next_step'
+
+    RESULT_CHOICES = (
+        (RESULT_NONE, 'بدون نتیجه مشخص'),
+        (RESULT_CONNECTED, 'ارتباط برقرار شد'),
+        (RESULT_NO_ANSWER, 'پاسخ نداد'),
+        (RESULT_INTERESTED, 'علاقه‌مند'),
+        (RESULT_NOT_INTERESTED, 'عدم تمایل'),
+        (RESULT_NEXT_STEP, 'نیازمند اقدام بعدی'),
+    )
+
+    lead = models.ForeignKey(LeadRequest, on_delete=models.CASCADE, related_name='activities', verbose_name='لید')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='کاربر ثبت‌کننده')
+    activity_type = models.CharField(max_length=24, choices=ACTIVITY_CHOICES, default=ACTIVITY_NOTE, verbose_name='نوع فعالیت')
+    result = models.CharField(max_length=24, choices=RESULT_CHOICES, default=RESULT_NONE, verbose_name='نتیجه')
+    note = models.TextField(blank=True, verbose_name='شرح فعالیت')
+    next_follow_up_at = models.DateTimeField(null=True, blank=True, verbose_name='پیگیری بعدی')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='زمان ثبت')
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        verbose_name = 'فعالیت پیگیری لید'
+        verbose_name_plural = 'فعالیت‌های پیگیری لید'
+        indexes = [
+            models.Index(fields=['lead', 'created_at'], name='lead_act_lead_cr_idx'),
+            models.Index(fields=['activity_type', 'created_at'], name='lead_act_type_cr_idx'),
+            models.Index(fields=['next_follow_up_at'], name='lead_act_next_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.lead} - {self.get_activity_type_display()}'
 
 
 class DemoRequest(models.Model):
@@ -174,6 +231,47 @@ class DemoRequest(models.Model):
     def save(self, *args, **kwargs):
         self.ensure_token()
         super().save(*args, **kwargs)
+
+
+class DemoAccessEvent(models.Model):
+    EVENT_VIEW = 'view'
+    EVENT_LAUNCH = 'launch'
+    EVENT_LINK_SENT = 'link_sent'
+    EVENT_REGENERATED = 'regenerated'
+    EVENT_EXTENDED = 'extended'
+    EVENT_REVOKED = 'revoked'
+    EVENT_NOTE = 'note'
+
+    EVENT_CHOICES = (
+        (EVENT_VIEW, 'مشاهده صفحه لینک امن'),
+        (EVENT_LAUNCH, 'ورود به نسخه دمو'),
+        (EVENT_LINK_SENT, 'ثبت ارسال لینک'),
+        (EVENT_REGENERATED, 'بازسازی لینک امن'),
+        (EVENT_EXTENDED, 'تمدید اعتبار لینک'),
+        (EVENT_REVOKED, 'لغو لینک امن'),
+        (EVENT_NOTE, 'یادداشت عملیاتی'),
+    )
+
+    demo_request = models.ForeignKey(DemoRequest, related_name='access_events', on_delete=models.CASCADE, verbose_name='درخواست دمو')
+    event_type = models.CharField(max_length=24, choices=EVENT_CHOICES, verbose_name='نوع رویداد')
+    target = models.CharField(max_length=24, blank=True, verbose_name='دموی انتخاب‌شده')
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP')
+    user_agent = models.TextField(blank=True, verbose_name='مرورگر / دستگاه')
+    referrer = models.CharField(max_length=255, blank=True, verbose_name='ارجاع‌دهنده')
+    note = models.TextField(blank=True, verbose_name='یادداشت')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'رویداد لینک امن دمو'
+        verbose_name_plural = 'رویدادهای لینک امن دمو'
+        indexes = [
+            models.Index(fields=['demo_request', 'created_at'], name='demo_evt_req_cr_idx'),
+            models.Index(fields=['event_type', 'created_at'], name='demo_evt_type_cr_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.demo_request} - {self.get_event_type_display()}'
 
 
 class NewsletterSubscription(models.Model):
@@ -457,6 +555,338 @@ class PageContentItem(models.Model):
         return f'{self.get_page_key_display()} / {self.section} - {self.title}'
 
 
+class PageBuilderSection(models.Model):
+    PAGE_HOME = 'home'
+    PAGE_CHOICES = ((PAGE_HOME, 'صفحه اصلی'),) + PageContent.PAGE_CHOICES
+
+    LAYOUT_CARDS = 'cards'
+    LAYOUT_GRID = 'grid'
+    LAYOUT_TIMELINE = 'timeline'
+    LAYOUT_STATS = 'stats'
+    LAYOUT_MEDIA = 'media'
+    LAYOUT_FAQ = 'faq'
+    LAYOUT_CTA = 'cta'
+    LAYOUT_CUSTOM = 'custom'
+
+    LAYOUT_CHOICES = (
+        (LAYOUT_CARDS, 'کارت‌ها'),
+        (LAYOUT_GRID, 'گرید / شبکه'),
+        (LAYOUT_TIMELINE, 'مسیر / تایم‌لاین'),
+        (LAYOUT_STATS, 'آمار و عدد'),
+        (LAYOUT_MEDIA, 'رسانه / ویدیو / تصویر'),
+        (LAYOUT_FAQ, 'سوالات متداول'),
+        (LAYOUT_CTA, 'دعوت به اقدام'),
+        (LAYOUT_CUSTOM, 'سفارشی'),
+    )
+
+    page_key = models.CharField(max_length=40, choices=PAGE_CHOICES, verbose_name='صفحه')
+    section_key = models.CharField(max_length=70, verbose_name='کد سکشن')
+    title = models.CharField(max_length=180, verbose_name='عنوان نمایشی سکشن')
+    description = models.TextField(blank=True, verbose_name='راهنمای داخلی سکشن')
+    layout = models.CharField(max_length=24, choices=LAYOUT_CHOICES, default=LAYOUT_CARDS, verbose_name='نوع چیدمان')
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='ترتیب سکشن در داشبورد')
+    is_active = models.BooleanField(default=True, verbose_name='فعال در صفحه‌ساز')
+    is_published = models.BooleanField(default=True, verbose_name='منتشر در سایت')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['page_key', 'sort_order', 'section_key']
+        unique_together = (('page_key', 'section_key'),)
+        verbose_name = 'سکشن صفحه‌ساز'
+        verbose_name_plural = 'صفحه‌ساز سبک - سکشن‌ها'
+        indexes = [
+            models.Index(fields=['page_key', 'is_active', 'is_published'], name='pb_sec_page_pub_idx'),
+            models.Index(fields=['sort_order'], name='pb_sec_sort_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.get_page_key_display()} / {self.title}'
+
+
+class PricingPlan(models.Model):
+    CONTEXT_PRICING_CARD = 'pricing_card'
+    CONTEXT_PLAN_COLUMN = 'plan_column'
+
+    CONTEXT_CHOICES = (
+        (CONTEXT_PRICING_CARD, 'کارت پلن صفحه قیمت‌ها'),
+        (CONTEXT_PLAN_COLUMN, 'ستون پلن صفحه پلن‌ها'),
+    )
+
+    context = models.CharField(max_length=24, choices=CONTEXT_CHOICES, default=CONTEXT_PRICING_CARD, verbose_name='محل نمایش')
+    name = models.CharField(max_length=120, verbose_name='نام پلن')
+    subtitle = models.CharField(max_length=160, blank=True, verbose_name='زیرعنوان')
+    tag = models.CharField(max_length=80, blank=True, verbose_name='برچسب')
+    description = models.TextField(blank=True, verbose_name='توضیح')
+    users_label = models.CharField(max_length=80, blank=True, verbose_name='ظرفیت کاربران')
+    monthly_price = models.CharField(max_length=40, blank=True, verbose_name='قیمت ماهانه')
+    annual_price = models.CharField(max_length=40, blank=True, verbose_name='قیمت سالانه / تخفیفی')
+    accent = models.CharField(max_length=40, default='gold', verbose_name='رنگ / کلاس ظاهری')
+    cta_label = models.CharField(max_length=80, blank=True, verbose_name='متن دکمه')
+    cta_url = models.CharField(max_length=180, default='#contact-block', blank=True, verbose_name='لینک دکمه')
+    features_text = models.TextField(blank=True, verbose_name='ویژگی‌ها، هر خط یک مورد')
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='ترتیب نمایش')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['context', 'sort_order', 'id']
+        verbose_name = 'پلن قیمت‌گذاری'
+        verbose_name_plural = 'داشبورد قیمت‌گذاری - پلن‌ها'
+        indexes = [
+            models.Index(fields=['context', 'is_active', 'sort_order'], name='pricing_plan_ctx_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.get_context_display()} - {self.name}'
+
+    @property
+    def features(self) -> list[str]:
+        return [line.strip() for line in (self.features_text or '').splitlines() if line.strip()]
+
+
+class PricingComparisonRow(models.Model):
+    TABLE_PRICING = 'pricing_comparison'
+    TABLE_PACKAGE = 'package_comparison'
+    TABLE_PLANS = 'plans_comparison'
+
+    TABLE_CHOICES = (
+        (TABLE_PRICING, 'جدول مقایسه صفحه قیمت‌ها'),
+        (TABLE_PACKAGE, 'جدول پکیج‌های اشتراکی صفحه قیمت‌ها'),
+        (TABLE_PLANS, 'جدول مقایسه صفحه پلن‌ها'),
+    )
+
+    table_key = models.CharField(max_length=32, choices=TABLE_CHOICES, default=TABLE_PRICING, verbose_name='جدول')
+    group_title = models.CharField(max_length=120, blank=True, verbose_name='عنوان گروه')
+    group_icon = models.CharField(max_length=48, blank=True, verbose_name='آیکن گروه')
+    label = models.CharField(max_length=180, verbose_name='عنوان ردیف')
+    value_1 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۱')
+    value_2 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۲')
+    value_3 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۳')
+    value_4 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۴')
+    value_5 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۵')
+    value_6 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۶')
+    annual_value_1 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۱ سالانه')
+    annual_value_2 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۲ سالانه')
+    annual_value_3 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۳ سالانه')
+    annual_value_4 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۴ سالانه')
+    annual_value_5 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۵ سالانه')
+    annual_value_6 = models.CharField(max_length=120, blank=True, verbose_name='ستون ۶ سالانه')
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='ترتیب نمایش')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['table_key', 'group_title', 'sort_order', 'id']
+        verbose_name = 'ردیف جدول قیمت/پلن'
+        verbose_name_plural = 'داشبورد قیمت‌گذاری - ردیف‌های جدول'
+        indexes = [
+            models.Index(fields=['table_key', 'is_active', 'sort_order'], name='pricing_row_tbl_idx'),
+            models.Index(fields=['group_title', 'sort_order'], name='pricing_row_grp_idx'),
+        ]
+
+    def __str__(self) -> str:
+        group = f' / {self.group_title}' if self.group_title else ''
+        return f'{self.get_table_key_display()}{group} - {self.label}'
+
+    def values(self, count: int = 6) -> list[str]:
+        return [getattr(self, f'value_{idx}', '') for idx in range(1, count + 1)]
+
+    def annual_values(self, count: int = 6) -> list[str]:
+        return [getattr(self, f'annual_value_{idx}', '') for idx in range(1, count + 1)]
+
+
+
+class MediaAsset(models.Model):
+    TYPE_IMAGE = 'image'
+    TYPE_VIDEO = 'video'
+    TYPE_DOCUMENT = 'document'
+    TYPE_OTHER = 'other'
+
+    TYPE_CHOICES = (
+        (TYPE_IMAGE, 'تصویر'),
+        (TYPE_VIDEO, 'ویدیو'),
+        (TYPE_DOCUMENT, 'سند'),
+        (TYPE_OTHER, 'سایر فایل‌ها'),
+    )
+
+    title = models.CharField(max_length=160, verbose_name='عنوان رسانه')
+    asset_type = models.CharField(max_length=24, choices=TYPE_CHOICES, default=TYPE_IMAGE, verbose_name='نوع رسانه')
+    file = models.FileField(upload_to='landing/media_assets/%Y/%m/', verbose_name='فایل')
+    alt_text = models.CharField(max_length=180, blank=True, verbose_name='متن جایگزین / Alt')
+    usage_key = models.CharField(max_length=120, blank=True, verbose_name='محل استفاده پیشنهادی')
+    description = models.TextField(blank=True, verbose_name='توضیح داخلی')
+    is_active = models.BooleanField(default=True, verbose_name='قابل استفاده')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        verbose_name = 'رسانه سایت'
+        verbose_name_plural = 'مدیریت رسانه‌های سایت'
+        indexes = [
+            models.Index(fields=['asset_type', 'is_active'], name='media_asset_type_active_idx'),
+            models.Index(fields=['usage_key'], name='media_asset_usage_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return self.title
+
+    @property
+    def public_url(self) -> str:
+        try:
+            return self.file.url if self.file else ''
+        except Exception:
+            return ''
+
+    @property
+    def filename(self) -> str:
+        return Path(self.file.name).name if self.file else ''
+
+    @property
+    def extension(self) -> str:
+        return Path(self.file.name).suffix.lower() if self.file else ''
+
+    @property
+    def is_image(self) -> bool:
+        return self.asset_type == self.TYPE_IMAGE or self.extension in {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'}
+
+    @property
+    def is_video(self) -> bool:
+        return self.asset_type == self.TYPE_VIDEO or self.extension in {'.mp4', '.webm', '.mov'}
+
+    @property
+    def size_label(self) -> str:
+        try:
+            size = self.file.size
+        except Exception:
+            return 'نامشخص'
+        if size >= 1024 * 1024:
+            return f'{size / (1024 * 1024):.1f} MB'
+        return f'{size / 1024:.0f} KB'
+
+
+class DashboardAuditLog(models.Model):
+    ACTION_LOGIN = 'login'
+    ACTION_LOGOUT = 'logout'
+    ACTION_POST = 'post'
+    ACTION_SECURITY = 'security'
+
+    ACTION_CHOICES = (
+        (ACTION_LOGIN, 'ورود'),
+        (ACTION_LOGOUT, 'خروج'),
+        (ACTION_POST, 'تغییر داده'),
+        (ACTION_SECURITY, 'امنیت و دسترسی'),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='کاربر')
+    username = models.CharField(max_length=150, blank=True, verbose_name='نام کاربری ثبت‌شده')
+    action = models.CharField(max_length=40, choices=ACTION_CHOICES, default=ACTION_POST, verbose_name='نوع عملیات')
+    section = models.CharField(max_length=80, blank=True, verbose_name='بخش داشبورد')
+    object_repr = models.CharField(max_length=255, blank=True, verbose_name='موضوع عملیات')
+    path = models.CharField(max_length=255, blank=True, verbose_name='مسیر')
+    method = models.CharField(max_length=12, blank=True, verbose_name='متد')
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP')
+    user_agent = models.TextField(blank=True, verbose_name='مرورگر / دستگاه')
+    metadata = models.JSONField(default=dict, blank=True, verbose_name='داده تکمیلی')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='زمان ثبت')
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        verbose_name = 'گزارش تغییر داشبورد'
+        verbose_name_plural = 'گزارش تغییرات داشبورد'
+        indexes = [
+            models.Index(fields=['section', 'created_at'], name='dash_audit_sec_cr_idx'),
+            models.Index(fields=['user', 'created_at'], name='dash_audit_user_cr_idx'),
+            models.Index(fields=['action', 'created_at'], name='dash_audit_act_cr_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.username or self.user_id} - {self.section} - {self.action}'
+
+
+class BaleBotScenario(models.Model):
+    ACTION_REPLY = 'reply'
+    ACTION_START_CONSULTATION = 'start_consultation'
+    ACTION_START_DEMO = 'start_demo'
+    ACTION_START_STATUS = 'start_status'
+    ACTION_CONTACT = 'contact'
+    ACTION_MAIN_MENU = 'main_menu'
+
+    ACTION_CHOICES = (
+        (ACTION_REPLY, 'ارسال پاسخ آماده'),
+        (ACTION_START_CONSULTATION, 'شروع سناریوی مشاوره'),
+        (ACTION_START_DEMO, 'شروع سناریوی دمو'),
+        (ACTION_START_STATUS, 'شروع سناریوی پیگیری وضعیت'),
+        (ACTION_CONTACT, 'ارسال راه‌های تماس'),
+        (ACTION_MAIN_MENU, 'بازگشت به منوی اصلی'),
+    )
+
+    MATCH_CONTAINS = 'contains'
+    MATCH_EXACT = 'exact'
+    MATCH_STARTS_WITH = 'starts_with'
+
+    MATCH_CHOICES = (
+        (MATCH_CONTAINS, 'شامل کلمه/عبارت باشد'),
+        (MATCH_EXACT, 'دقیقاً برابر باشد'),
+        (MATCH_STARTS_WITH, 'با عبارت شروع شود'),
+    )
+
+    key = models.SlugField(max_length=80, unique=True, verbose_name='کلید سناریو')
+    title = models.CharField(max_length=140, verbose_name='عنوان سناریو')
+    trigger_keywords = models.TextField(verbose_name='کلمات محرک')
+    match_mode = models.CharField(max_length=20, choices=MATCH_CHOICES, default=MATCH_CONTAINS, verbose_name='نوع تطبیق')
+    action = models.CharField(max_length=32, choices=ACTION_CHOICES, default=ACTION_REPLY, verbose_name='عملیات')
+    response_text = models.TextField(blank=True, verbose_name='متن پاسخ')
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='ترتیب')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['sort_order', 'id']
+        verbose_name = 'سناریوی ربات بله'
+        verbose_name_plural = 'سناریوهای ربات بله'
+        indexes = [
+            models.Index(fields=['is_active', 'sort_order'], name='bale_scn_active_sort_idx'),
+            models.Index(fields=['action'], name='bale_scn_action_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return self.title
+
+    def keywords(self) -> list[str]:
+        return [line.strip() for line in (self.trigger_keywords or '').splitlines() if line.strip()]
+
+
+class BaleOperatorReplyTemplate(models.Model):
+    CATEGORY_GENERAL = 'general'
+    CATEGORY_SALES = 'sales'
+    CATEGORY_DEMO = 'demo'
+    CATEGORY_SUPPORT = 'support'
+
+    CATEGORY_CHOICES = (
+        (CATEGORY_GENERAL, 'عمومی'),
+        (CATEGORY_SALES, 'فروش'),
+        (CATEGORY_DEMO, 'دمو'),
+        (CATEGORY_SUPPORT, 'پشتیبانی'),
+    )
+
+    category = models.CharField(max_length=24, choices=CATEGORY_CHOICES, default=CATEGORY_GENERAL, verbose_name='دسته')
+    title = models.CharField(max_length=120, verbose_name='عنوان قالب')
+    text = models.TextField(verbose_name='متن پاسخ آماده')
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='ترتیب')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['category', 'sort_order', 'id']
+        verbose_name = 'قالب پاسخ اپراتور بله'
+        verbose_name_plural = 'قالب‌های پاسخ اپراتور بله'
+        indexes = [
+            models.Index(fields=['category', 'is_active'], name='bale_tpl_cat_active_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return self.title
 
 
 class BaleBotSettings(models.Model):
@@ -466,6 +896,8 @@ class BaleBotSettings(models.Model):
     bot_username = models.CharField(max_length=80, blank=True, verbose_name='نام کاربری ربات بدون @')
     bot_token = models.CharField(max_length=255, blank=True, verbose_name='کد / توکن ربات بله')
     polling_interval_seconds = models.PositiveSmallIntegerField(default=3, verbose_name='فاصله بررسی پیام‌ها بر حسب ثانیه')
+    poller_lock_owner = models.CharField(max_length=160, blank=True, verbose_name='شناسه پردازشگر فعال')
+    poller_lock_until = models.DateTimeField(null=True, blank=True, verbose_name='اعتبار قفل پردازشگر')
     welcome_text = models.TextField(default='سلام 👋 به ربات سیتباک خوش آمدید. از منوی زیر درخواست مشاوره یا مشاهده دمو را ثبت کنید.', verbose_name='پیام خوشامد')
     consultation_done_text = models.TextField(default='درخواست مشاوره شما ثبت شد. تیم سیتباک به‌زودی با شما تماس می‌گیرد.', verbose_name='پیام پایان مشاوره')
     demo_done_text = models.TextField(default='درخواست دمو ثبت شد و لینک امن دمو برای شما آماده است.', verbose_name='پیام پایان دمو')
@@ -573,6 +1005,9 @@ class BaleBotMessage(models.Model):
             models.Index(fields=['conversation', 'created_at'], name='bale_msg_conv_cr_idx'),
             models.Index(fields=['direction', 'created_at'], name='bale_msg_dir_cr_idx'),
             models.Index(fields=['bale_update_id'], name='bale_msg_upd_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['direction', 'bale_update_id'], name='uniq_bale_msg_direction_update'),
         ]
 
     def __str__(self) -> str:

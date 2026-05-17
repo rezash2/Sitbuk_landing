@@ -1,7 +1,26 @@
 from django.contrib import admin
 
 from .forms import BlogAdminForm
-from .models import BlogPost, ContactMessage, DemoRequest, FAQItem, HomeContentItem, HomeHeroContent, LeadRequest, NewsletterSubscription, PageContent, PageContentItem, SiteSettings
+from .models import (
+    BaleBotScenario,
+    BaleOperatorReplyTemplate,
+    BlogPost,
+    ContactMessage,
+    DemoRequest,
+    FAQItem,
+    HomeContentItem,
+    HomeHeroContent,
+    LeadRequest,
+    LeadFollowUpActivity,
+    MediaAsset,
+    NewsletterSubscription,
+    PageContent,
+    PageContentItem,
+    PageBuilderSection,
+    PricingComparisonRow,
+    PricingPlan,
+    SiteSettings,
+)
 
 
 def _export_rows_as_excel(modeladmin, request, queryset, filename, columns):
@@ -164,6 +183,16 @@ class LeadRequestAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at')
         }),
     )
+
+
+@admin.register(LeadFollowUpActivity)
+class LeadFollowUpActivityAdmin(admin.ModelAdmin):
+    list_display = ('lead', 'activity_type', 'result', 'user', 'next_follow_up_at', 'created_at')
+    search_fields = ('lead__full_name', 'lead__phone', 'lead__company', 'note')
+    list_filter = ('activity_type', 'result', 'created_at', 'next_follow_up_at')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('created_at',)
+
 
 
 def export_contact_messages(modeladmin, request, queryset):
@@ -329,3 +358,67 @@ class PageContentItemAdmin(admin.ModelAdmin):
         }),
     )
 
+
+
+
+
+@admin.register(PageBuilderSection)
+class PageBuilderSectionAdmin(admin.ModelAdmin):
+    list_display = ('page_key', 'section_key', 'title', 'layout', 'sort_order', 'is_active', 'is_published', 'updated_at')
+    list_editable = ('title', 'layout', 'sort_order', 'is_active', 'is_published')
+    search_fields = ('page_key', 'section_key', 'title', 'description')
+    list_filter = ('page_key', 'layout', 'is_active', 'is_published')
+
+
+@admin.register(PricingPlan)
+class PricingPlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'context', 'monthly_price', 'annual_price', 'accent', 'sort_order', 'is_active', 'updated_at')
+    list_filter = ('context', 'is_active', 'accent')
+    search_fields = ('name', 'subtitle', 'tag', 'description', 'features_text')
+    ordering = ('context', 'sort_order', 'id')
+    list_editable = ('sort_order', 'is_active')
+
+
+@admin.register(PricingComparisonRow)
+class PricingComparisonRowAdmin(admin.ModelAdmin):
+    list_display = ('label', 'table_key', 'group_title', 'sort_order', 'is_active', 'updated_at')
+    list_filter = ('table_key', 'group_title', 'is_active')
+    search_fields = ('label', 'group_title', 'value_1', 'value_2', 'value_3', 'value_4', 'value_5', 'value_6')
+    ordering = ('table_key', 'group_title', 'sort_order', 'id')
+    list_editable = ('sort_order', 'is_active')
+
+
+@admin.register(MediaAsset)
+class MediaAssetAdmin(admin.ModelAdmin):
+    list_display = ('title', 'asset_type', 'usage_key', 'is_active', 'created_at')
+    list_filter = ('asset_type', 'is_active', 'created_at')
+    search_fields = ('title', 'alt_text', 'usage_key', 'description', 'file')
+    readonly_fields = ('created_at', 'updated_at')
+
+
+
+from .models import DashboardAuditLog
+
+
+@admin.register(DashboardAuditLog)
+class DashboardAuditLogAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'username', 'section', 'action', 'object_repr', 'ip_address')
+    list_filter = ('section', 'action', 'created_at')
+    search_fields = ('username', 'section', 'object_repr', 'path', 'ip_address', 'user_agent')
+    readonly_fields = ('user', 'username', 'action', 'section', 'object_repr', 'path', 'method', 'ip_address', 'user_agent', 'metadata', 'created_at')
+
+
+@admin.register(BaleBotScenario)
+class BaleBotScenarioAdmin(admin.ModelAdmin):
+    list_display = ('title', 'key', 'action', 'match_mode', 'sort_order', 'is_active', 'updated_at')
+    list_editable = ('sort_order', 'is_active')
+    search_fields = ('title', 'key', 'trigger_keywords', 'response_text')
+    list_filter = ('action', 'match_mode', 'is_active')
+
+
+@admin.register(BaleOperatorReplyTemplate)
+class BaleOperatorReplyTemplateAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'sort_order', 'is_active', 'updated_at')
+    list_editable = ('sort_order', 'is_active')
+    search_fields = ('title', 'text')
+    list_filter = ('category', 'is_active')

@@ -58,6 +58,71 @@
 </section>
 
 {% if active_tab == 'leads' %}
+<section class="dashboard-panel dashboard-crm-kanban-panel" id="lead-kanban">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>برد فروش و پیگیری لیدها</h2>
+      <p>لیدها را بر اساس وضعیت فروش ببین، سریع جابه‌جا کن و موارد نیازمند پیگیری را از دست نده.</p>
+    </div>
+    <span class="dashboard-stage-pill">Kanban CRM</span>
+  </div>
+  <div class="dashboard-kanban-grid">
+    {% for column in lead_kanban_columns %}
+      <article class="dashboard-kanban-column status-{{ column.value }}">
+        <header>
+          <strong>{{ column.label }}</strong>
+          <span>{{ column.count }}</span>
+        </header>
+        <div class="dashboard-kanban-list">
+          {% for lead in column.leads %}
+            <div class="dashboard-kanban-card">
+              <div class="kanban-card-head">
+                <a href="{% url 'dashboard_lead_detail' lead.id %}">{{ lead.full_name }}</a>
+                <span class="dashboard-priority-pill priority-{{ lead.priority }}">{{ lead.get_priority_display }}</span>
+              </div>
+              <p>{{ lead.company|default:'بدون نام شرکت' }}</p>
+              <small>{{ lead.phone }}{% if lead.follow_up_at %} · پیگیری: {{ lead.follow_up_at|date:'Y/m/d H:i' }}{% endif %}</small>
+              <form method="post" class="kanban-status-form">
+                {% csrf_token %}
+                <input type="hidden" name="tab" value="leads">
+                <input type="hidden" name="action" value="quick_update_lead">
+                <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                <select class="dashboard-select" name="next_status">
+                  {% for value,label in lead_status_choices %}<option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+                <button class="dashboard-btn ghost xsmall" type="submit">انتقال</button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="dashboard-kanban-empty">موردی در این مرحله نیست.</div>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-grid dashboard-three-col dashboard-followup-board">
+  <article class="dashboard-panel dashboard-followup-card danger">
+    <div class="dashboard-panel-head"><h2>پیگیری‌های عقب‌افتاده</h2></div>
+    <div class="dashboard-mini-list">
+      {% for lead in lead_followup_board.overdue %}<a href="{% url 'dashboard_lead_detail' lead.id %}"><strong>{{ lead.full_name }}</strong><span>{{ lead.follow_up_at|date:'Y/m/d H:i' }}</span></a>{% empty %}<p>پیگیری عقب‌افتاده‌ای وجود ندارد.</p>{% endfor %}
+    </div>
+  </article>
+  <article class="dashboard-panel dashboard-followup-card">
+    <div class="dashboard-panel-head"><h2>پیگیری‌های امروز</h2></div>
+    <div class="dashboard-mini-list">
+      {% for lead in lead_followup_board.today %}<a href="{% url 'dashboard_lead_detail' lead.id %}"><strong>{{ lead.full_name }}</strong><span>{{ lead.follow_up_at|date:'H:i' }}</span></a>{% empty %}<p>برای امروز پیگیری زمان‌دار ثبت نشده است.</p>{% endfor %}
+    </div>
+  </article>
+  <article class="dashboard-panel dashboard-followup-card warning">
+    <div class="dashboard-panel-head"><h2>بدون مسئول پیگیری</h2></div>
+    <div class="dashboard-mini-list">
+      {% for lead in lead_followup_board.no_owner %}<a href="{% url 'dashboard_lead_detail' lead.id %}"><strong>{{ lead.full_name }}</strong><span>{{ lead.get_status_display }}</span></a>{% empty %}<p>همه لیدهای باز مسئول پیگیری دارند.</p>{% endfor %}
+    </div>
+  </article>
+</section>
+
 <section class="dashboard-panel dashboard-lead-table-panel">
   <form method="post" class="dashboard-form">
     {% csrf_token %}

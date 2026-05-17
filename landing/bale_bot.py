@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import socket
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -10,10 +13,13 @@ from datetime import timedelta
 from typing import Any
 
 from django.conf import settings
+from django.db import IntegrityError
+from django.db.models import Q
+from django.db.utils import OperationalError, ProgrammingError
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import BaleBotConversation, BaleBotMessage, BaleBotSettings, DemoRequest, LeadRequest
+from .models import BaleBotConversation, BaleBotMessage, BaleBotScenario, BaleBotSettings, DemoRequest, LeadRequest
 
 
 MAIN_MENU = {
@@ -187,23 +193,43 @@ def _conversation_for(incoming: BaleIncomingMessage) -> BaleBotConversation:
     return conversation
 
 
-def _store_message(conversation: BaleBotConversation, direction: str, text: str, raw: dict[str, Any] | None = None, update_id: int | None = None, message_id: str = '', related_lead=None, related_demo=None) -> BaleBotMessage:
-    return BaleBotMessage.objects.create(
-        conversation=conversation,
-        bale_update_id=update_id,
-        bale_message_id=message_id,
-        direction=direction,
-        text=text or '',
-        raw_payload=raw or {},
-        related_lead=related_lead,
-        related_demo=related_demo,
-    )
+def _store_message(conversation: BaleBotConversation, direction: str, text: str, raw: dict[str, Any] | None = None, update_id: int | None = None, message_id: str = '', related_lead=None, related_demo=None) -> BaleBotMessage | None:
+    try:
+        return BaleBotMessage.objects.create(
+            conversation=conversation,
+            bale_update_id=update_id,
+            bale_message_id=message_id,
+            direction=direction,
+            text=text or '',
+            raw_payload=raw or {},
+            related_lead=related_lead,
+            related_demo=related_demo,
+        )
+    except IntegrityError:
+        # Another web worker/process has already stored this Bale update.
+        # Returning None lets the caller skip any duplicate reply.
+        return None
 
 
 def _reply(conversation: BaleBotConversation, text: str, keyboard: dict[str, Any] | None = None) -> dict[str, Any]:
     result = BaleBotAPI().send_message(conversation.chat_id, text, reply_markup=keyboard)
     _store_message(conversation, BaleBotMessage.DIRECTION_OUT, text, raw=result)
     return result
+
+
+def _has_processed_update(incoming: BaleIncomingMessage, conversation: BaleBotConversation | None = None) -> bool:
+    if incoming.update_id is not None:
+        return BaleBotMessage.objects.filter(
+            direction=BaleBotMessage.DIRECTION_IN,
+            bale_update_id=incoming.update_id,
+        ).exists()
+    if conversation and incoming.message_id:
+        return BaleBotMessage.objects.filter(
+            conversation=conversation,
+            direction=BaleBotMessage.DIRECTION_IN,
+            bale_message_id=incoming.message_id,
+        ).exists()
+    return False
 
 
 def _reset_to_menu(conversation: BaleBotConversation, bot_settings: BaleBotSettings, text: str | None = None):
@@ -249,6 +275,57 @@ def _start_status(conversation: BaleBotConversation):
     conversation.session_data = {}
     conversation.save(update_fields=['state', 'session_data', 'updated_at'])
     _reply(conversation, 'برای بررسی وضعیت، شماره موبایلی که با آن درخواست ثبت کرده‌اید را وارد کنید:', {'keyboard': [[{'text': 'لغو'}]], 'resize_keyboard': True})
+
+
+
+def _scenario_keywords(scenario: BaleBotScenario) -> list[str]:
+    try:
+        return scenario.keywords()
+    except AttributeError:
+        return [line.strip() for line in (scenario.trigger_keywords or '').splitlines() if line.strip()]
+
+
+def _find_matching_scenario(text: str) -> BaleBotScenario | None:
+    normalized = (text or '').strip().lower()
+    if not normalized:
+        return None
+    try:
+        scenarios = BaleBotScenario.objects.filter(is_active=True).order_by('sort_order', 'id')
+        for scenario in scenarios:
+            for keyword in _scenario_keywords(scenario):
+                needle = keyword.strip().lower()
+                if not needle:
+                    continue
+                if scenario.match_mode == BaleBotScenario.MATCH_EXACT and normalized == needle:
+                    return scenario
+                if scenario.match_mode == BaleBotScenario.MATCH_STARTS_WITH and normalized.startswith(needle):
+                    return scenario
+                if scenario.match_mode == BaleBotScenario.MATCH_CONTAINS and needle in normalized:
+                    return scenario
+    except (OperationalError, ProgrammingError):
+        return None
+    return None
+
+
+def _run_scenario(conversation: BaleBotConversation, scenario: BaleBotScenario, bot_settings: BaleBotSettings) -> bool:
+    action = scenario.action
+    if action == BaleBotScenario.ACTION_START_CONSULTATION:
+        _start_consultation(conversation)
+        return True
+    if action == BaleBotScenario.ACTION_START_DEMO:
+        _start_demo(conversation)
+        return True
+    if action == BaleBotScenario.ACTION_START_STATUS:
+        _start_status(conversation)
+        return True
+    if action == BaleBotScenario.ACTION_CONTACT:
+        _reply(conversation, _contact_text(), MAIN_MENU)
+        return True
+    if action == BaleBotScenario.ACTION_MAIN_MENU:
+        _reset_to_menu(conversation, bot_settings, scenario.response_text or bot_settings.welcome_text)
+        return True
+    _reply(conversation, scenario.response_text or bot_settings.welcome_text, MAIN_MENU)
+    return True
 
 
 def _contact_text() -> str:
@@ -436,9 +513,13 @@ def process_update(update: dict[str, Any]) -> bool:
     incoming = _extract_message(update)
     if not incoming:
         return False
+    if _has_processed_update(incoming):
+        return False
     bot_settings = BaleBotSettings.get_solo()
     conversation = _conversation_for(incoming)
-    _store_message(
+    if _has_processed_update(incoming, conversation):
+        return False
+    stored_message = _store_message(
         conversation,
         BaleBotMessage.DIRECTION_IN,
         incoming.text,
@@ -446,6 +527,8 @@ def process_update(update: dict[str, Any]) -> bool:
         update_id=incoming.update_id,
         message_id=incoming.message_id,
     )
+    if stored_message is None:
+        return False
     if not bot_settings.is_enabled:
         return True
     if _should_ignore_group_message(incoming, bot_settings):
@@ -465,6 +548,9 @@ def process_update(update: dict[str, Any]) -> bool:
         return True
     if conversation.state == BaleBotConversation.STATE_STATUS_PHONE:
         _handle_status_flow(conversation, text, bot_settings)
+        return True
+    scenario = _find_matching_scenario(text)
+    if scenario and _run_scenario(conversation, scenario, bot_settings):
         return True
     if 'مشاوره' in text:
         _start_consultation(conversation)
@@ -486,25 +572,66 @@ def is_webhook_allowed(secret: str = '') -> bool:
     return secret == expected
 
 
+def _poller_owner_id() -> str:
+    return f'{socket.gethostname()}:{os.getpid()}:{threading.current_thread().name}'[:160]
+
+
+def _acquire_poll_lock(bot_settings: BaleBotSettings, lease_seconds: int = 60) -> str | None:
+    owner = _poller_owner_id()
+    now = timezone.now()
+    lease_until = now + timedelta(seconds=max(30, lease_seconds))
+    try:
+        updated = BaleBotSettings.objects.filter(pk=bot_settings.pk).filter(
+            Q(poller_lock_until__isnull=True) |
+            Q(poller_lock_until__lt=now) |
+            Q(poller_lock_owner=owner)
+        ).update(poller_lock_owner=owner, poller_lock_until=lease_until)
+    except (OperationalError, ProgrammingError):
+        # Columns may not exist before migrations are applied.
+        return owner
+    return owner if updated else None
+
+
+def _release_poll_lock(bot_settings: BaleBotSettings, owner: str | None) -> None:
+    if not owner:
+        return
+    try:
+        BaleBotSettings.objects.filter(pk=bot_settings.pk, poller_lock_owner=owner).update(
+            poller_lock_owner='',
+            poller_lock_until=None,
+        )
+    except (OperationalError, ProgrammingError):
+        pass
+
+
 def poll_once(limit: int = 50, timeout: int = 25) -> int:
     bot_settings = BaleBotSettings.get_solo()
-    offset = bot_settings.last_update_id + 1 if bot_settings.last_update_id else None
-    response = BaleBotAPI().get_updates(offset=offset, limit=limit, timeout=timeout)
-    if not response.get('ok'):
+    lock_owner = _acquire_poll_lock(bot_settings, lease_seconds=timeout + 35)
+    if not lock_owner:
         return 0
-    updates = response.get('result') or []
-    processed = 0
-    max_update_id = bot_settings.last_update_id
-    for update in updates:
-        update_id = update.get('update_id') or 0
-        if process_update(update):
-            processed += 1
-        if update_id > max_update_id:
-            max_update_id = update_id
-    if max_update_id != bot_settings.last_update_id:
-        bot_settings.last_update_id = max_update_id
-        bot_settings.save(update_fields=['last_update_id', 'updated_at'])
-    return processed
+    try:
+        bot_settings.refresh_from_db()
+        offset = bot_settings.last_update_id + 1 if bot_settings.last_update_id else None
+        response = BaleBotAPI().get_updates(offset=offset, limit=limit, timeout=timeout)
+        if not response.get('ok'):
+            return 0
+        updates = response.get('result') or []
+        processed = 0
+        max_update_id = bot_settings.last_update_id
+        for update in updates:
+            update_id = update.get('update_id') or 0
+            if process_update(update):
+                processed += 1
+            if update_id > max_update_id:
+                max_update_id = update_id
+        if max_update_id != bot_settings.last_update_id:
+            BaleBotSettings.objects.filter(pk=bot_settings.pk).update(
+                last_update_id=max_update_id,
+                updated_at=timezone.now(),
+            )
+        return processed
+    finally:
+        _release_poll_lock(bot_settings, lock_owner)
 
 
 def poll_forever(limit: int = 50, timeout: int = 25, sleep_seconds: float = 1.0):

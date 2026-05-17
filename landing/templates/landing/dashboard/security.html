@@ -1,0 +1,175 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-kpi-grid">
+  {% for item in security_summary %}
+    <article class="dashboard-kpi-card{% cycle '' ' accent-green' ' accent-blue' ' accent-rose' %}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.value }}</strong>
+      <p>{{ item.hint }}</p>
+    </article>
+  {% endfor %}
+</section>
+
+<section class="dashboard-panel dashboard-security-intro">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>کنترل عملیاتی امنیت پنل</h2>
+      <p>این صفحه برای مدیریت نقش‌ها، کنترل کاربران مجاز و مشاهده ردپای تغییرات داشبورد استفاده می‌شود.</p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="ensure_dashboard_roles">
+      <button class="dashboard-btn" type="submit">بررسی و ساخت نقش‌ها</button>
+    </form>
+  </div>
+  <div class="dashboard-security-checks">
+    {% for check in security_checks %}
+      <article>
+        <strong>{{ check.title }}</strong>
+        <span>{{ check.status }}</span>
+        <p>{{ check.text }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>نقش‌های داشبورد</h2>
+      <p>هر نقش فقط به منوها و عملیات موردنیاز خودش دسترسی دارد. کاربر می‌تواند چند نقش همزمان داشته باشد.</p>
+    </div>
+  </div>
+  <div class="dashboard-role-grid">
+    {% for role in role_rows %}
+      <article class="dashboard-role-card">
+        <div class="dashboard-role-card-head">
+          <strong>{{ role.label }}</strong>
+          <span>{{ role.user_count }} کاربر</span>
+        </div>
+        <small>{{ role.group }}</small>
+        <p>{{ role.description }}</p>
+        <div class="dashboard-chip-list">
+          {% for menu in role.menus %}<span>{{ menu }}</span>{% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-grid dashboard-security-grid">
+  <div class="dashboard-panel">
+    <div class="dashboard-panel-head">
+      <div>
+        <h2>کاربران مجاز</h2>
+        <p>کاربران staff/superuser و نقش‌های فعلی آن‌ها.</p>
+      </div>
+    </div>
+    <div class="dashboard-user-access-list">
+      {% for row in user_rows %}
+        <a href="?user={{ row.object.id }}" class="dashboard-user-access{% if selected_user and selected_user.id == row.object.id %} is-active{% endif %}">
+          <div>
+            <strong>{{ row.object.get_full_name|default:row.object.username }}</strong>
+            <small>{{ row.object.username }}{% if row.object.email %} · {{ row.object.email }}{% endif %}</small>
+          </div>
+          <div class="dashboard-user-badges">
+            {% for label in row.role_labels %}<span>{{ label }}</span>{% endfor %}
+            {% if row.object.is_superuser %}<span>superuser</span>{% endif %}
+            {% if not row.object.is_active %}<span class="danger">غیرفعال</span>{% endif %}
+          </div>
+        </a>
+      {% empty %}
+        <p class="dashboard-empty">هنوز کاربر staff برای داشبورد پیدا نشد.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="dashboard-panel">
+    <div class="dashboard-panel-head">
+      <div>
+        <h2>ویرایش دسترسی کاربر</h2>
+        <p>{% if selected_user %}نقش‌ها و وضعیت ورود {{ selected_user.username }} را مدیریت کن.{% else %}از لیست سمت راست یک کاربر انتخاب کن.{% endif %}</p>
+      </div>
+    </div>
+    {% if selected_user and user_form %}
+      <form method="post" class="dashboard-form dashboard-security-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_user_roles">
+        <input type="hidden" name="user_id" value="{{ selected_user.id }}">
+        <div class="dashboard-form-grid two">
+          {% for field in user_form %}
+            <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' or field.name == 'roles' %} dashboard-checkbox-field{% endif %}">
+              <span>{{ field.label }}</span>
+              {{ field }}
+              {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<small class="dashboard-field-error">{{ error }}</small>{% endfor %}
+            </label>
+          {% endfor %}
+        </div>
+        <div class="dashboard-form-actions">
+          <button class="dashboard-btn primary" type="submit">ذخیره دسترسی</button>
+        </div>
+      </form>
+      <div class="dashboard-access-preview">
+        <strong>منوهای قابل دسترسی فعلی</strong>
+        <div class="dashboard-chip-list">
+          {% for row in user_rows %}
+            {% if row.object.id == selected_user.id %}
+              {% for menu in row.allowed_menus %}<span>{{ menu }}</span>{% endfor %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <div class="dashboard-empty-state compact">
+        <strong>کاربر انتخاب نشده</strong>
+        <p>برای ویرایش نقش‌ها، یک کاربر staff را از لیست انتخاب کن.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="dashboard-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>گزارش تغییرات مهم داشبورد</h2>
+      <p>POSTهای موفق داشبورد، تغییر نقش‌ها و عملیات حساس در این قسمت ثبت می‌شوند.</p>
+    </div>
+    {% if request.user.is_superuser %}
+      <form method="post" onsubmit="return confirm('گزارش تغییرات پاک شود؟')">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear_audit_log">
+        <button class="dashboard-btn danger" type="submit">پاکسازی گزارش</button>
+      </form>
+    {% endif %}
+  </div>
+  <div class="dashboard-table-wrap">
+    <table class="dashboard-table dashboard-audit-table">
+      <thead>
+        <tr>
+          <th>زمان</th>
+          <th>کاربر</th>
+          <th>بخش</th>
+          <th>عملیات</th>
+          <th>IP</th>
+          <th>مسیر</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in audit_logs %}
+          <tr>
+            <td>{{ log.created_at|date:'Y/m/d H:i' }}</td>
+            <td>{{ log.username|default:'-' }}</td>
+            <td>{{ log.section }}</td>
+            <td>{{ log.object_repr|default:log.get_action_display }}</td>
+            <td>{{ log.ip_address|default:'-' }}</td>
+            <td><code>{{ log.path }}</code></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="dashboard-empty">هنوز گزارشی ثبت نشده است.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

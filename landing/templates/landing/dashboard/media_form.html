@@ -1,0 +1,46 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>ویرایش رسانه</h2>
+        <p>عنوان، نوع، فایل، متن جایگزین و محل استفاده پیشنهادی را مدیریت کن.</p>
+      </div>
+      <a href="{% url 'dashboard_section_media' %}" class="dashboard-btn ghost small">بازگشت به گالری</a>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_media">
+      {% if form.non_field_errors %}<div class="dashboard-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">ذخیره رسانه</button>
+        <button type="submit" name="action" value="delete_media" class="dashboard-btn danger" onclick="return confirm('این رکورد رسانه حذف شود؟')">حذف رکورد</button>
+      </div>
+    </form>
+  </article>
+  <article class="dashboard-panel">
+    <div class="dashboard-panel-head large"><div><h2>پیش‌نمایش فعلی</h2><p>{{ asset.filename }}</p></div></div>
+    <div class="dashboard-media-preview large">
+      {% if asset.is_image and asset.public_url %}
+        <img src="{{ asset.public_url }}" alt="{{ asset.alt_text|default:asset.title }}">
+      {% elif asset.is_video and asset.public_url %}
+        <video src="{{ asset.public_url }}" controls preload="metadata"></video>
+      {% else %}
+        <span>{{ asset.extension|default:'file' }}</span>
+      {% endif %}
+    </div>
+    {% if asset.public_url %}<p class="dashboard-media-url">{{ asset.public_url }}</p>{% endif %}
+  </article>
+</section>
+{% endblock %}

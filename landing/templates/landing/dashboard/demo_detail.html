@@ -1,5 +1,12 @@
 {% extends 'landing/dashboard/base.html' %}
 {% block content %}
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis demo-detail-kpis">
+  <article class="dashboard-kpi-card accent-gold"><span>وضعیت لینک</span><strong>{% if demo_link_state.is_active %}فعال{% else %}غیرفعال{% endif %}</strong><p>{% if demo_link_state.hours_left is not None %}{{ demo_link_state.hours_left }} ساعت تا انقضا{% else %}بدون زمان انقضا{% endif %}</p></article>
+  <article class="dashboard-kpi-card accent-blue"><span>تعداد ورود</span><strong>{{ demo_request.demo_launch_count }}</strong><p>{{ demo_request.last_demo_target|default:'هنوز دمو انتخاب نشده' }}</p></article>
+  <article class="dashboard-kpi-card accent-green"><span>ارسال لینک</span><strong>{% if demo_request.demo_link_sent_at %}ثبت شده{% else %}ثبت نشده{% endif %}</strong><p>{{ demo_request.demo_link_sent_at|date:'Y/m/d H:i'|default:'ارسال لینک هنوز ثبت نشده است.' }}</p></article>
+  <article class="dashboard-kpi-card accent-rose"><span>آخرین ورود</span><strong>{% if demo_request.demo_entered_at %}انجام شد{% else %}ندارد{% endif %}</strong><p>{{ demo_request.demo_entered_at|date:'Y/m/d H:i'|default:'هنوز ورود به دمو ثبت نشده است.' }}</p></article>
+</section>
+
 <section class="dashboard-grid dashboard-two-col dashboard-detail-grid dashboard-demo-detail-grid">
   <article class="dashboard-panel dashboard-detail-card">
     <div class="dashboard-panel-head large">
@@ -38,15 +45,36 @@
         <a class="dashboard-btn ghost" href="{% url 'dashboard_section_demos' %}">بازگشت</a>
       </div>
     </form>
-    <div class="dashboard-demo-quick-actions">
+    <div class="dashboard-demo-quick-actions dashboard-demo-actions-grid">
       <form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark_link_sent"><button class="dashboard-btn success" type="submit">ثبت ارسال لینک همین حالا</button></form>
       <form method="post">{% csrf_token %}<input type="hidden" name="action" value="regenerate_link"><button class="dashboard-btn danger" type="submit">بازسازی لینک امن</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="extend_link"><input type="hidden" name="hours" value="24"><button class="dashboard-btn ghost" type="submit">تمدید ۲۴ ساعت</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="extend_link"><input type="hidden" name="hours" value="168"><button class="dashboard-btn ghost" type="submit">تمدید ۷ روز</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoke_link"><button class="dashboard-btn danger" type="submit">لغو لینک فعلی</button></form>
     </div>
   </article>
 </section>
 
-<section class="dashboard-panel dashboard-demo-link-panel">
-  <div class="dashboard-panel-head"><h2>لینک آماده ارسال به مشتری</h2><p>این لینک را می‌توانی از طریق بله، پیامک یا تماس برای مشتری ارسال کنی.</p></div>
-  <div class="dashboard-copy-line"><code>{{ demo_request.demo_access_url|default:'لینک هنوز ساخته نشده است.' }}</code></div>
+<section class="dashboard-grid dashboard-two-col dashboard-demo-ops-grid">
+  <article class="dashboard-panel dashboard-demo-link-panel">
+    <div class="dashboard-panel-head"><h2>لینک آماده ارسال به مشتری</h2><p>این لینک را می‌توانی از طریق بله، پیامک یا تماس برای مشتری ارسال کنی.</p></div>
+    <div class="dashboard-copy-line"><code>{{ demo_request.demo_access_url|default:'لینک هنوز ساخته نشده است.' }}</code></div>
+    <div class="dashboard-roadmap-box muted"><h3>پیام آماده ارسال</h3><p style="white-space:pre-line">{{ demo_message_template }}</p></div>
+  </article>
+
+  <article class="dashboard-panel dashboard-demo-timeline-panel">
+    <div class="dashboard-panel-head"><h2>تاریخچه لینک امن</h2><p>رویدادهای ثبت‌شده برای این درخواست دمو.</p></div>
+    <div class="dashboard-status-list compact">
+      {% for event in demo_events %}
+        <div class="dashboard-status-row demo-event-row">
+          <span>{{ event.get_event_type_display }}<small>{{ event.created_at|date:'Y/m/d H:i' }}</small></span>
+          <strong>{% if event.target %}{{ event.target }}{% else %}-{% endif %}</strong>
+          <small>{{ event.note|default:event.ip_address|default:'-' }}</small>
+        </div>
+      {% empty %}
+        <div class="dashboard-empty">هنوز رویدادی برای این لینک ثبت نشده است.</div>
+      {% endfor %}
+    </div>
+  </article>
 </section>
 {% endblock %}

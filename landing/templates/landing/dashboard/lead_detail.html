@@ -59,4 +59,44 @@
     </dl>
   </article>
 </section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-detail-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div><h2>ثبت فعالیت پیگیری</h2><p>تماس، پیام، جلسه یا یادداشت داخلی را در تاریخچه CRM ذخیره کن.</p></div>
+    </div>
+    <form method="post" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_activity">
+      {% if activity_form.non_field_errors %}<div class="dashboard-form-errors">{{ activity_form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in activity_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">ثبت فعالیت</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-detail-card">
+    <div class="dashboard-panel-head large"><div><h2>تاریخچه فعالیت‌ها</h2><p>آخرین ۲۰ فعالیت ثبت‌شده برای این لید.</p></div></div>
+    <div class="dashboard-activity-timeline">
+      {% for item in lead_activities %}
+        <div class="dashboard-activity-item">
+          <span>{{ item.get_activity_type_display }}</span>
+          <strong>{{ item.get_result_display }}</strong>
+          <p>{{ item.note|linebreaksbr|default:'بدون توضیح تکمیلی' }}</p>
+          <small>{{ item.created_at|date:'Y/m/d H:i' }}{% if item.user %} · {{ item.user.get_full_name|default:item.user.username }}{% endif %}{% if item.next_follow_up_at %} · پیگیری بعدی: {{ item.next_follow_up_at|date:'Y/m/d H:i' }}{% endif %}</small>
+        </div>
+      {% empty %}
+        <div class="dashboard-empty">هنوز فعالیتی برای این لید ثبت نشده است.</div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
 {% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-grid dashboard-kpi-grid">
+  {% for item in media_summary %}
+    <article class="dashboard-kpi-card{% cycle ' accent-gold' ' accent-blue' ' accent-green' ' accent-rose' %}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.value }}</strong>
+      <p>{{ item.hint }}</p>
+    </article>
+  {% endfor %}
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-media-top">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>آپلود رسانه جدید</h2>
+        <p>تصویر، ویدیو، کاور یا فایل عمومی سایت را اینجا ثبت کن تا در مراحل بعد به سکشن‌ها و صفحات متصل شود.</p>
+      </div>
+      <span class="dashboard-stage-pill">Media Manager</span>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_media">
+      {% if add_form.non_field_errors %}<div class="dashboard-form-errors">{{ add_form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in add_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">آپلود و ثبت رسانه</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>راهنمای اتصال رسانه‌ها</h2>
+        <p>برای استفاده سریع‌تر، کلید محل استفاده را مطابق این راهنما وارد کن.</p>
+      </div>
+    </div>
+    <div class="dashboard-media-guide-list">
+      {% for item in usage_guides %}
+        <div>
+          <strong>{{ item.label }}</strong>
+          <code>{{ item.key }}</code>
+          <small>{{ item.path }}</small>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-panel dashboard-media-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>گالری رسانه‌ها</h2>
+      <p>رسانه‌ها را بر اساس نوع یا محل استفاده فیلتر کن، پیش‌نمایش بگیر و وضعیت فعال بودن را کنترل کن.</p>
+    </div>
+  </div>
+
+  <form method="get" class="dashboard-form dashboard-media-filter">
+    <div class="dashboard-form-grid two compact">
+      <label class="dashboard-field">
+        <span>جستجو</span>
+        <input class="dashboard-input" type="search" name="q" value="{{ query }}" placeholder="عنوان، Alt، محل استفاده یا نام فایل">
+      </label>
+      <label class="dashboard-field">
+        <span>نوع رسانه</span>
+        <select class="dashboard-select" name="type">
+          {% for tab in type_tabs %}
+            <option value="{{ tab.key }}" {% if tab.is_active %}selected{% endif %}>{{ tab.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="dashboard-form-actions">
+      <button type="submit" class="dashboard-btn ghost">اعمال فیلتر</button>
+      <a href="{% url 'dashboard_section_media' %}" class="dashboard-btn ghost">پاک کردن فیلتر</a>
+    </div>
+  </form>
+
+  {% if media_assets %}
+    <div class="dashboard-media-grid">
+      {% for asset in media_assets %}
+        <article class="dashboard-media-card{% if not asset.is_active %} is-muted{% endif %}">
+          <div class="dashboard-media-preview">
+            {% if asset.is_image and asset.public_url %}
+              <img src="{{ asset.public_url }}" alt="{{ asset.alt_text|default:asset.title }}">
+            {% elif asset.is_video and asset.public_url %}
+              <video src="{{ asset.public_url }}" controls preload="metadata"></video>
+            {% else %}
+              <span>{{ asset.extension|default:'file' }}</span>
+            {% endif %}
+          </div>
+          <div class="dashboard-media-body">
+            <div class="dashboard-media-title-row">
+              <strong>{{ asset.title }}</strong>
+              <span class="dashboard-status-pill{% if asset.is_active %} active{% endif %}">{% if asset.is_active %}فعال{% else %}غیرفعال{% endif %}</span>
+            </div>
+            <small>{{ asset.get_asset_type_display }} · {{ asset.size_label }} · {{ asset.created_at|date:'Y/m/d H:i' }}</small>
+            {% if asset.usage_key %}<code>{{ asset.usage_key }}</code>{% endif %}
+            {% if asset.public_url %}<p class="dashboard-media-url">{{ asset.public_url }}</p>{% endif %}
+            <div class="dashboard-form-actions compact-actions">
+              <a href="{% url 'dashboard_media_edit' asset.id %}" class="dashboard-btn primary small">ویرایش</a>
+              <form method="post" class="inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_media">
+                <input type="hidden" name="asset_id" value="{{ asset.id }}">
+                <button type="submit" class="dashboard-btn ghost small">{% if asset.is_active %}غیرفعال{% else %}فعال{% endif %}</button>
+              </form>
+              <form method="post" class="inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_media">
+                <input type="hidden" name="asset_id" value="{{ asset.id }}">
+                <button type="submit" class="dashboard-btn danger small" onclick="return confirm('این رکورد رسانه حذف شود؟ فایل فیزیکی برای ایمنی حذف نمی‌شود.')">حذف</button>
+              </form>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% if page_obj.has_other_pages %}
+      <div class="dashboard-pagination">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&type={{ selected_type }}&q={{ query }}">قبلی</a>{% endif %}
+        <span>صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&type={{ selected_type }}&q={{ query }}">بعدی</a>{% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="dashboard-empty-state mini">
+      <strong>هنوز رسانه‌ای ثبت نشده است.</strong>
+      <p>از فرم بالا اولین تصویر، ویدیو یا کاور سایت را اضافه کن.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

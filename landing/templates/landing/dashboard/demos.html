@@ -1,5 +1,11 @@
 {% extends 'landing/dashboard/base.html' %}
 {% block content %}
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis demo-operation-kpis">
+  <article class="dashboard-kpi-card accent-gold"><span>لینک‌های فعال</span><strong>{{ demo_metrics.active_links }}</strong><p>درخواست‌هایی که لینک امن معتبر دارند.</p></article>
+  <article class="dashboard-kpi-card accent-rose"><span>در آستانه انقضا</span><strong>{{ demo_metrics.expiring_soon }}</strong><p>لینک‌هایی که تا ۲۴ ساعت آینده منقضی می‌شوند.</p></article>
+  <article class="dashboard-kpi-card accent-blue"><span>ورود به دمو</span><strong>{{ demo_metrics.entered }}</strong><p>درخواست‌هایی که حداقل یک ورود ثبت کرده‌اند.</p></article>
+  <article class="dashboard-kpi-card accent-green"><span>لینک ارسال‌شده</span><strong>{{ demo_metrics.sent }}</strong><p>ارسال لینک برای مشتری ثبت شده است.</p></article>
+</section>
 <section class="dashboard-panel dashboard-lead-controls dashboard-demo-controls">
   <div class="dashboard-panel-head large">
     <div>
@@ -29,11 +35,17 @@
           {% for value,label in demo_priority_choices %}<option value="{{ value }}" {% if priority_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
       </label>
+      <label class="dashboard-field"><span>وضعیت لینک</span>
+        <select class="dashboard-select" name="link_state">
+          <option value="">همه لینک‌ها</option>
+          {% for value,label in link_state_choices %}<option value="{{ value }}" {% if link_state_value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
     </div>
     <div class="dashboard-form-actions">
       <button class="dashboard-btn primary" type="submit">اعمال فیلتر</button>
       <a class="dashboard-btn ghost" href="{% url 'dashboard_section_demos' %}">پاک کردن فیلتر</a>
-      <a class="dashboard-btn ghost" href="{% url 'dashboard_demos_export' %}?q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}">خروجی Excel/CSV</a>
+      <a class="dashboard-btn ghost" href="{% url 'dashboard_demos_export' %}?q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}&link_state={{ link_state_value|urlencode }}">خروجی Excel/CSV</a>
     </div>
   </form>
 </section>
@@ -74,9 +86,9 @@
     </div>
     {% if demo_page.paginator.num_pages > 1 %}
       <div class="dashboard-pagination">
-        {% if demo_page.has_previous %}<a href="?page={{ demo_page.previous_page_number }}&q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}">قبلی</a>{% endif %}
+        {% if demo_page.has_previous %}<a href="?page={{ demo_page.previous_page_number }}&q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}&link_state={{ link_state_value|urlencode }}">قبلی</a>{% endif %}
         <span>صفحه {{ demo_page.number }} از {{ demo_page.paginator.num_pages }}</span>
-        {% if demo_page.has_next %}<a href="?page={{ demo_page.next_page_number }}&q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}">بعدی</a>{% endif %}
+        {% if demo_page.has_next %}<a href="?page={{ demo_page.next_page_number }}&q={{ query_value|urlencode }}&status={{ status_value|urlencode }}&priority={{ priority_value|urlencode }}&demo_type={{ demo_type_value|urlencode }}&link_state={{ link_state_value|urlencode }}">بعدی</a>{% endif %}
       </div>
     {% endif %}
   </form>
@@ -85,5 +97,20 @@
 <section class="dashboard-grid dashboard-two-col">
   <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>قیف وضعیت درخواست‌های دمو</h2></div><div class="dashboard-pipeline demo-pipeline">{% for row in demo_status_rows %}<div><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>{% endfor %}</div></article>
   <article class="dashboard-panel"><div class="dashboard-panel-head"><h2>راهنمای پیگیری دمو</h2></div><div class="dashboard-roadmap-box"><ul><li>برای هر درخواست جدید مسئول پیگیری مشخص کن.</li><li>بعد از ارسال لینک، وضعیت را «لینک دمو ارسال شد» بگذار.</li><li>اگر کاربر وارد دمو شد، تعداد ورود و آخرین دمو در همین صفحه ثبت می‌شود.</li></ul></div></article>
+</section>
+
+<section class="dashboard-panel dashboard-demo-events-panel">
+  <div class="dashboard-panel-head"><h2>آخرین رویدادهای لینک امن</h2><p>مشاهده لینک، ارسال، تمدید، لغو و ورود به دمو در این بخش رصد می‌شود.</p></div>
+  <div class="dashboard-status-list compact">
+    {% for event in recent_demo_events %}
+      <div class="dashboard-status-row demo-event-row">
+        <span>{{ event.get_event_type_display }}<small>{{ event.demo_request.full_name }} · {{ event.created_at|date:'Y/m/d H:i' }}</small></span>
+        <strong>{% if event.target %}{{ event.target }}{% else %}-{% endif %}</strong>
+        <small>{{ event.ip_address|default:'-' }}</small>
+      </div>
+    {% empty %}
+      <div class="dashboard-empty">هنوز رویدادی ثبت نشده است.</div>
+    {% endfor %}
+  </div>
 </section>
 {% endblock %}

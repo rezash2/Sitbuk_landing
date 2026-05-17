@@ -1,0 +1,161 @@
+{% extends 'landing/dashboard/base.html' %}
+{% block content %}
+<section class="dashboard-page-tabs-panel dashboard-panel dashboard-builder-intro">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>انتخاب صفحه برای صفحه‌ساز</h2>
+      <p>سکشن‌های هر صفحه را گروه‌بندی، مرتب و منتشر کن. این صفحه برای مدیریت سریع ساختار صفحات است و آیتم‌های هر سکشن از صفحه مربوطه ویرایش می‌شوند.</p>
+    </div>
+    <span class="dashboard-stage-pill">Stage 60</span>
+  </div>
+  <div class="dashboard-page-tabs">
+    {% for tab in page_tabs %}
+      <a href="{% url 'dashboard_page_builder' %}?page={{ tab.key }}" class="dashboard-page-tab{% if tab.is_active %} is-active{% endif %}">
+        <strong>{{ tab.label }}</strong>
+        <span>{{ tab.published }}/{{ tab.total }} سکشن منتشر</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-grid dashboard-kpi-grid dashboard-home-kpis dashboard-builder-kpis">
+  <article class="dashboard-kpi-card accent-gold">
+    <span>صفحه انتخاب‌شده</span>
+    <strong>{{ selected_page_label }}</strong>
+    <p>سکشن‌های همین صفحه از این بخش کنترل می‌شوند.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-green">
+    <span>سکشن‌های منتشر</span>
+    <strong>{{ published_count }}</strong>
+    <p>فقط سکشن‌های فعال و منتشر در سایت عمومی استفاده می‌شوند.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-blue">
+    <span>آیتم‌های فعال / کل</span>
+    <strong>{{ active_item_total }}/{{ item_total }}</strong>
+    <p>مجموع آیتم‌های محتوایی داخل سکشن‌های این صفحه.</p>
+  </article>
+  <article class="dashboard-kpi-card accent-rose">
+    <span>پیش‌نمایش صفحه</span>
+    <strong>↗</strong>
+    <p><a href="{{ preview_url }}" target="_blank" class="dashboard-inline-link">مشاهده در سایت</a></p>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-builder-layout">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>افزودن سکشن جدید</h2>
+        <p>برای سکشن‌های سفارشی یا سکشن‌هایی که بعداً در قالب پیاده‌سازی می‌شوند، یک رکورد مدیریتی بساز.</p>
+      </div>
+    </div>
+    <form method="post" class="dashboard-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_builder_section">
+      <input type="hidden" name="selected_page" value="{{ selected_page }}">
+      {% if add_section_form.non_field_errors %}
+        <div class="dashboard-form-errors">{{ add_section_form.non_field_errors }}</div>
+      {% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in add_section_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button class="dashboard-btn primary" type="submit">افزودن سکشن</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="dashboard-panel dashboard-builder-guide">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>راهنمای انتشار</h2>
+        <p>این صفحه‌ساز فعلاً سبک است و با مدل‌های CMS موجود کار می‌کند؛ برای ویرایش متن کارت‌ها از دکمه «ویرایش آیتم‌ها» استفاده کن.</p>
+      </div>
+    </div>
+    <div class="dashboard-guide-steps">
+      <div><strong>۱</strong><span>سکشن‌ها را با عنوان فارسی و ترتیب مناسب مرتب کن.</span></div>
+      <div><strong>۲</strong><span>اگر سکشنی نباید در سایت دیده شود، انتشار آن را خاموش کن.</span></div>
+      <div><strong>۳</strong><span>برای ویرایش محتوای داخل سکشن، وارد صفحه اول یا صفحات داخلی شو.</span></div>
+      <div><strong>۴</strong><span>بعد از ذخیره، صفحه عمومی را با دکمه پیش‌نمایش بررسی کن.</span></div>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-panel dashboard-builder-sections-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>سکشن‌های {{ selected_page_label }}</h2>
+      <p>ترتیب، چیدمان مدیریتی، وضعیت فعال بودن و انتشار هر سکشن را کنترل کن.</p>
+    </div>
+    <a href="{{ preview_url }}" target="_blank" class="dashboard-btn ghost small">پیش‌نمایش صفحه</a>
+  </div>
+
+  {% if section_rows %}
+    <div class="dashboard-builder-section-list">
+      {% for row in section_rows %}
+        <form method="post" class="dashboard-builder-section-card{% if not row.object.is_published %} is-draft{% endif %}{% if not row.object.is_active %} is-muted{% endif %}" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_builder_section">
+          <input type="hidden" name="selected_page" value="{{ selected_page }}">
+          <input type="hidden" name="section_id" value="{{ row.object.id }}">
+
+          <header class="builder-section-card-head">
+            <div>
+              <strong>{{ row.object.title }}</strong>
+              <small>کد سکشن: {{ row.object.section_key }} · {{ row.object.get_layout_display }} · ترتیب {{ row.object.sort_order }}</small>
+            </div>
+            <div class="builder-section-badges">
+              <span class="dashboard-status-pill{% if row.object.is_active %} active{% endif %}">{% if row.object.is_active %}فعال{% else %}غیرفعال{% endif %}</span>
+              <span class="dashboard-status-pill{% if row.object.is_published %} active{% endif %}">{% if row.object.is_published %}منتشر{% else %}پیش‌نویس{% endif %}</span>
+            </div>
+          </header>
+
+          <div class="builder-section-stats">
+            <div><span>آیتم فعال</span><strong>{{ row.item_active }}</strong></div>
+            <div><span>کل آیتم‌ها</span><strong>{{ row.item_total }}</strong></div>
+            <div><span>آخرین تغییر</span><strong>{{ row.object.updated_at|date:'Y/m/d' }}</strong></div>
+          </div>
+
+          {% if row.form.non_field_errors %}
+            <div class="dashboard-form-errors">{{ row.form.non_field_errors }}</div>
+          {% endif %}
+          <div class="dashboard-form-grid three compact">
+            {% for field in row.form %}
+              <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+              </label>
+            {% endfor %}
+          </div>
+
+          <div class="dashboard-form-actions compact-actions">
+            <button class="dashboard-btn primary small" type="submit">ذخیره سکشن</button>
+            <button class="dashboard-btn ghost small" type="submit" name="action" value="toggle_builder_section">
+              {% if row.object.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}
+            </button>
+            <button class="dashboard-btn ghost small" type="submit" name="action" value="publish_builder_section">
+              {% if row.object.is_published %}تبدیل به پیش‌نویس{% else %}انتشار{% endif %}
+            </button>
+            <a href="{{ row.edit_url }}" class="dashboard-btn ghost small">ویرایش آیتم‌ها</a>
+            <button class="dashboard-btn danger small" type="submit" name="action" value="delete_builder_section" onclick="return confirm('اگر این سکشن آیتم نداشته باشد حذف می‌شود. ادامه می‌دهید؟')">حذف سکشن خالی</button>
+          </div>
+        </form>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="dashboard-empty-state">
+      <strong>هنوز سکشنی برای این صفحه ثبت نشده است.</strong>
+      <p>با فرم بالا اولین سکشن را بساز یا migrationها را اجرا کن تا سکشن‌های پیش‌فرض ساخته شوند.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

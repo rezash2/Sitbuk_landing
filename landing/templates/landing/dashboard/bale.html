@@ -24,6 +24,11 @@
   <div class="dashboard-bale-actions-row">
     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="test_connection"><button class="dashboard-btn ghost small" type="submit">تست اتصال ربات</button></form>
     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="poll_now"><button class="dashboard-btn ghost small" type="submit">بررسی دستی پیام‌های جدید</button></form>
+    <a class="dashboard-btn primary small" href="{% url 'dashboard_bale_scenarios' %}">مدیریت سناریوها و پاسخ‌های آماده</a>
+  </div>
+  <div class="dashboard-bale-health-grid compact">
+    <article><span>سناریوهای فعال</span><strong>{{ active_scenario_total }}</strong><small>از {{ scenario_total }} سناریوی تعریف‌شده</small></article>
+    <article><span>قالب‌های پاسخ</span><strong>{{ reply_template_total }}</strong><small>برای ارسال سریع اپراتور از جزئیات گفتگو</small></article>
   </div>
   <form method="post" class="dashboard-form dashboard-content-form dashboard-bale-settings-form">
     {% csrf_token %}

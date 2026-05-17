@@ -46,7 +46,7 @@
           </div>
           <div class="dashboard-user-card">
             <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-            <small>کاربر مجاز پنل</small>
+            <small>{{ dashboard_user_label|default:'کاربر مجاز پنل' }}</small>
           </div>
         </header>
         {% if messages %}

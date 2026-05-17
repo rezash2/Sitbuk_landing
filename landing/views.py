@@ -30,7 +30,7 @@ from .data import (
     pricing_context,
 )
 from .forms import ContactMessageForm, DemoRequestForm, LeadRequestForm, NewsletterSubscriptionForm
-from .models import BlogPost, DemoRequest, FAQItem, HomeContentItem, HomeHeroContent, PageContent, PageContentItem, SiteSettings
+from .models import BlogPost, DemoAccessEvent, DemoRequest, FAQItem, HomeContentItem, HomeHeroContent, PageBuilderSection, PageContent, PageContentItem, PricingComparisonRow, PricingPlan, SiteSettings
 
 
 SEO_DEFAULT_KEYWORDS = 'سیتباک, نرم افزار سازمانی, اتوماسیون کسب و کار, CRM, ERP, مدیریت فرآیندها'
@@ -66,6 +66,29 @@ def _demo_access_hours() -> int:
         return max(1, int(getattr(settings, 'DEMO_ACCESS_TOKEN_HOURS', 72)))
     except (TypeError, ValueError):
         return 72
+
+
+def _request_ip(request) -> str:
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '') or ''
+
+
+def _record_demo_event(request, demo_request: DemoRequest, event_type: str, *, target: str = '', note: str = '') -> None:
+    try:
+        DemoAccessEvent.objects.create(
+            demo_request=demo_request,
+            event_type=event_type,
+            target=target or '',
+            ip_address=_request_ip(request) or None,
+            user_agent=(request.META.get('HTTP_USER_AGENT', '') or '')[:1000],
+            referrer=(request.META.get('HTTP_REFERER', '') or '')[:255],
+            note=note,
+        )
+    except (OperationalError, ProgrammingError, ValueError):
+        # The public demo link must keep working even before the Stage 58 migration is applied.
+        return
 
 
 def _build_external_demo_url(demo_request: DemoRequest, target: str) -> str:
@@ -261,11 +284,24 @@ def _build_base_context(active_page: str, page_title: str, page_description: str
 
 
 
+def _published_builder_sections(page_key: str):
+    try:
+        rows = list(PageBuilderSection.objects.filter(page_key=page_key).values('section_key', 'is_active', 'is_published'))
+    except (OperationalError, ProgrammingError):
+        return None
+    if not rows:
+        return None
+    return {row['section_key'] for row in rows if row['is_active'] and row['is_published']}
+
+
 def _home_cms_context() -> dict:
     """Return homepage CMS overrides while keeping static data as a safe fallback."""
     try:
         hero = HomeHeroContent.get_solo()
         items = list(HomeContentItem.objects.filter(is_active=True).order_by('section', 'sort_order', 'id'))
+        published_sections = _published_builder_sections(PageBuilderSection.PAGE_HOME)
+        if published_sections is not None:
+            items = [item for item in items if item.section in published_sections]
     except (OperationalError, ProgrammingError):
         return {}
 
@@ -330,6 +366,9 @@ def _home_cms_context() -> dict:
 def _page_item_groups(page_key: str) -> dict:
     try:
         items = list(PageContentItem.objects.filter(page_key=page_key, is_active=True).order_by('section', 'sort_order', 'id'))
+        published_sections = _published_builder_sections(page_key)
+        if published_sections is not None:
+            items = [item for item in items if item.section in published_sections]
     except (OperationalError, ProgrammingError):
         return {}
     groups = {}
@@ -479,6 +518,74 @@ def _internal_page_cms_context(page_key: str) -> dict:
             data['faq_categories'] = [row[0] for row in rows]
 
     return data
+
+
+def _pricing_dashboard_models_context(page_key: str) -> dict:
+    """Load real Pricing/Plans dashboard models and override static fallback data when available."""
+    try:
+        if page_key == PageContent.PAGE_PRICING:
+            data = {}
+            plans = list(PricingPlan.objects.filter(context=PricingPlan.CONTEXT_PRICING_CARD, is_active=True).order_by('sort_order', 'id'))
+            if plans:
+                data['pricing_cards'] = [
+                    {
+                        'name': plan.name,
+                        'tag': plan.tag,
+                        'price': (plan.monthly_price, plan.annual_price or plan.monthly_price),
+                        'accent': plan.accent or 'gold',
+                        'users': plan.users_label,
+                        'desc': plan.description,
+                        'features': plan.features,
+                        'cta': plan.cta_label or 'انتخاب پلن',
+                    }
+                    for plan in plans
+                ]
+            rows = list(PricingComparisonRow.objects.filter(table_key=PricingComparisonRow.TABLE_PRICING, is_active=True).order_by('sort_order', 'id'))
+            if rows:
+                data['plan_rows'] = [
+                    {
+                        'label': row.label,
+                        'marketing': (row.value_1, row.annual_value_1 or row.value_1),
+                        'manufacturing': (row.value_2, row.annual_value_2 or row.value_2),
+                        'services': (row.value_3, row.annual_value_3 or row.value_3),
+                        'vip': (row.value_4, row.annual_value_4 or row.value_4),
+                    }
+                    for row in rows
+                ]
+            package_rows = list(PricingComparisonRow.objects.filter(table_key=PricingComparisonRow.TABLE_PACKAGE, is_active=True).order_by('sort_order', 'id'))
+            if package_rows:
+                data['package_rows'] = [(row.label, row.value_1, row.value_2, row.value_3, row.value_4) for row in package_rows]
+            return data
+
+        if page_key == PageContent.PAGE_PLANS:
+            data = {}
+            plan_columns = list(PricingPlan.objects.filter(context=PricingPlan.CONTEXT_PLAN_COLUMN, is_active=True).order_by('sort_order', 'id'))
+            if plan_columns:
+                data['plans'] = [
+                    {
+                        'name': plan.name,
+                        'subtitle': plan.subtitle,
+                        'price': (plan.monthly_price, plan.annual_price or plan.monthly_price),
+                        'color': plan.accent or 'gold',
+                        'button': plan.cta_label or 'انتخاب پلن',
+                    }
+                    for plan in plan_columns
+                ]
+            rows = list(PricingComparisonRow.objects.filter(table_key=PricingComparisonRow.TABLE_PLANS, is_active=True).order_by('sort_order', 'id'))
+            if rows:
+                grouped: dict[tuple[str, str], list] = {}
+                order: list[tuple[str, str]] = []
+                for row in rows:
+                    key = (row.group_title or 'اطلاعات پلن', row.group_icon or 'layers')
+                    if key not in grouped:
+                        grouped[key] = []
+                        order.append(key)
+                    grouped[key].append((row.label, row.values(6)))
+                data['comparison_sections'] = [(title, grouped[(title, icon)], icon) for title, icon in order]
+            return data
+    except (OperationalError, ProgrammingError):
+        return {}
+    return {}
 
 def _forms_context(source_page: str):
     return {
@@ -739,6 +846,7 @@ def case_study(request):
 def pricing(request):
     data = pricing_context()
     data.update(_internal_page_cms_context(PageContent.PAGE_PRICING))
+    data.update(_pricing_dashboard_models_context(PageContent.PAGE_PRICING))
     data.setdefault('seo_keywords', 'قیمت سیتباک, تعرفه سیتباک, قیمت CRM, قیمت ERP')
     return _render_page(request, 'landing/pricing.html', 'pricing', data)
 
@@ -746,6 +854,7 @@ def pricing(request):
 def plans(request):
     data = plans_context()
     data.update(_internal_page_cms_context(PageContent.PAGE_PLANS))
+    data.update(_pricing_dashboard_models_context(PageContent.PAGE_PLANS))
     data.setdefault('seo_keywords', 'پلن های سیتباک, مقایسه پلن ها, تعرفه سازمانی')
     return _render_page(request, 'landing/plans.html', 'plans', data)
 
@@ -956,6 +1065,7 @@ def submit_demo_request(request):
 def demo_access(request, token: str):
     demo_request = get_object_or_404(DemoRequest, demo_access_token=token)
     is_expired = not demo_request.is_demo_link_active
+    _record_demo_event(request, demo_request, DemoAccessEvent.EVENT_VIEW, note='مشاهده صفحه انتخاب دمو' if not is_expired else 'مشاهده لینک منقضی‌شده')
     target_cards = []
     for target in demo_request.allowed_demo_targets:
         target_cards.append({
@@ -1001,6 +1111,7 @@ def demo_launch(request, token: str, target: str):
     demo_request.demo_entered_at = timezone.now()
     demo_request.status = DemoRequest.STATUS_ENTERED
     demo_request.save(update_fields=['demo_launch_count', 'last_demo_target', 'demo_entered_at', 'status', 'updated_at'])
+    _record_demo_event(request, demo_request, DemoAccessEvent.EVENT_LAUNCH, target=target, note=f'ورود به {_demo_target_label(target)}')
     return redirect(external_url)
 
 
