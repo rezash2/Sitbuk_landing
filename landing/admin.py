@@ -20,6 +20,7 @@ from .models import (
     PricingComparisonRow,
     PricingPlan,
     SiteSettings,
+    SiteRedirect,
 )
 
 
@@ -301,6 +302,16 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         }),
     )
 
+
+
+
+@admin.register(SiteRedirect)
+class SiteRedirectAdmin(admin.ModelAdmin):
+    list_display = ('source_path', 'target_url', 'status_code', 'is_active', 'hit_count', 'last_used_at', 'updated_at')
+    list_editable = ('status_code', 'is_active')
+    search_fields = ('source_path', 'target_url', 'internal_note')
+    list_filter = ('status_code', 'is_active', 'updated_at')
+    readonly_fields = ('hit_count', 'last_used_at', 'created_at', 'updated_at')
 
 @admin.register(HomeHeroContent)
 class HomeHeroContentAdmin(admin.ModelAdmin):

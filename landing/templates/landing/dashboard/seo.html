@@ -25,11 +25,121 @@
       <small>قابل بررسی برای Article Schema</small>
     </article>
     <article>
+      <span>ریدایرکت‌های فعال</span>
+      <strong>{{ active_redirects_count }}</strong>
+      <small>انتقال‌های SEO قابل کنترل از داشبورد</small>
+    </article>
+    <article>
       <span>وضعیت تنظیمات عمومی</span>
       <strong>{% if settings_ready %}آماده{% else %}نیازمند تکمیل{% endif %}</strong>
       <small>meta پیش‌فرض و OG image</small>
     </article>
   </div>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-seo-tools-grid">
+  <article class="dashboard-panel dashboard-seo-status-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>چک‌لیست سلامت SEO</h2>
+        <p>موارد مهمی که قبل از انتشار نهایی باید زیر نظر بمانند.</p>
+      </div>
+    </div>
+    <div class="dashboard-kpi-stack">
+      {% for row in seo_health_rows %}
+        <div class="dashboard-kpi-line">
+          <div>
+            <strong>{{ row.title }}</strong>
+            <small>{{ row.hint }}</small>
+          </div>
+          <b>{{ row.value }}</b>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+  <article class="dashboard-panel dashboard-seo-status-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>کنترل سریع Sitemap</h2>
+        <p>آدرس‌های مهمی که در sitemap عمومی یا ساختار ایندکس سایت دیده می‌شوند.</p>
+      </div>
+      <a href="{{ public_sitemap_url }}" target="_blank" class="dashboard-btn ghost small">باز کردن sitemap</a>
+    </div>
+    <div class="dashboard-table-wrap compact">
+      <table class="dashboard-table dashboard-seo-table">
+        <thead><tr><th>عنوان</th><th>نوع</th><th>وضعیت</th></tr></thead>
+        <tbody>
+          {% for row in sitemap_rows|slice:':10' %}
+            <tr>
+              <td><a href="{{ row.url }}" target="_blank" class="dashboard-inline-link">{{ row.title }}</a></td>
+              <td>{{ row.type }}</td>
+              <td><span class="dashboard-status-pill active">{{ row.status }}</span></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="dashboard-empty">بعد از اجرای migration و تولید محتوا، آدرس‌ها نمایش داده می‌شوند.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<section class="dashboard-grid dashboard-two-col dashboard-redirect-grid">
+  <article class="dashboard-panel dashboard-form-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>افزودن ریدایرکت SEO</h2>
+        <p>برای آدرس‌های قدیمی، کمپین‌ها یا تغییر مسیر صفحات، ریدایرکت 301/302 تعریف کن.</p>
+      </div>
+    </div>
+    <form method="post" class="dashboard-form dashboard-seo-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_redirect">
+      {% if redirect_form.non_field_errors %}<div class="dashboard-form-errors">{{ redirect_form.non_field_errors }}</div>{% endif %}
+      <div class="dashboard-form-grid two compact">
+        {% for field in redirect_form %}
+          <label class="dashboard-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      <div class="dashboard-form-actions">
+        <button type="submit" class="dashboard-btn primary">ذخیره ریدایرکت</button>
+      </div>
+    </form>
+  </article>
+  <article class="dashboard-panel dashboard-seo-status-panel">
+    <div class="dashboard-panel-head large">
+      <div>
+        <h2>ریدایرکت‌های ثبت‌شده</h2>
+        <p>ریدایرکت‌ها با middleware سایت اعمال می‌شوند و تعداد استفاده آن‌ها ثبت می‌شود.</p>
+      </div>
+    </div>
+    <div class="dashboard-table-wrap">
+      <table class="dashboard-table dashboard-seo-table">
+        <thead><tr><th>مسیر قدیمی</th><th>مقصد</th><th>کد</th><th>استفاده</th><th>عملیات</th></tr></thead>
+        <tbody>
+          {% for item in redirect_rows %}
+            <tr>
+              <td><code>{{ item.source_path }}</code></td>
+              <td><small>{{ item.target_url }}</small></td>
+              <td>{{ item.status_code }}</td>
+              <td>{{ item.hit_count }}</td>
+              <td>
+                <form method="post" class="dashboard-inline-form">{% csrf_token %}<input type="hidden" name="action" value="toggle_redirect"><input type="hidden" name="redirect_id" value="{{ item.id }}"><button class="dashboard-inline-link" type="submit">{% if item.is_active %}غیرفعال{% else %}فعال{% endif %}</button></form>
+                <form method="post" class="dashboard-inline-form">{% csrf_token %}<input type="hidden" name="action" value="delete_redirect"><input type="hidden" name="redirect_id" value="{{ item.id }}"><button class="dashboard-inline-link danger" type="submit">حذف</button></form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="dashboard-empty">هنوز ریدایرکتی ثبت نشده است.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
 </section>
 
 <section class="dashboard-grid dashboard-two-col dashboard-seo-top-grid">

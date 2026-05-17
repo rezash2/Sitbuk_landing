@@ -48,6 +48,7 @@ from .models import (
     PricingComparisonRow,
     PricingPlan,
     SiteSettings,
+    SiteRedirect,
 )
 
 
@@ -679,6 +680,7 @@ class BlogPostDashboardForm(DashboardModelFormMixin, forms.ModelForm):
     textarea_rows = {
         'summary': 4,
         'content': 12,
+        'editor_note': 4,
         'seo_description': 3,
     }
 
@@ -688,8 +690,13 @@ class BlogPostDashboardForm(DashboardModelFormMixin, forms.ModelForm):
             'title',
             'slug',
             'category',
+            'content_status',
+            'target_keyword',
             'summary',
             'content',
+            'editor_note',
+            'cta_label',
+            'cta_url',
             'reading_time',
             'accent',
             'published_at',
@@ -708,6 +715,11 @@ class BlogPostDashboardForm(DashboardModelFormMixin, forms.ModelForm):
         help_texts = {
             'slug': 'آدرس مقاله در URL. اگر خالی بماند از عنوان ساخته می‌شود.',
             'category': 'مثلاً CRM، ERP، پیاده‌سازی، فروش یا مدیریت.',
+            'content_status': 'وضعیت داخلی تولید محتوا؛ مستقل از انتشار عمومی مقاله است.',
+            'target_keyword': 'کلمه یا عبارت اصلی که مقاله برای آن نوشته می‌شود.',
+            'editor_note': 'این یادداشت فقط داخل داشبورد دیده می‌شود و در سایت عمومی نمایش ندارد.',
+            'cta_label': 'متن دکمه انتهای مقاله؛ مثل درخواست دمو یا مشاوره رایگان.',
+            'cta_url': 'لینک دکمه انتهای مقاله. اگر خالی باشد دکمه در قالب‌های آینده نمایش داده نمی‌شود.',
             'accent': 'gold، blue، green، rose یا هر کد کوتاه طراحی.',
             'og_image': 'نمونه: /static/landing/images/home_story_sitbuk.png یا landing/images/....',
             'canonical_url': 'در حالت عادی خالی بماند؛ فقط برای URL اختصاصی استفاده کن.',
@@ -740,12 +752,14 @@ class BlogPostDashboardForm(DashboardModelFormMixin, forms.ModelForm):
 
 
 class FAQDashboardForm(DashboardModelFormMixin, forms.ModelForm):
-    textarea_rows = {'answer': 6}
+    textarea_rows = {'answer': 6, 'internal_note': 4}
 
     class Meta:
         model = FAQItem
-        fields = ['question', 'answer', 'sort_order', 'is_active']
+        fields = ['category', 'question', 'answer', 'internal_note', 'sort_order', 'is_active']
         help_texts = {
+            'category': 'مثلاً عمومی، قیمت‌گذاری، دمو، پشتیبانی یا پیاده‌سازی.',
+            'internal_note': 'یادداشت داخلی تیم محتوا؛ در سایت عمومی نمایش داده نمی‌شود.',
             'sort_order': 'عدد کوچک‌تر زودتر در صفحه FAQ نمایش داده می‌شود.',
             'is_active': 'اگر خاموش باشد، سوال در سایت عمومی نمایش داده نمی‌شود.',
         }
@@ -794,6 +808,43 @@ class SiteSettingsDashboardForm(DashboardModelFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._apply_dashboard_widgets()
+
+
+
+class SiteRedirectDashboardForm(DashboardModelFormMixin, forms.ModelForm):
+    textarea_rows = {'internal_note': 2}
+
+    class Meta:
+        model = SiteRedirect
+        fields = ['source_path', 'target_url', 'status_code', 'internal_note', 'is_active']
+        help_texts = {
+            'source_path': 'نمونه: /old-page یا /pricing-old؛ مسیر باید با / شروع شود.',
+            'target_url': 'نمونه: /pricing/ یا یک آدرس کامل https://...',
+            'status_code': 'برای انتقال دائمی معمولاً 301 انتخاب شود.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_dashboard_widgets()
+
+    def clean_source_path(self):
+        value = (self.cleaned_data.get('source_path') or '').strip()
+        if not value:
+            return value
+        if not value.startswith('/'):
+            value = f'/{value}'
+        if len(value) > 1:
+            value = value.rstrip('/')
+        blocked = ('/dashboard', '/admin', '/static', '/media', '/forms', '/bale')
+        if value.startswith(blocked):
+            raise forms.ValidationError('برای مسیرهای مدیریتی، فایل‌های static/media یا فرم‌ها ریدایرکت تعریف نکنید.')
+        return value
+
+    def clean_target_url(self):
+        value = (self.cleaned_data.get('target_url') or '').strip()
+        if value and not (value.startswith('/') or value.startswith('http://') or value.startswith('https://')):
+            raise forms.ValidationError('مقصد باید با / یا http/https شروع شود.')
+        return value
 
 
 class PageSEODashboardForm(DashboardModelFormMixin, forms.ModelForm):
@@ -1093,8 +1144,8 @@ DASHBOARD_IMPROVEMENT_PHASES: tuple[dict[str, Any], ...] = (
     },
     {
         'stage': 'Stage 61',
-        'title': 'ویرایشگر حرفه‌ای بلاگ و FAQ',
-        'status': 'مرحله بعدی',
+        'title': 'Content Studio بلاگ و FAQ',
+        'status': 'انجام شده در این نسخه',
         'priority': 'متوسط',
         'summary': 'بخش محتوا باید برای تولید مقاله، FAQ، دسته‌بندی و SEO آماده‌تر شود.',
         'tasks': [
@@ -1108,7 +1159,7 @@ DASHBOARD_IMPROVEMENT_PHASES: tuple[dict[str, Any], ...] = (
     {
         'stage': 'Stage 62',
         'title': 'ابزارهای SEO، Sitemap و Redirect',
-        'status': 'برنامه‌ریزی شده',
+        'status': 'مرحله بعدی',
         'priority': 'متوسط',
         'summary': 'SEO فعلی باید به ابزار کنترل سلامت صفحات، canonical، robots، sitemap و redirectها مجهز شود.',
         'tasks': [
@@ -2843,6 +2894,7 @@ def _filtered_blog_posts(request: HttpRequest):
     category = _get_query_param(request, 'category')
     publish_state = _get_query_param(request, 'publish_state')
     featured = _get_query_param(request, 'featured')
+    content_status = _get_query_param(request, 'content_status')
 
     if query:
         queryset = queryset.filter(
@@ -2851,6 +2903,8 @@ def _filtered_blog_posts(request: HttpRequest):
             | Q(category__icontains=query)
             | Q(summary__icontains=query)
             | Q(content__icontains=query)
+            | Q(target_keyword__icontains=query)
+            | Q(editor_note__icontains=query)
             | Q(seo_title__icontains=query)
             | Q(seo_keywords__icontains=query)
         )
@@ -2864,6 +2918,8 @@ def _filtered_blog_posts(request: HttpRequest):
         queryset = queryset.filter(is_featured=True)
     elif featured == 'no':
         queryset = queryset.filter(is_featured=False)
+    if content_status:
+        queryset = queryset.filter(content_status=content_status)
     return queryset
 
 
@@ -2871,8 +2927,11 @@ def _filtered_faq_items(request: HttpRequest):
     queryset = FAQItem.objects.all().order_by('sort_order', 'id')
     query = _get_query_param(request, 'q')
     active_state = _get_query_param(request, 'active_state')
+    category = _get_query_param(request, 'faq_category')
     if query:
-        queryset = queryset.filter(Q(question__icontains=query) | Q(answer__icontains=query))
+        queryset = queryset.filter(Q(question__icontains=query) | Q(answer__icontains=query) | Q(category__icontains=query) | Q(internal_note__icontains=query))
+    if category:
+        queryset = queryset.filter(category=category)
     if active_state == 'active':
         queryset = queryset.filter(is_active=True)
     elif active_state == 'inactive':
@@ -2885,6 +2944,68 @@ def _blog_categories() -> list[str]:
         return list(BlogPost.objects.order_by('category').values_list('category', flat=True).distinct())
     except (OperationalError, ProgrammingError):
         return []
+
+
+def _faq_categories() -> list[str]:
+    try:
+        return list(FAQItem.objects.exclude(category='').order_by('category').values_list('category', flat=True).distinct())
+    except (OperationalError, ProgrammingError):
+        return []
+
+
+def _content_status_options() -> list[dict[str, str]]:
+    return [{'value': value, 'label': label} for value, label in BlogPost.CONTENT_STATUS_CHOICES]
+
+
+def _content_seo_score(post: BlogPost) -> int:
+    score = 0
+    if post.seo_title:
+        score += 20
+    if post.seo_description:
+        score += 20
+    if post.target_keyword:
+        score += 15
+    if post.summary and len(post.summary) >= 90:
+        score += 15
+    if post.content and len(post.content) >= 700:
+        score += 15
+    if post.og_image:
+        score += 10
+    if post.canonical_url or post.robots:
+        score += 5
+    return min(score, 100)
+
+
+def _content_quality_checklist(post: Optional[BlogPost]) -> list[dict[str, Any]]:
+    if not post:
+        return []
+    checks = [
+        ('عنوان مقاله', bool(post.title and len(post.title) >= 12)),
+        ('خلاصه کاربردی', bool(post.summary and len(post.summary) >= 90)),
+        ('متن کامل قابل انتشار', bool(post.content and len(post.content) >= 700)),
+        ('کلمه کلیدی هدف', bool(post.target_keyword)),
+        ('عنوان SEO', bool(post.seo_title)),
+        ('توضیحات SEO', bool(post.seo_description)),
+        ('تصویر OG / اشتراک‌گذاری', bool(post.og_image)),
+        ('CTA انتهای مقاله', bool(post.cta_label and post.cta_url)),
+    ]
+    return [{'label': label, 'done': done} for label, done in checks]
+
+
+def _content_studio_cards() -> list[dict[str, Any]]:
+    try:
+        review_count = BlogPost.objects.filter(content_status__in=[BlogPost.CONTENT_STATUS_REVIEW, BlogPost.CONTENT_STATUS_READY], is_published=False).count()
+        missing_seo = BlogPost.objects.filter(Q(seo_title='') | Q(seo_description='')).count()
+        missing_keyword = BlogPost.objects.filter(target_keyword='').count()
+        uncategorized_faq = FAQItem.objects.filter(Q(category='') | Q(category='عمومی')).count()
+    except (OperationalError, ProgrammingError):
+        review_count = missing_seo = missing_keyword = uncategorized_faq = 0
+    return [
+        {'title': 'آماده بازبینی', 'value': review_count, 'hint': 'مقاله‌های آماده بررسی نهایی یا انتشار', 'accent': 'gold'},
+        {'title': 'SEO ناقص', 'value': missing_seo, 'hint': 'مقاله‌هایی که عنوان یا توضیح SEO کامل ندارند', 'accent': 'rose'},
+        {'title': 'بدون کلمه کلیدی', 'value': missing_keyword, 'hint': 'مقاله‌هایی که keyword هدف ندارند', 'accent': 'blue'},
+        {'title': 'FAQ عمومی', 'value': uncategorized_faq, 'hint': 'سوالاتی که بهتر است دسته‌بندی دقیق‌تر بگیرند', 'accent': 'green'},
+    ]
 
 
 def _content_kpis() -> list[dict[str, Any]]:
@@ -3631,6 +3752,7 @@ def dashboard_content(request: HttpRequest) -> HttpResponse:
             selected_ids = request.POST.getlist('selected_posts')
             publish_state = request.POST.get('bulk_publish_state') or ''
             feature_state = request.POST.get('bulk_feature_state') or ''
+            status_state = request.POST.get('bulk_content_status') or ''
             if not selected_ids:
                 messages.error(request, 'حداقل یک مقاله انتخاب کن.')
                 return redirect(f"{reverse('dashboard_section_content')}?tab=posts")
@@ -3643,6 +3765,9 @@ def dashboard_content(request: HttpRequest) -> HttpResponse:
                 updates['is_featured'] = True
             elif feature_state == 'normal':
                 updates['is_featured'] = False
+            valid_statuses = {value for value, _label in BlogPost.CONTENT_STATUS_CHOICES}
+            if status_state in valid_statuses:
+                updates['content_status'] = status_state
             if updates:
                 BlogPost.objects.filter(id__in=selected_ids).update(**updates)
                 messages.success(request, 'تغییرات گروهی مقاله‌ها ذخیره شد.')
@@ -3652,17 +3777,22 @@ def dashboard_content(request: HttpRequest) -> HttpResponse:
         if action == 'bulk_update_faqs':
             selected_ids = request.POST.getlist('selected_faqs')
             active_state = request.POST.get('bulk_active_state') or ''
+            bulk_category = (request.POST.get('bulk_faq_category') or '').strip()
             if not selected_ids:
                 messages.error(request, 'حداقل یک سوال انتخاب کن.')
                 return redirect(f"{reverse('dashboard_section_content')}?tab=faqs")
+            faq_updates: dict[str, Any] = {}
             if active_state == 'active':
-                FAQItem.objects.filter(id__in=selected_ids).update(is_active=True)
-                messages.success(request, 'سوالات انتخاب‌شده فعال شدند.')
+                faq_updates['is_active'] = True
             elif active_state == 'inactive':
-                FAQItem.objects.filter(id__in=selected_ids).update(is_active=False)
-                messages.success(request, 'سوالات انتخاب‌شده غیرفعال شدند.')
+                faq_updates['is_active'] = False
+            if bulk_category:
+                faq_updates['category'] = bulk_category
+            if faq_updates:
+                FAQItem.objects.filter(id__in=selected_ids).update(**faq_updates)
+                messages.success(request, 'تغییرات گروهی FAQ ذخیره شد.')
             else:
-                messages.error(request, 'برای تغییر گروهی، وضعیت نمایش را انتخاب کن.')
+                messages.error(request, 'برای تغییر گروهی، وضعیت نمایش یا دسته‌بندی را وارد کن.')
             return redirect(f"{reverse('dashboard_section_content')}?tab=faqs")
         messages.error(request, 'عملیات گروهی معتبر نیست.')
 
@@ -3674,20 +3804,25 @@ def dashboard_content(request: HttpRequest) -> HttpResponse:
     context = _dashboard_context(
         'content',
         dashboard_title='مدیریت بلاگ و FAQ',
-        dashboard_subtitle='ایجاد، ویرایش، انتشار و مدیریت محتوای وبلاگ و سوالات متداول داخل داشبورد اختصاصی.',
-        current_stage='Stage 31',
+        dashboard_subtitle='استودیوی محتوا برای برنامه‌ریزی، SEO، انتشار، دسته‌بندی و مدیریت بلاگ و FAQ.',
+        current_stage='Stage 61',
         active_tab=tab,
         post_page=post_page,
         faq_page=faq_page,
         post_total=posts_queryset.count(),
         faq_total=faqs_queryset.count(),
         content_kpis=_content_kpis(),
+        content_studio_cards=_content_studio_cards(),
         blog_categories=_blog_categories(),
+        faq_categories=_faq_categories(),
+        content_status_options=_content_status_options(),
         query_value=_get_query_param(request, 'q'),
         category_value=_get_query_param(request, 'category'),
         publish_state_value=_get_query_param(request, 'publish_state'),
         featured_value=_get_query_param(request, 'featured'),
+        content_status_value=_get_query_param(request, 'content_status'),
         active_state_value=_get_query_param(request, 'active_state'),
+        faq_category_value=_get_query_param(request, 'faq_category'),
         preview_blog_url=reverse('blog'),
         preview_faq_url=reverse('faq'),
     )
@@ -3721,10 +3856,12 @@ def dashboard_post_create(request: HttpRequest) -> HttpResponse:
         'content',
         dashboard_title='ایجاد مقاله جدید',
         dashboard_subtitle='مقاله مارکتینگ یا آموزشی جدید را بدون ورود به Django Admin ایجاد کن.',
-        current_stage='Stage 31',
+        current_stage='Stage 61',
         form=form,
         post=None,
         mode='create',
+        seo_score=0,
+        content_quality_checklist=[],
     )
     return render(request, 'landing/dashboard/post_form.html', context)
 
@@ -3751,11 +3888,13 @@ def dashboard_post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
         'content',
         dashboard_title=f'ویرایش مقاله: {post.title}',
         dashboard_subtitle='متن، وضعیت انتشار، مطلب ویژه و SEO این مقاله را مدیریت کن.',
-        current_stage='Stage 31',
+        current_stage='Stage 61',
         form=form,
         post=post,
         mode='edit',
         preview_url=post.get_absolute_url() if post.is_published else reverse('blog'),
+        seo_score=_content_seo_score(post),
+        content_quality_checklist=_content_quality_checklist(post),
     )
     return render(request, 'landing/dashboard/post_form.html', context)
 
@@ -3780,10 +3919,11 @@ def dashboard_faq_create(request: HttpRequest) -> HttpResponse:
         'content',
         dashboard_title='ایجاد سوال متداول',
         dashboard_subtitle='سوال جدید را برای صفحه FAQ و Schema سوالات متداول اضافه کن.',
-        current_stage='Stage 31',
+        current_stage='Stage 61',
         form=form,
         faq_item=None,
         mode='create',
+        faq_categories=_faq_categories(),
     )
     return render(request, 'landing/dashboard/faq_form.html', context)
 
@@ -3810,11 +3950,12 @@ def dashboard_faq_edit(request: HttpRequest, faq_id: int) -> HttpResponse:
         'content',
         dashboard_title='ویرایش سوال متداول',
         dashboard_subtitle='متن پاسخ، ترتیب نمایش و فعال بودن سوال را داخل داشبورد اختصاصی مدیریت کن.',
-        current_stage='Stage 31',
+        current_stage='Stage 61',
         form=form,
         faq_item=faq_item,
         mode='edit',
         preview_url=reverse('faq'),
+        faq_categories=_faq_categories(),
     )
     return render(request, 'landing/dashboard/faq_form.html', context)
 
@@ -3938,6 +4079,75 @@ def _llms_preview_lines(request: HttpRequest) -> list[str]:
     ]
 
 
+def _seo_sitemap_rows(request: HttpRequest) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    static_routes = [
+        ('home', 'صفحه اصلی'),
+        ('features', 'امکانات'),
+        ('pricing', 'قیمت‌ها'),
+        ('plans', 'پلن‌ها'),
+        ('about', 'درباره ما'),
+        ('case_study', 'مطالعه موردی'),
+        ('faq', 'FAQ'),
+        ('contact', 'تماس'),
+    ]
+    for route_name, label in static_routes:
+        try:
+            rows.append({
+                'title': label,
+                'type': 'صفحه ثابت',
+                'url': request.build_absolute_uri(reverse(route_name)),
+                'robots': 'index,follow',
+                'status': 'در sitemap',
+            })
+        except Exception:
+            continue
+    try:
+        for post in BlogPost.objects.filter(is_published=True).exclude(robots__icontains='noindex').order_by('-published_at')[:8]:
+            rows.append({
+                'title': post.title,
+                'type': 'مقاله',
+                'url': request.build_absolute_uri(post.get_absolute_url()),
+                'robots': post.robots or 'index,follow',
+                'status': 'در sitemap',
+            })
+    except (OperationalError, ProgrammingError):
+        pass
+    return rows
+
+
+def _seo_health_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    try:
+        rows.extend([
+            {
+                'title': 'صفحات بدون عنوان SEO اختصاصی',
+                'value': PageContent.objects.filter(Q(seo_title='') | Q(seo_title__isnull=True)).count(),
+                'hint': 'برای صفحه‌های مهم بهتر است عنوان اختصاصی ثبت شود.',
+            },
+            {
+                'title': 'صفحات بدون توضیح SEO اختصاصی',
+                'value': PageContent.objects.filter(Q(seo_description='') | Q(seo_description__isnull=True)).count(),
+                'hint': 'توضیح ۱۴۰ تا ۱۶۰ کاراکتری نرخ کلیک را بهتر می‌کند.',
+            },
+            {
+                'title': 'مقاله‌های منتشرشده با SEO ناقص',
+                'value': BlogPost.objects.filter(is_published=True).filter(Q(seo_title='') | Q(seo_description='')).count(),
+                'hint': 'از Content Studio یا همین صفحه تکمیل شود.',
+            },
+            {
+                'title': 'ریدایرکت‌های فعال',
+                'value': SiteRedirect.objects.filter(is_active=True).count(),
+                'hint': 'برای آدرس‌های قدیمی، کمپین‌ها و تغییر مسیرها استفاده می‌شود.',
+            },
+        ])
+    except (OperationalError, ProgrammingError):
+        rows = [
+            {'title': 'وضعیت دیتابیس SEO', 'value': 'نیازمند migrate', 'hint': 'پس از اجرای migration، چک‌لیست کامل فعال می‌شود.'},
+        ]
+    return rows
+
+
 @dashboard_required
 def dashboard_seo(request: HttpRequest) -> HttpResponse:
     """Stage 33: manage global SEO, page metadata and blog SEO inside the custom dashboard."""
@@ -3957,6 +4167,7 @@ def dashboard_seo(request: HttpRequest) -> HttpResponse:
     settings_form = SiteSettingsDashboardForm(instance=settings_obj, prefix='site')
     page_form = PageSEODashboardForm(instance=page_content, prefix='page')
     post_form = BlogPostSEODashboardForm(instance=selected_post, prefix='post') if selected_post else None
+    redirect_form = SiteRedirectDashboardForm(prefix='redirect')
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -3983,6 +4194,26 @@ def dashboard_seo(request: HttpRequest) -> HttpResponse:
                 messages.success(request, 'SEO مقاله انتخاب‌شده ذخیره شد.')
                 return redirect(f"{reverse('dashboard_section_seo')}?page={selected_page_key}&post={selected_post.id}")
             messages.error(request, 'اطلاعات SEO مقاله نیاز به اصلاح دارد.')
+        elif action == 'save_redirect':
+            redirect_form = SiteRedirectDashboardForm(request.POST, prefix='redirect')
+            if redirect_form.is_valid():
+                redirect_form.save()
+                messages.success(request, 'ریدایرکت SEO ذخیره شد.')
+                return redirect('dashboard_section_seo')
+            messages.error(request, 'اطلاعات ریدایرکت نیاز به اصلاح دارد.')
+        elif action == 'toggle_redirect':
+            redirect_obj = SiteRedirect.objects.filter(id=request.POST.get('redirect_id')).first()
+            if redirect_obj:
+                redirect_obj.is_active = not redirect_obj.is_active
+                redirect_obj.save(update_fields=['is_active', 'updated_at'])
+                messages.success(request, 'وضعیت ریدایرکت تغییر کرد.')
+            return redirect('dashboard_section_seo')
+        elif action == 'delete_redirect':
+            redirect_obj = SiteRedirect.objects.filter(id=request.POST.get('redirect_id')).first()
+            if redirect_obj:
+                redirect_obj.delete()
+                messages.success(request, 'ریدایرکت حذف شد.')
+            return redirect('dashboard_section_seo')
 
     try:
         page_status_rows = [
@@ -3998,11 +4229,15 @@ def dashboard_seo(request: HttpRequest) -> HttpResponse:
         latest_posts = list(BlogPost.objects.order_by('-published_at', '-created_at')[:10])
         published_posts_count = BlogPost.objects.filter(is_published=True).count()
         indexed_pages_count = PageContent.objects.exclude(robots__icontains='noindex').count()
+        redirect_rows = list(SiteRedirect.objects.order_by('-updated_at', '-id')[:30])
+        active_redirects_count = SiteRedirect.objects.filter(is_active=True).count()
     except (OperationalError, ProgrammingError):
         page_status_rows = []
         latest_posts = []
+        redirect_rows = []
         published_posts_count = 0
         indexed_pages_count = 0
+        active_redirects_count = 0
 
     preview = _seo_preview_payload(request, settings_obj=settings_obj, page=page_content, post=selected_post)
     page_preview = _seo_preview_payload(request, settings_obj=settings_obj, page=page_content)
@@ -4011,10 +4246,11 @@ def dashboard_seo(request: HttpRequest) -> HttpResponse:
         'seo',
         dashboard_title='SEO و تنظیمات سایت',
         dashboard_subtitle='تنظیمات عمومی سایت، متادیتای صفحات، Open Graph، Schema و SEO مقاله‌ها را از پنل اختصاصی مدیریت کن.',
-        current_stage='Stage 33',
+        current_stage='Stage 62',
         settings_form=settings_form,
         page_form=page_form,
         post_form=post_form,
+        redirect_form=redirect_form,
         selected_page=selected_page_key,
         selected_page_label=page_content.get_page_key_display(),
         page_tabs=_seo_page_tabs(selected_page_key),
@@ -4028,6 +4264,10 @@ def dashboard_seo(request: HttpRequest) -> HttpResponse:
         public_robots_url=reverse('robots_txt'),
         public_llms_url=reverse('llms_txt'),
         public_sitemap_url='/sitemap.xml',
+        sitemap_rows=_seo_sitemap_rows(request),
+        seo_health_rows=_seo_health_rows(),
+        redirect_rows=redirect_rows,
+        active_redirects_count=active_redirects_count,
         settings_ready=bool(settings_obj.default_meta_description and settings_obj.default_og_image),
         indexed_pages_count=indexed_pages_count,
         published_posts_count=published_posts_count,

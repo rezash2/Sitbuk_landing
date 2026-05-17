@@ -17,6 +17,8 @@
         <label class="dashboard-field"><span>{{ form.title.label }}</span>{{ form.title }}{% if form.title.help_text %}<small>{{ form.title.help_text }}</small>{% endif %}</label>
         <label class="dashboard-field"><span>{{ form.slug.label }}</span>{{ form.slug }}{% if form.slug.help_text %}<small>{{ form.slug.help_text }}</small>{% endif %}</label>
         <label class="dashboard-field"><span>{{ form.category.label }}</span>{{ form.category }}{% if form.category.help_text %}<small>{{ form.category.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.content_status.label }}</span>{{ form.content_status }}{% if form.content_status.help_text %}<small>{{ form.content_status.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.target_keyword.label }}</span>{{ form.target_keyword }}{% if form.target_keyword.help_text %}<small>{{ form.target_keyword.help_text }}</small>{% endif %}</label>
         <label class="dashboard-field"><span>{{ form.reading_time.label }}</span>{{ form.reading_time }}</label>
         <label class="dashboard-field"><span>{{ form.accent.label }}</span>{{ form.accent }}{% if form.accent.help_text %}<small>{{ form.accent.help_text }}</small>{% endif %}</label>
         <label class="dashboard-field"><span>{{ form.published_at.label }}</span>{{ form.published_at }}</label>
@@ -25,6 +27,13 @@
       </div>
       <label class="dashboard-field"><span>{{ form.summary.label }}</span>{{ form.summary }}</label>
       <label class="dashboard-field"><span>{{ form.content.label }}</span>{{ form.content }}</label>
+
+      <div class="dashboard-editor-divider"><span>برنامه انتشار و CTA</span></div>
+      <div class="dashboard-form-grid two">
+        <label class="dashboard-field"><span>{{ form.cta_label.label }}</span>{{ form.cta_label }}{% if form.cta_label.help_text %}<small>{{ form.cta_label.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.cta_url.label }}</span>{{ form.cta_url }}{% if form.cta_url.help_text %}<small>{{ form.cta_url.help_text }}</small>{% endif %}</label>
+      </div>
+      <label class="dashboard-field"><span>{{ form.editor_note.label }}</span>{{ form.editor_note }}{% if form.editor_note.help_text %}<small>{{ form.editor_note.help_text }}</small>{% endif %}</label>
 
       <div class="dashboard-editor-divider"><span>SEO مقاله</span></div>
       <div class="dashboard-form-grid two">
@@ -48,7 +57,9 @@
     {% if post %}
       <dl class="dashboard-detail-list">
         <div><dt>شناسه</dt><dd>{{ post.id }}</dd></div>
-        <div><dt>وضعیت</dt><dd>{% if post.is_published %}منتشرشده{% else %}پیش‌نویس{% endif %}</dd></div>
+        <div><dt>وضعیت انتشار</dt><dd>{% if post.is_published %}منتشرشده{% else %}پیش‌نویس{% endif %}</dd></div>
+        <div><dt>وضعیت محتوا</dt><dd>{{ post.get_content_status_display }}</dd></div>
+        <div><dt>امتیاز SEO</dt><dd>{{ seo_score }}٪</dd></div>
         <div><dt>ویژه</dt><dd>{% if post.is_featured %}بله{% else %}خیر{% endif %}</dd></div>
         <div><dt>آخرین ویرایش</dt><dd>{{ post.updated_at|date:'Y/m/d H:i' }}</dd></div>
       </dl>
@@ -59,9 +70,19 @@
     {% else %}
       <div class="dashboard-empty-state mini"><strong>مقاله جدید</strong><p>بعد از ذخیره، امکان تغییر وضعیت و حذف فعال می‌شود.</p></div>
     {% endif %}
+    {% if content_quality_checklist %}
+      <div class="dashboard-note-box muted content-checklist-box">
+        <strong>چک‌لیست آماده‌سازی</strong>
+        <ul class="content-quality-list">
+          {% for check in content_quality_checklist %}
+            <li class="{% if check.done %}done{% endif %}"><span>{% if check.done %}✓{% else %}!{% endif %}</span>{{ check.label }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
     <div class="dashboard-note-box muted">
       <strong>راهنمای انتشار</strong>
-      <p>برای نمایش عمومی مقاله، گزینه منتشر شده را فعال کن. slug باید یکتا باشد. برای SEO بهتر، عنوان و توضیح SEO را جداگانه تکمیل کن.</p>
+      <p>برای نمایش عمومی مقاله، گزینه منتشر شده را فعال کن. وضعیت محتوا برای workflow داخلی است و کمک می‌کند مقاله از ایده تا انتشار کنترل شود.</p>
     </div>
   </aside>
 </section>

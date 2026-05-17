@@ -13,8 +13,12 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="save_faq">
       {% if form.errors %}<div class="dashboard-form-errors">لطفاً خطاهای فرم را بررسی کن: {{ form.errors }}</div>{% endif %}
-      <label class="dashboard-field"><span>{{ form.question.label }}</span>{{ form.question }}</label>
+      <div class="dashboard-form-grid two">
+        <label class="dashboard-field"><span>{{ form.category.label }}</span>{{ form.category }}{% if form.category.help_text %}<small>{{ form.category.help_text }}</small>{% endif %}</label>
+        <label class="dashboard-field"><span>{{ form.question.label }}</span>{{ form.question }}</label>
+      </div>
       <label class="dashboard-field"><span>{{ form.answer.label }}</span>{{ form.answer }}</label>
+      <label class="dashboard-field"><span>{{ form.internal_note.label }}</span>{{ form.internal_note }}{% if form.internal_note.help_text %}<small>{{ form.internal_note.help_text }}</small>{% endif %}</label>
       <div class="dashboard-form-grid two">
         <label class="dashboard-field"><span>{{ form.sort_order.label }}</span>{{ form.sort_order }}{% if form.sort_order.help_text %}<small>{{ form.sort_order.help_text }}</small>{% endif %}</label>
         <label class="dashboard-field checkbox-field"><span>{{ form.is_active.label }}</span>{{ form.is_active }}{% if form.is_active.help_text %}<small>{{ form.is_active.help_text }}</small>{% endif %}</label>
@@ -31,6 +35,7 @@
     {% if faq_item %}
       <dl class="dashboard-detail-list">
         <div><dt>شناسه</dt><dd>{{ faq_item.id }}</dd></div>
+        <div><dt>دسته‌بندی</dt><dd>{{ faq_item.category }}</dd></div>
         <div><dt>ترتیب</dt><dd>{{ faq_item.sort_order }}</dd></div>
         <div><dt>نمایش</dt><dd>{% if faq_item.is_active %}فعال{% else %}غیرفعال{% endif %}</dd></div>
       </dl>
@@ -43,7 +48,7 @@
     {% endif %}
     <div class="dashboard-note-box muted">
       <strong>راهنمای FAQ</strong>
-      <p>سوالات فعال در صفحه FAQ نمایش داده می‌شوند و برای تولید FAQ Schema هم استفاده می‌شوند. ترتیب کمتر بالاتر نمایش داده می‌شود.</p>
+      <p>سوالات فعال در صفحه FAQ نمایش داده می‌شوند و برای تولید FAQ Schema هم استفاده می‌شوند. دسته‌بندی دقیق باعث مدیریت بهتر سوالات در Content Studio می‌شود.</p>
     </div>
   </aside>
 </section>

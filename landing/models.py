@@ -319,12 +319,75 @@ class SiteSettings(models.Model):
         return cls.objects.order_by('id').first()
 
 
+
+
+class SiteRedirect(models.Model):
+    STATUS_301 = 301
+    STATUS_302 = 302
+    STATUS_307 = 307
+    STATUS_308 = 308
+
+    STATUS_CHOICES = (
+        (STATUS_301, '301 - انتقال دائمی'),
+        (STATUS_302, '302 - انتقال موقت'),
+        (STATUS_307, '307 - انتقال موقت با حفظ متد'),
+        (STATUS_308, '308 - انتقال دائمی با حفظ متد'),
+    )
+
+    source_path = models.CharField(max_length=220, unique=True, verbose_name='مسیر قدیمی')
+    target_url = models.CharField(max_length=320, verbose_name='مقصد جدید')
+    status_code = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=STATUS_301, verbose_name='نوع ریدایرکت')
+    internal_note = models.TextField(blank=True, verbose_name='یادداشت داخلی')
+    hit_count = models.PositiveIntegerField(default=0, verbose_name='تعداد استفاده')
+    last_used_at = models.DateTimeField(null=True, blank=True, verbose_name='آخرین استفاده')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['source_path']
+        verbose_name = 'ریدایرکت SEO'
+        verbose_name_plural = 'ریدایرکت‌های SEO'
+        indexes = [
+            models.Index(fields=['source_path', 'is_active'], name='site_redir_src_active_idx'),
+            models.Index(fields=['status_code'], name='site_redir_status_idx'),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.source_path} → {self.target_url}'
+
+    def save(self, *args, **kwargs):
+        if self.source_path and not self.source_path.startswith('/'):
+            self.source_path = f'/{self.source_path}'
+        if self.source_path and len(self.source_path) > 1:
+            self.source_path = self.source_path.rstrip('/')
+        super().save(*args, **kwargs)
+
+
 class BlogPost(models.Model):
+    CONTENT_STATUS_IDEA = 'idea'
+    CONTENT_STATUS_DRAFT = 'draft'
+    CONTENT_STATUS_REVIEW = 'review'
+    CONTENT_STATUS_READY = 'ready'
+    CONTENT_STATUS_ARCHIVED = 'archived'
+    CONTENT_STATUS_CHOICES = (
+        (CONTENT_STATUS_IDEA, 'ایده محتوا'),
+        (CONTENT_STATUS_DRAFT, 'در حال نگارش'),
+        (CONTENT_STATUS_REVIEW, 'نیازمند بازبینی'),
+        (CONTENT_STATUS_READY, 'آماده انتشار'),
+        (CONTENT_STATUS_ARCHIVED, 'آرشیو داخلی'),
+    )
+
     title = models.CharField(max_length=180, verbose_name='عنوان')
     slug = models.SlugField(max_length=180, unique=True, verbose_name='اسلاگ')
     category = models.CharField(max_length=80, verbose_name='دسته‌بندی')
+    content_status = models.CharField(max_length=20, choices=CONTENT_STATUS_CHOICES, default=CONTENT_STATUS_DRAFT, verbose_name='وضعیت تولید محتوا')
+    target_keyword = models.CharField(max_length=120, blank=True, verbose_name='کلمه کلیدی هدف')
     summary = models.TextField(verbose_name='خلاصه')
     content = models.TextField(verbose_name='متن کامل')
+    editor_note = models.TextField(blank=True, verbose_name='یادداشت داخلی سردبیر')
+    cta_label = models.CharField(max_length=80, blank=True, verbose_name='متن دعوت به اقدام')
+    cta_url = models.CharField(max_length=220, blank=True, verbose_name='لینک دعوت به اقدام')
     reading_time = models.PositiveSmallIntegerField(default=5, verbose_name='زمان مطالعه (دقیقه)')
     accent = models.CharField(max_length=24, default='gold', verbose_name='رنگ شاخص')
     seo_title = models.CharField(max_length=220, blank=True, verbose_name='عنوان SEO')
@@ -352,8 +415,10 @@ class BlogPost(models.Model):
 
 
 class FAQItem(models.Model):
+    category = models.CharField(max_length=80, blank=True, default='عمومی', verbose_name='دسته‌بندی')
     question = models.CharField(max_length=220, verbose_name='سوال')
     answer = models.TextField(verbose_name='پاسخ')
+    internal_note = models.TextField(blank=True, verbose_name='یادداشت داخلی')
     sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='ترتیب')
     is_active = models.BooleanField(default=True, verbose_name='فعال')
 

@@ -10,6 +10,31 @@
   {% endfor %}
 </section>
 
+<section class="dashboard-panel content-studio-panel">
+  <div class="dashboard-panel-head large">
+    <div>
+      <h2>Content Studio</h2>
+      <p>نمای عملیاتی تولید محتوا؛ وضعیت آماده‌سازی، SEO، کلمه کلیدی و دسته‌بندی FAQ را سریع کنترل کن.</p>
+    </div>
+    <span class="dashboard-stage-pill">Stage 61</span>
+  </div>
+  <div class="content-studio-grid">
+    {% for card in content_studio_cards %}
+      <article class="content-studio-card accent-{{ card.accent }}">
+        <span>{{ card.title }}</span>
+        <strong>{{ card.value }}</strong>
+        <p>{{ card.hint }}</p>
+      </article>
+    {% endfor %}
+  </div>
+  <div class="content-studio-actions">
+    <a class="dashboard-btn primary small" href="{% url 'dashboard_post_create' %}">ایجاد مقاله</a>
+    <a class="dashboard-btn ghost small" href="{% url 'dashboard_faq_create' %}">ایجاد FAQ</a>
+    <a class="dashboard-btn ghost small" href="{% url 'dashboard_section_content' %}?tab=posts&content_status=review">مقاله‌های نیازمند بازبینی</a>
+    <a class="dashboard-btn ghost small" href="{% url 'dashboard_section_content' %}?tab=faqs&faq_category=عمومی">FAQهای عمومی</a>
+  </div>
+</section>
+
 <section class="dashboard-panel dashboard-content-controls">
   <div class="dashboard-panel-head large">
     <div>
@@ -30,7 +55,7 @@
   <form method="get" class="dashboard-form dashboard-filter-form">
     <input type="hidden" name="tab" value="{{ active_tab }}">
     {% if active_tab == 'posts' %}
-      <div class="dashboard-form-grid four compact">
+      <div class="dashboard-form-grid five compact">
         <label class="dashboard-field"><span>جستجو</span><input class="dashboard-input" type="search" name="q" value="{{ query_value }}" placeholder="عنوان، دسته، خلاصه، SEO..."></label>
         <label class="dashboard-field"><span>دسته‌بندی</span>
           <select class="dashboard-select" name="category">
@@ -52,6 +77,14 @@
             <option value="no" {% if featured_value == 'no' %}selected{% endif %}>معمولی</option>
           </select>
         </label>
+        <label class="dashboard-field"><span>وضعیت محتوا</span>
+          <select class="dashboard-select" name="content_status">
+            <option value="">همه</option>
+            {% for option in content_status_options %}
+              <option value="{{ option.value }}" {% if content_status_value == option.value %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
       </div>
       <div class="dashboard-form-actions">
         <button class="dashboard-btn primary" type="submit">اعمال فیلتر</button>
@@ -60,13 +93,19 @@
         <a class="dashboard-btn ghost" href="{{ preview_blog_url }}" target="_blank">مشاهده وبلاگ</a>
       </div>
     {% else %}
-      <div class="dashboard-form-grid three compact">
+      <div class="dashboard-form-grid four compact">
         <label class="dashboard-field"><span>جستجو</span><input class="dashboard-input" type="search" name="q" value="{{ query_value }}" placeholder="سوال یا پاسخ..."></label>
         <label class="dashboard-field"><span>وضعیت نمایش</span>
           <select class="dashboard-select" name="active_state">
             <option value="">همه</option>
             <option value="active" {% if active_state_value == 'active' %}selected{% endif %}>فعال</option>
             <option value="inactive" {% if active_state_value == 'inactive' %}selected{% endif %}>غیرفعال</option>
+          </select>
+        </label>
+        <label class="dashboard-field"><span>دسته‌بندی</span>
+          <select class="dashboard-select" name="faq_category">
+            <option value="">همه دسته‌ها</option>
+            {% for category in faq_categories %}<option value="{{ category }}" {% if faq_category_value == category %}selected{% endif %}>{{ category }}</option>{% endfor %}
           </select>
         </label>
         <label class="dashboard-field"><span>راهنما</span><input class="dashboard-input" type="text" value="ترتیب کمتر = نمایش بالاتر" readonly></label>
@@ -92,18 +131,21 @@
       <div class="dashboard-bulk-actions">
         <select class="dashboard-select" name="bulk_publish_state"><option value="">وضعیت انتشار</option><option value="published">انتشار</option><option value="draft">پیش‌نویس</option></select>
         <select class="dashboard-select" name="bulk_feature_state"><option value="">وضعیت ویژه</option><option value="featured">ویژه</option><option value="normal">معمولی</option></select>
+        <select class="dashboard-select" name="bulk_content_status"><option value="">وضعیت محتوا</option>{% for option in content_status_options %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}</select>
         <button class="dashboard-btn primary small" type="submit">اعمال</button>
       </div>
     </div>
     <div class="dashboard-table-wrap">
       <table class="dashboard-table dashboard-content-table">
-        <thead><tr><th></th><th>عنوان</th><th>دسته</th><th>انتشار</th><th>ویژه</th><th>زمان مطالعه</th><th>تاریخ انتشار</th><th>SEO</th></tr></thead>
+        <thead><tr><th></th><th>عنوان</th><th>دسته</th><th>وضعیت محتوا</th><th>کلمه کلیدی</th><th>انتشار</th><th>ویژه</th><th>زمان مطالعه</th><th>تاریخ انتشار</th><th>SEO</th></tr></thead>
         <tbody>
           {% for post in post_page.object_list %}
             <tr>
               <td><input type="checkbox" name="selected_posts" value="{{ post.id }}"></td>
               <td><a class="dashboard-row-link" href="{% url 'dashboard_post_edit' post.id %}">{{ post.title }}</a><small>{{ post.slug }}</small></td>
               <td>{{ post.category }}</td>
+              <td><span class="dashboard-status-pill">{{ post.get_content_status_display }}</span></td>
+              <td>{% if post.target_keyword %}{{ post.target_keyword }}{% else %}<span class="dashboard-status-pill">ثبت نشده</span>{% endif %}</td>
               <td>{% if post.is_published %}<span class="dashboard-status-pill active">منتشرشده</span>{% else %}<span class="dashboard-status-pill">پیش‌نویس</span>{% endif %}</td>
               <td>{% if post.is_featured %}<span class="dashboard-priority-pill priority-high">ویژه</span>{% else %}<span class="dashboard-priority-pill priority-normal">معمولی</span>{% endif %}</td>
               <td>{{ post.reading_time }} دقیقه</td>
@@ -111,7 +153,7 @@
               <td>{% if post.seo_title and post.seo_description %}<span class="dashboard-status-pill active">تکمیل</span>{% else %}<span class="dashboard-status-pill">ناقص</span>{% endif %}</td>
             </tr>
           {% empty %}
-            <tr><td colspan="8" class="dashboard-empty">مقاله‌ای مطابق فیلتر فعلی پیدا نشد.</td></tr>
+            <tr><td colspan="10" class="dashboard-empty">مقاله‌ای مطابق فیلتر فعلی پیدا نشد.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -135,23 +177,25 @@
       <div><h2>لیست سوالات متداول</h2><p>سوالات FAQ علاوه بر صفحه FAQ، در Schema ساختاریافته نیز استفاده می‌شوند.</p></div>
       <div class="dashboard-bulk-actions">
         <select class="dashboard-select" name="bulk_active_state"><option value="">وضعیت نمایش</option><option value="active">فعال</option><option value="inactive">غیرفعال</option></select>
+        <input class="dashboard-input" name="bulk_faq_category" placeholder="دسته‌بندی جدید">
         <button class="dashboard-btn primary small" type="submit">اعمال</button>
       </div>
     </div>
     <div class="dashboard-table-wrap">
       <table class="dashboard-table dashboard-content-table">
-        <thead><tr><th></th><th>سوال</th><th>ترتیب</th><th>وضعیت</th><th>خلاصه پاسخ</th></tr></thead>
+        <thead><tr><th></th><th>سوال</th><th>دسته‌بندی</th><th>ترتیب</th><th>وضعیت</th><th>خلاصه پاسخ</th></tr></thead>
         <tbody>
           {% for item in faq_page.object_list %}
             <tr>
               <td><input type="checkbox" name="selected_faqs" value="{{ item.id }}"></td>
               <td><a class="dashboard-row-link" href="{% url 'dashboard_faq_edit' item.id %}">{{ item.question }}</a></td>
+              <td>{{ item.category }}</td>
               <td>{{ item.sort_order }}</td>
               <td>{% if item.is_active %}<span class="dashboard-status-pill active">فعال</span>{% else %}<span class="dashboard-status-pill">غیرفعال</span>{% endif %}</td>
               <td><small>{{ item.answer|truncatechars:120 }}</small></td>
             </tr>
           {% empty %}
-            <tr><td colspan="5" class="dashboard-empty">سوالی مطابق فیلتر فعلی پیدا نشد.</td></tr>
+            <tr><td colspan="6" class="dashboard-empty">سوالی مطابق فیلتر فعلی پیدا نشد.</td></tr>
           {% endfor %}
         </tbody>
       </table>
