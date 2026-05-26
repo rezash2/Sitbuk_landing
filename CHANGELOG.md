@@ -1,4 +1,8 @@
 # CHANGELOG
+## Stage 66 - Header demo CTA merge
+- Merged the two public header CTAs into one button labelled «درخواست دمو رایگان».
+- Updated both desktop header and mobile menu CTA to open the existing demo request modal.
+- Preserved desktop layout, homepage consultation form, video labels removal, mobile two-column product cards, and Stage 65 select font fix.
 
 ## v7
 - افزودن فونت محلی `IRANSansWebFaNum` و لود کامل آن از داخل پروژه بدون CDN
