@@ -1014,6 +1014,17 @@ def submit_lead(request):
     form = LeadRequestForm(request.POST, prefix='lead')
     if form.is_valid():
         lead = form.save(commit=False)
+        business_type = (
+            request.POST.get('lead-business_type')
+            or request.POST.get('business_type')
+            or ''
+        ).strip()[:120]
+        if business_type:
+            note_parts = []
+            if lead.note:
+                note_parts.append(lead.note.strip())
+            note_parts.append(f'نوع کسب‌وکار: {business_type}')
+            lead.note = '\n'.join(part for part in note_parts if part)
         _apply_tracking(lead, _tracking_payload(request), include_utm=True)
         lead.save()
         _notify_new_lead(

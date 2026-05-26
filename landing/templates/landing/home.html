@@ -40,10 +40,6 @@
 
     <div class="hero-visual hero-visual-detail hero-visual-story hero-visual-video" data-reveal>
       <div class="hero-video-frame">
-        <div class="hero-video-label">
-          <span></span>
-          <strong>ویدیو معرفی</strong>
-        </div>
         <video class="hero-video-player" controls preload="metadata" playsinline poster="{% static hero_video_poster %}">
           <source src="{% static 'landing/videos/home-hero.mp4' %}" type="video/mp4">
           مرورگر شما از نمایش ویدیو پشتیبانی نمی‌کند.
@@ -61,6 +57,58 @@
         <p>{{ item.subtitle }}</p>
       </article>
     {% endfor %}
+  </div>
+</section>
+
+<section class="section section-dark home-consultation-section" id="home-consultation" aria-label="فرم مشاوره رایگان سیت‌باک">
+  <div class="container home-consultation-card" data-reveal>
+    <div class="home-consultation-copy">
+      <div class="home-consultation-visual" aria-hidden="true">
+        <span class="consultation-orbit consultation-orbit-one"></span>
+        <span class="consultation-orbit consultation-orbit-two"></span>
+        <span class="consultation-headset">
+          <svg class="icon"><use href="#i-headphones"></use></svg>
+        </span>
+      </div>
+      <div class="home-consultation-text">
+        <h2>برای مشاوره رایگان با کارشناسان سیت‌باک در ارتباط باشید</h2>
+        <p>فرم زیر را تکمیل کنید، کارشناسان ما در اولین فرصت با شما تماس می‌گیرند و بهترین مسیر شروع را پیشنهاد می‌دهند.</p>
+        <div class="home-consultation-points">
+          <span><svg class="icon"><use href="#i-phone"></use></svg><b>پاسخ‌گویی سریع</b></span>
+          <span><svg class="icon"><use href="#i-user-star"></use></svg><b>مشاوره تخصصی</b></span>
+          <span><svg class="icon"><use href="#i-shield"></use></svg><b>راهکار متناسب با نیاز شما</b></span>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'submit_lead' %}" class="home-consultation-form js-ajax-form" data-ajax-form>
+      {% csrf_token %}
+      <input type="hidden" name="page_url" value="{{ request.path }}">
+      <input type="hidden" name="utm_source" value="{{ request.GET.utm_source|default:'' }}">
+      <input type="hidden" name="utm_campaign" value="{{ request.GET.utm_campaign|default:'' }}">
+      <input type="hidden" name="source_page" value="home_consultation">
+      <input type="hidden" name="lead-note" value="">
+      <div class="home-consultation-form-grid">
+        <div class="form-field"><input type="text" name="lead-full_name" placeholder="نام و نام خانوادگی" autocomplete="name" required></div>
+        <div class="form-field"><input type="tel" name="lead-phone" placeholder="شماره تماس" autocomplete="tel" required></div>
+        <div class="form-field"><input type="text" name="lead-company" placeholder="نام شرکت" autocomplete="organization"></div>
+        <div class="form-field">
+          <select name="lead-business_type" aria-label="نوع کسب‌وکار">
+            <option value="" selected>نوع کسب‌وکار</option>
+            <option value="تولیدی">تولیدی</option>
+            <option value="بازرگانی و فروشگاهی">بازرگانی و فروشگاهی</option>
+            <option value="خدماتی">خدماتی</option>
+            <option value="نرم‌افزاری و فناوری">نرم‌افزاری و فناوری</option>
+            <option value="آموزشی">آموزشی</option>
+            <option value="سایر">سایر</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-block home-consultation-submit" type="submit">
+          ثبت درخواست مشاوره
+          <svg class="icon"><use href="#i-mail"></use></svg>
+        </button>
+      </div>
+    </form>
   </div>
 </section>
 
@@ -325,10 +373,6 @@
       <article class="home-video-story-card{% if section.reverse %} is-reversed{% endif %}">
         <div class="home-video-story-media">
           <div class="home-video-story-frame">
-            <div class="home-video-label home-video-story-label">
-              <span></span>
-              <strong>{{ section.duration }}</strong>
-            </div>
             <video class="home-video-story-player" controls preload="metadata" playsinline poster="{% static section.poster %}">
               <source src="{% static section.video %}" type="video/mp4">
               مرورگر شما از نمایش ویدیو پشتیبانی نمی‌کند.
